@@ -1,14 +1,7 @@
-use ExtUtils::MakeMaker;
-eval {
-	require DBI;
-	require DBI::DBD;
-	unless ( $DBI::VERSION >= 1.21 ) {
-		die "Your DBI Version is too old - DBD::SQLite requires at least 1.21";
-	}
-};
-warn $@ if $@;
-use Config;
 use strict;
+use ExtUtils::MakeMaker;
+use Config;
+
 eval {
 	require DBD::SQLite;
 	if ( $DBD::SQLite::VERSION < 1.0 ) {
@@ -53,8 +46,8 @@ my ($force_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
 if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
 	$sqlite_base =~ /=(.*)/;
 	$sqlite_base = $1;
-	$sqlite_lib = File::Spec->catdir($sqlite_base, 'lib');
-	$sqlite_inc = File::Spec->catdir($sqlite_base, 'include');
+	$sqlite_lib = File::Spec->catdir( $sqlite_base, 'lib'     );
+	$sqlite_inc = File::Spec->catdir( $sqlite_base, 'include' );
 }
 if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
 	$force_local =~ /=(.*)/;
@@ -67,7 +60,7 @@ if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
 }
 
 # Now check for a compatible sqlite3
-unless ($force_local) {
+unless ( $force_local ) {
 	my ($dir, $file, $fh, $version);
 	print "Checking installed SQLite version...\n";
 	if ( $sqlite_inc ) {
@@ -109,27 +102,57 @@ unless ($force_local) {
 
 @ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
-my $nlid = $DBI::VERSION > 1.42 ? '' : '-Dno_last_insert_id';
 
-my $libs = '';
-$libs .= "-L$sqlite_lib " if $sqlite_lib;
-$libs .= "-lsqlite3 " unless $force_local;
+
+
+
+#####################################################################
+# Prepare Compiler Options
+
+my @CC_LIBS = ();
+if ( $sqlite_lib ) {
+	push @CC_LIBS, "-L$sqlite_lib";
+}
+unless ( $force_local ) {
+	push @CC_LIBS, '-lsqlite3';
+}
+
+my @CC_INC = (
+	'-I.',
+	'-I$(DBI_INSTARCH_DIR)',
+);
+if ( $sqlite_inc ) {
+	push @INC, "-I$sqlite_inc";
+}
+
+my @CC_DEFINE = (
+	'-DSQLITE_CORE',
+	'-DSQLITE_ENABLE_FTS2',
+	'-DNDEBUG=1',
+	"-DSQLITE_PTR_SZ=$Config{ptrsize}"
+);
+if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
+	push @CC_DEFINE, '-DHAVE_USLEEP=1';
+}
+if ( $DBI::VERSION <= 1.42 ) {
+	push @CC_DEFINE, '-Dno_last_insert_id';
+}
+unless ( $Config{usethreads} ) {
+	push @CC_DEFINE, '-DTHREADSAFE=0';
+}
 
 WriteMakefile(
-	'NAME'          => 'DBD::SQLite',
-	'VERSION_FROM'  => 'lib/DBD/SQLite.pm',
-	'PREREQ_PM'     => { DBI => 1.21 },
-	'OBJECT'        => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
-	$libs ? ('LIBS' => $libs) : (),
-	'OPTIMIZE'      => "-O2",
-	'clean'         => { FILES => 'SQLite.xsi config.h tv.log output' },
-	'PL_FILES'      => {},
-	'EXE_FILES'     => [],
-	'INC'           => '-I. -I$(DBI_INSTARCH_DIR)' . ($sqlite_inc ? " -I$sqlite_inc" : ''),
-	'DEFINE'        => "-DSQLITE_CORE -DSQLITE_ENABLE_FTS2 -DNDEBUG=1 -DSQLITE_PTR_SZ=$Config{ptrsize}" .
-		(($Config{d_usleep} || $Config{osname} =~ m/linux/) ? " -DHAVE_USLEEP=1" : "" ) .
-		($DBI::VERSION > 1.42 ? '' : ' -Dno_last_insert_id') .
-		($Config{usethreads} ? '' : ' -DTHREADSAFE=0'),
+	NAME         => 'DBD::SQLite',
+	VERSION_FROM => 'lib/DBD/SQLite.pm',
+	PREREQ_PM    => { DBI => 1.21 },
+	OBJECT       => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
+	OPTIMIZE     => '-O2',
+	clean        => { FILES => 'SQLite.xsi config.h tv.log output' },
+	PL_FILES     => {},
+	EXE_FILES    => [],
+	INC          => join( ' ', @CC_INC    ),
+	DEFINE       => join( ' ', @CC_DEFINE ),
+	( @CC_LIBS ? join( ' ', @CC_LIBS ) : () ),
 );
 
 package MY;
