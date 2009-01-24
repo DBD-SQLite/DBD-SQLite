@@ -1,19 +1,18 @@
 use ExtUtils::MakeMaker;
 eval {
-    require DBI;
-    require DBI::DBD;
-    die "Your DBI Version is too old - DBD::SQLite requires at least 1.21"
-        unless $DBI::VERSION >= 1.21;
+	require DBI;
+	require DBI::DBD;
+	unless ( $DBI::VERSION >= 1.21 ) {
+		die "Your DBI Version is too old - DBD::SQLite requires at least 1.21";
+	}
 };
-if ($@) {
-    warn $@;
-}
+warn $@ if $@;
 use Config;
 use strict;
 eval {
-    require DBD::SQLite;
-    if ($DBD::SQLite::VERSION < 1.0) {
-        print <<EOT;
+	require DBD::SQLite;
+	if ( $DBD::SQLite::VERSION < 1.0 ) {
+		print <<EOT;
 
 **** WARNING **** WARNING **** WARNING **** WARNING **** WARNING ****
 
@@ -32,11 +31,11 @@ this version against an old SQLite database WILL lead to database
 corruption.
 
 EOT
-        if (prompt("Continue?", "N") !~ /^y/i) {
-            print "Exiting\n";
-            exit -1;
-        }
-    }
+		if ( prompt("Continue?", "N") !~ /^y/i ) {
+			print "Exiting\n";
+			exit(-1);
+		}
+	}
 };
 
 # 2005/6/19, by rjray@blackperl.com
@@ -51,96 +50,96 @@ EOT
 # common places known to Perl or the C compiler.
 require File::Spec;
 my ($force_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
-if ($sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0]) {
-    $sqlite_base =~ /=(.*)/;
-    $sqlite_base = $1;
-    $sqlite_lib = File::Spec->catdir($sqlite_base, 'lib');
-    $sqlite_inc = File::Spec->catdir($sqlite_base, 'include');
+if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
+	$sqlite_base =~ /=(.*)/;
+	$sqlite_base = $1;
+	$sqlite_lib = File::Spec->catdir($sqlite_base, 'lib');
+	$sqlite_inc = File::Spec->catdir($sqlite_base, 'include');
 }
-if ($force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0]) {
-    $force_local =~ /=(.*)/;
-    $force_local = "$1" ? 1 : 0;
-    if ($force_local) {
-        undef $sqlite_lib; # Keep these from making into CFLAGS/LDFLAGS
-        undef $sqlite_inc;
-    }
+if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
+	$force_local =~ /=(.*)/;
+	$force_local = "$1" ? 1 : 0;
+	if ( $force_local ) {
+		# Keep these from making into CFLAGS/LDFLAGS
+		undef $sqlite_lib;
+		undef $sqlite_inc;
+	}
 }
 
-# Now, check for a compatible sqlite3
+# Now check for a compatible sqlite3
 unless ($force_local) {
-    my ($dir, $file, $fh, $version);
-    print "Checking installed SQLite version...\n";
-    if ($sqlite_inc) {
-        open($fh, '< ' . File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
-            or die "Error opening sqlite3.h in $sqlite_inc: $!";
-        while (defined($_ = <$fh>)) {
-            if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
-                $version = $1;
-                last;
-            }
-        }
-        close($fh);
-    } else {
-        # Go hunting for the file (Matt: Add more dirs here as you see fit)
-        for $dir ([ qw(usr include) ], [ qw(usr local include) ]) {
-            $file = File::Spec->catfile('', @$dir, 'sqlite3.h');
-            next unless (-f $file);
-            open($fh, "< $file") or die "Error opening $file: $!";
-            while (defined($_ = <$fh>)) {
-                if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
-                    $version = $1;
-                    last;
-                }
-            }
-            close($fh);
-            last if $version;
-        }
-    }
-    unless ($version && ($version >= 3003009)) {
-        warn "SQLite version must be at least 3.3.9. No header file at that\n";
-        warn "version or higher was found. Using the local version instead.\n";
-        $force_local = 1;
-        undef $sqlite_lib;
-        undef $sqlite_inc;
-    } else {
-        print "Looks good\n";
-    }
+	my ($dir, $file, $fh, $version);
+	print "Checking installed SQLite version...\n";
+	if ( $sqlite_inc ) {
+		open($fh, '< ' . File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
+			or die "Error opening sqlite3.h in $sqlite_inc: $!";
+		while ( defined($_ = <$fh>) ) {
+			if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
+				$version = $1;
+				last;
+			}
+		}
+		close($fh);
+	} else {
+		# Go hunting for the file (Matt: Add more dirs here as you see fit)
+		for $dir ([ qw(usr include) ], [ qw(usr local include) ]) {
+			$file = File::Spec->catfile('', @$dir, 'sqlite3.h');
+			next unless (-f $file);
+			open($fh, "< $file") or die "Error opening $file: $!";
+			while ( defined($_ = <$fh>) ) {
+				if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
+					$version = $1;
+					last;
+				}
+			}
+			close($fh);
+			last if $version;
+		}
+	}
+	unless ( $version && ($version >= 3003009) ) {
+		warn "SQLite version must be at least 3.3.9. No header file at that\n";
+		warn "version or higher was found. Using the local version instead.\n";
+		$force_local = 1;
+		undef $sqlite_lib;
+		undef $sqlite_inc;
+	} else {
+		print "Looks good\n";
+	}
 }
 
-@ARGV = grep(! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV);
+@ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
 my $nlid = $DBI::VERSION > 1.42 ? '' : '-Dno_last_insert_id';
 
 my $libs = '';
-$libs .= "-L$sqlite_lib " if ($sqlite_lib); 
-$libs .= "-lsqlite3 " unless ($force_local);
+$libs .= "-L$sqlite_lib " if $sqlite_lib;
+$libs .= "-lsqlite3 " unless $force_local;
 
 WriteMakefile(
-    'NAME'          => 'DBD::SQLite',
-    'VERSION_FROM'  => 'lib/DBD/SQLite.pm', # finds $VERSION
-    'PREREQ_PM'     => {DBI => 1.21}, # e.g., Module::Name => 1.1
-    'OBJECT'        => ($force_local) ? '$(O_FILES)' : 'SQLite.o dbdimp.o',
-    'INC'           => '-I. -I$(DBI_INSTARCH_DIR)' .
-                       (($sqlite_inc) ? " -I$sqlite_inc" : ''),
-    $libs ? ('LIBS' => $libs) : (),
-    'OPTIMIZE'      => "-O2",
-    'DEFINE'        => "-DSQLITE_CORE -DSQLITE_ENABLE_FTS2 -DNDEBUG=1 -DSQLITE_PTR_SZ=$Config{ptrsize}" .
-                       ( ($Config{d_usleep} ||
-                          $Config{osname} =~ m/linux/) ?
-                                " -DHAVE_USLEEP=1" : "" ) .
-                       ($DBI::VERSION > 1.42 ? '' : ' -Dno_last_insert_id') . 
-                       ($Config{usethreads} ? '' : ' -DTHREADSAFE=0'),
-    'clean'         => { FILES => 'SQLite.xsi config.h tv.log output' },
-    'PL_FILES'      => {},
-    'EXE_FILES'     => [],
+	'NAME'          => 'DBD::SQLite',
+	'VERSION_FROM'  => 'lib/DBD/SQLite.pm',
+	'PREREQ_PM'     => { DBI => 1.21 },
+	'OBJECT'        => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
+	$libs ? ('LIBS' => $libs) : (),
+	'OPTIMIZE'      => "-O2",
+	'clean'         => { FILES => 'SQLite.xsi config.h tv.log output' },
+	'PL_FILES'      => {},
+	'EXE_FILES'     => [],
+	'INC'           => '-I. -I$(DBI_INSTARCH_DIR)' . ($sqlite_inc ? " -I$sqlite_inc" : ''),
+	'DEFINE'        => "-DSQLITE_CORE -DSQLITE_ENABLE_FTS2 -DNDEBUG=1 -DSQLITE_PTR_SZ=$Config{ptrsize}" .
+		(($Config{d_usleep} || $Config{osname} =~ m/linux/) ? " -DHAVE_USLEEP=1" : "" ) .
+		($DBI::VERSION > 1.42 ? '' : ' -Dno_last_insert_id') .
+		($Config{usethreads} ? '' : ' -DTHREADSAFE=0'),
 );
 
 package MY;
+
 sub postamble { 
-  eval { DBI::DBD::dbd_postamble(@_) };
+	eval { DBI::DBD::dbd_postamble(@_) };
 }
+
 sub libscan {
-    my ($self, $path) = @_;
-    return if $path =~ /\.pl$/;
-    ($path =~ m/\~$/) ? undef : $path;
+	my ($self, $path) = @_;
+	return if $path =~ /\.pl$/;
+	($path =~ m/\~$/) ? undef : $path;
 }
