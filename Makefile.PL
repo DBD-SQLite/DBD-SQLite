@@ -157,7 +157,9 @@ WriteMakefile(
 
 package MY;
 
-sub postamble { 
+sub postamble {
+	require DBI;
+	require DBI::DBD;
 	eval { DBI::DBD::dbd_postamble(@_) };
 }
 
