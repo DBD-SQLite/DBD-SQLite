@@ -21,7 +21,7 @@ list_tables(dbh)
     OUTPUT:
         RETVAL
 
-int
+IV
 last_insert_rowid(dbh)
     SV *dbh
     CODE:
