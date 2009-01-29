@@ -208,7 +208,7 @@ sub primary_key_info {
 	my @pk = split /\s*,\s*/, $2 || '';
 	unless (@pk) {
 	    my $prefix = $1;
-	    $prefix =~ s/.*create\s+table\s+.*?\(\s*//i;
+	    $prefix =~ s/.*create\s+table\s+.*?\(\s*//si;
 	    $prefix = (split /\s*,\s*/, $prefix)[-1];
 	    @pk = (split /\s+/, $prefix)[0]; # take first word as name
 	}
