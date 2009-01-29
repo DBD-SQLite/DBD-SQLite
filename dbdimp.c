@@ -162,9 +162,11 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
     imp_dbh->db = NULL;
 
     av_undef(imp_dbh->functions);
+    SvREFCNT_dec(imp_dbh->functions);
     imp_dbh->functions = (AV *)NULL;
 
     av_undef(imp_dbh->aggregates);
+    SvREFCNT_dec(imp_dbh->aggregates);
     imp_dbh->aggregates = (AV *)NULL;
 
     return TRUE;
