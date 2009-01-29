@@ -151,8 +151,13 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
     }
 
     if (sqlite3_close(imp_dbh->db) == SQLITE_BUSY) {
+        sqlite3_stmt *pStmt;
         /* active statements! */
-        warn("closing dbh with active statement handles");
+
+        while ((pStmt = sqlite3_next_stmt(imp_dbh->db, NULL)) != NULL)
+            sqlite3_finalize(pStmt);
+
+        sqlite3_close(imp_dbh->db);
     }
     imp_dbh->db = NULL;
 
