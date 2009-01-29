@@ -17,26 +17,33 @@
 /*
 ** The code in this file is only compiled if:
 **
-**     * The FTS2 module is being built as an extension
+**     * The FTS3 module is being built as an extension
 **       (in which case SQLITE_CORE is not defined), or
 **
-**     * The FTS2 module is being built into the core of
-**       SQLite (in which case SQLITE_ENABLE_FTS2 is defined).
+**     * The FTS3 module is being built into the core of
+**       SQLite (in which case SQLITE_ENABLE_FTS3 is defined).
 */
-#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2)
+#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3)
 
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "fts2_hash.h"
+#include "sqlite3.h"
+#include "fts3_hash.h"
 
-static void *malloc_and_zero(int n){
-  void *p = malloc(n);
+/*
+** Malloc and Free functions
+*/
+static void *fts3HashMalloc(int n){
+  void *p = sqlite3_malloc(n);
   if( p ){
     memset(p, 0, n);
   }
   return p;
+}
+static void fts3HashFree(void *p){
+  sqlite3_free(p);
 }
 
 /* Turn bulk memory into a hash table object by initializing the
@@ -44,52 +51,50 @@ static void *malloc_and_zero(int n){
 **
 ** "pNew" is a pointer to the hash table that is to be initialized.
 ** keyClass is one of the constants 
-** FTS2_HASH_BINARY or FTS2_HASH_STRING.  The value of keyClass 
+** FTS3_HASH_BINARY or FTS3_HASH_STRING.  The value of keyClass 
 ** determines what kind of key the hash table will use.  "copyKey" is
 ** true if the hash table should make its own private copy of keys and
 ** false if it should just use the supplied pointer.
 */
-void sqlite3Fts2HashInit(fts2Hash *pNew, int keyClass, int copyKey){
+void sqlite3Fts3HashInit(fts3Hash *pNew, int keyClass, int copyKey){
   assert( pNew!=0 );
-  assert( keyClass>=FTS2_HASH_STRING && keyClass<=FTS2_HASH_BINARY );
+  assert( keyClass>=FTS3_HASH_STRING && keyClass<=FTS3_HASH_BINARY );
   pNew->keyClass = keyClass;
   pNew->copyKey = copyKey;
   pNew->first = 0;
   pNew->count = 0;
   pNew->htsize = 0;
   pNew->ht = 0;
-  pNew->xMalloc = malloc_and_zero;
-  pNew->xFree = free;
 }
 
 /* Remove all entries from a hash table.  Reclaim all memory.
 ** Call this routine to delete a hash table or to reset a hash table
 ** to the empty state.
 */
-void sqlite3Fts2HashClear(fts2Hash *pH){
-  fts2HashElem *elem;         /* For looping over all elements of the table */
+void sqlite3Fts3HashClear(fts3Hash *pH){
+  fts3HashElem *elem;         /* For looping over all elements of the table */
 
   assert( pH!=0 );
   elem = pH->first;
   pH->first = 0;
-  if( pH->ht ) pH->xFree(pH->ht);
+  fts3HashFree(pH->ht);
   pH->ht = 0;
   pH->htsize = 0;
   while( elem ){
-    fts2HashElem *next_elem = elem->next;
+    fts3HashElem *next_elem = elem->next;
     if( pH->copyKey && elem->pKey ){
-      pH->xFree(elem->pKey);
+      fts3HashFree(elem->pKey);
     }
-    pH->xFree(elem);
+    fts3HashFree(elem);
     elem = next_elem;
   }
   pH->count = 0;
 }
 
 /*
-** Hash and comparison functions when the mode is FTS2_HASH_STRING
+** Hash and comparison functions when the mode is FTS3_HASH_STRING
 */
-static int strHash(const void *pKey, int nKey){
+static int fts3StrHash(const void *pKey, int nKey){
   const char *z = (const char *)pKey;
   int h = 0;
   if( nKey<=0 ) nKey = (int) strlen(z);
@@ -99,15 +104,15 @@ static int strHash(const void *pKey, int nKey){
   }
   return h & 0x7fffffff;
 }
-static int strCompare(const void *pKey1, int n1, const void *pKey2, int n2){
+static int fts3StrCompare(const void *pKey1, int n1, const void *pKey2, int n2){
   if( n1!=n2 ) return 1;
   return strncmp((const char*)pKey1,(const char*)pKey2,n1);
 }
 
 /*
-** Hash and comparison functions when the mode is FTS2_HASH_BINARY
+** Hash and comparison functions when the mode is FTS3_HASH_BINARY
 */
-static int binHash(const void *pKey, int nKey){
+static int fts3BinHash(const void *pKey, int nKey){
   int h = 0;
   const char *z = (const char *)pKey;
   while( nKey-- > 0 ){
@@ -115,7 +120,7 @@ static int binHash(const void *pKey, int nKey){
   }
   return h & 0x7fffffff;
 }
-static int binCompare(const void *pKey1, int n1, const void *pKey2, int n2){
+static int fts3BinCompare(const void *pKey1, int n1, const void *pKey2, int n2){
   if( n1!=n2 ) return 1;
   return memcmp(pKey1,pKey2,n1);
 }
@@ -126,18 +131,18 @@ static int binCompare(const void *pKey1, int n1, const void *pKey2, int n2){
 ** The C syntax in this function definition may be unfamilar to some 
 ** programmers, so we provide the following additional explanation:
 **
-** The name of the function is "hashFunction".  The function takes a
-** single parameter "keyClass".  The return value of hashFunction()
+** The name of the function is "ftsHashFunction".  The function takes a
+** single parameter "keyClass".  The return value of ftsHashFunction()
 ** is a pointer to another function.  Specifically, the return value
-** of hashFunction() is a pointer to a function that takes two parameters
+** of ftsHashFunction() is a pointer to a function that takes two parameters
 ** with types "const void*" and "int" and returns an "int".
 */
-static int (*hashFunction(int keyClass))(const void*,int){
-  if( keyClass==FTS2_HASH_STRING ){
-    return &strHash;
+static int (*ftsHashFunction(int keyClass))(const void*,int){
+  if( keyClass==FTS3_HASH_STRING ){
+    return &fts3StrHash;
   }else{
-    assert( keyClass==FTS2_HASH_BINARY );
-    return &binHash;
+    assert( keyClass==FTS3_HASH_BINARY );
+    return &fts3BinHash;
   }
 }
 
@@ -147,23 +152,23 @@ static int (*hashFunction(int keyClass))(const void*,int){
 ** For help in interpreted the obscure C code in the function definition,
 ** see the header comment on the previous function.
 */
-static int (*compareFunction(int keyClass))(const void*,int,const void*,int){
-  if( keyClass==FTS2_HASH_STRING ){
-    return &strCompare;
+static int (*ftsCompareFunction(int keyClass))(const void*,int,const void*,int){
+  if( keyClass==FTS3_HASH_STRING ){
+    return &fts3StrCompare;
   }else{
-    assert( keyClass==FTS2_HASH_BINARY );
-    return &binCompare;
+    assert( keyClass==FTS3_HASH_BINARY );
+    return &fts3BinCompare;
   }
 }
 
 /* Link an element into the hash table
 */
-static void insertElement(
-  fts2Hash *pH,            /* The complete hash table */
-  struct _fts2ht *pEntry,  /* The entry into which pNew is inserted */
-  fts2HashElem *pNew       /* The element to be inserted */
+static void fts3HashInsertElement(
+  fts3Hash *pH,            /* The complete hash table */
+  struct _fts3ht *pEntry,  /* The entry into which pNew is inserted */
+  fts3HashElem *pNew       /* The element to be inserted */
 ){
-  fts2HashElem *pHead;     /* First element already in pEntry */
+  fts3HashElem *pHead;     /* First element already in pEntry */
   pHead = pEntry->chain;
   if( pHead ){
     pNew->next = pHead;
@@ -186,22 +191,22 @@ static void insertElement(
 ** "new_size" must be a power of 2.  The hash table might fail 
 ** to resize if sqliteMalloc() fails.
 */
-static void rehash(fts2Hash *pH, int new_size){
-  struct _fts2ht *new_ht;          /* The new hash table */
-  fts2HashElem *elem, *next_elem;  /* For looping over existing elements */
+static void fts3Rehash(fts3Hash *pH, int new_size){
+  struct _fts3ht *new_ht;          /* The new hash table */
+  fts3HashElem *elem, *next_elem;  /* For looping over existing elements */
   int (*xHash)(const void*,int);   /* The hash function */
 
   assert( (new_size & (new_size-1))==0 );
-  new_ht = (struct _fts2ht *)pH->xMalloc( new_size*sizeof(struct _fts2ht) );
+  new_ht = (struct _fts3ht *)fts3HashMalloc( new_size*sizeof(struct _fts3ht) );
   if( new_ht==0 ) return;
-  if( pH->ht ) pH->xFree(pH->ht);
+  fts3HashFree(pH->ht);
   pH->ht = new_ht;
   pH->htsize = new_size;
-  xHash = hashFunction(pH->keyClass);
+  xHash = ftsHashFunction(pH->keyClass);
   for(elem=pH->first, pH->first=0; elem; elem = next_elem){
     int h = (*xHash)(elem->pKey, elem->nKey) & (new_size-1);
     next_elem = elem->next;
-    insertElement(pH, &new_ht[h], elem);
+    fts3HashInsertElement(pH, &new_ht[h], elem);
   }
 }
 
@@ -209,21 +214,21 @@ static void rehash(fts2Hash *pH, int new_size){
 ** hash table that matches the given key.  The hash for this key has
 ** already been computed and is passed as the 4th parameter.
 */
-static fts2HashElem *findElementGivenHash(
-  const fts2Hash *pH, /* The pH to be searched */
+static fts3HashElem *fts3FindElementByHash(
+  const fts3Hash *pH, /* The pH to be searched */
   const void *pKey,   /* The key we are searching for */
   int nKey,
   int h               /* The hash for this key. */
 ){
-  fts2HashElem *elem;            /* Used to loop thru the element list */
+  fts3HashElem *elem;            /* Used to loop thru the element list */
   int count;                     /* Number of elements left to test */
   int (*xCompare)(const void*,int,const void*,int);  /* comparison function */
 
   if( pH->ht ){
-    struct _fts2ht *pEntry = &pH->ht[h];
+    struct _fts3ht *pEntry = &pH->ht[h];
     elem = pEntry->chain;
     count = pEntry->count;
-    xCompare = compareFunction(pH->keyClass);
+    xCompare = ftsCompareFunction(pH->keyClass);
     while( count-- && elem ){
       if( (*xCompare)(elem->pKey,elem->nKey,pKey,nKey)==0 ){ 
         return elem;
@@ -237,12 +242,12 @@ static fts2HashElem *findElementGivenHash(
 /* Remove a single entry from the hash table given a pointer to that
 ** element and a hash on the element's key.
 */
-static void removeElementGivenHash(
-  fts2Hash *pH,         /* The pH containing "elem" */
-  fts2HashElem* elem,   /* The element to be removed from the pH */
+static void fts3RemoveElementByHash(
+  fts3Hash *pH,         /* The pH containing "elem" */
+  fts3HashElem* elem,   /* The element to be removed from the pH */
   int h                 /* Hash value for the element */
 ){
-  struct _fts2ht *pEntry;
+  struct _fts3ht *pEntry;
   if( elem->prev ){
     elem->prev->next = elem->next; 
   }else{
@@ -260,14 +265,14 @@ static void removeElementGivenHash(
     pEntry->chain = 0;
   }
   if( pH->copyKey && elem->pKey ){
-    pH->xFree(elem->pKey);
+    fts3HashFree(elem->pKey);
   }
-  pH->xFree( elem );
+  fts3HashFree( elem );
   pH->count--;
   if( pH->count<=0 ){
     assert( pH->first==0 );
     assert( pH->count==0 );
-    fts2HashClear(pH);
+    fts3HashClear(pH);
   }
 }
 
@@ -275,17 +280,17 @@ static void removeElementGivenHash(
 ** that matches pKey,nKey.  Return the data for this element if it is
 ** found, or NULL if there is no match.
 */
-void *sqlite3Fts2HashFind(const fts2Hash *pH, const void *pKey, int nKey){
+void *sqlite3Fts3HashFind(const fts3Hash *pH, const void *pKey, int nKey){
   int h;                 /* A hash on key */
-  fts2HashElem *elem;    /* The element that matches key */
+  fts3HashElem *elem;    /* The element that matches key */
   int (*xHash)(const void*,int);  /* The hash function */
 
   if( pH==0 || pH->ht==0 ) return 0;
-  xHash = hashFunction(pH->keyClass);
+  xHash = ftsHashFunction(pH->keyClass);
   assert( xHash!=0 );
   h = (*xHash)(pKey,nKey);
   assert( (pH->htsize & (pH->htsize-1))==0 );
-  elem = findElementGivenHash(pH,pKey,nKey, h & (pH->htsize-1));
+  elem = fts3FindElementByHash(pH,pKey,nKey, h & (pH->htsize-1));
   return elem ? elem->data : 0;
 }
 
@@ -304,41 +309,48 @@ void *sqlite3Fts2HashFind(const fts2Hash *pH, const void *pKey, int nKey){
 ** If the "data" parameter to this function is NULL, then the
 ** element corresponding to "key" is removed from the hash table.
 */
-void *sqlite3Fts2HashInsert(
-  fts2Hash *pH,        /* The hash table to insert into */
+void *sqlite3Fts3HashInsert(
+  fts3Hash *pH,        /* The hash table to insert into */
   const void *pKey,    /* The key */
   int nKey,            /* Number of bytes in the key */
   void *data           /* The data */
 ){
   int hraw;                 /* Raw hash value of the key */
   int h;                    /* the hash of the key modulo hash table size */
-  fts2HashElem *elem;       /* Used to loop thru the element list */
-  fts2HashElem *new_elem;   /* New element added to the pH */
+  fts3HashElem *elem;       /* Used to loop thru the element list */
+  fts3HashElem *new_elem;   /* New element added to the pH */
   int (*xHash)(const void*,int);  /* The hash function */
 
   assert( pH!=0 );
-  xHash = hashFunction(pH->keyClass);
+  xHash = ftsHashFunction(pH->keyClass);
   assert( xHash!=0 );
   hraw = (*xHash)(pKey, nKey);
   assert( (pH->htsize & (pH->htsize-1))==0 );
   h = hraw & (pH->htsize-1);
-  elem = findElementGivenHash(pH,pKey,nKey,h);
+  elem = fts3FindElementByHash(pH,pKey,nKey,h);
   if( elem ){
     void *old_data = elem->data;
     if( data==0 ){
-      removeElementGivenHash(pH,elem,h);
+      fts3RemoveElementByHash(pH,elem,h);
     }else{
       elem->data = data;
     }
     return old_data;
   }
   if( data==0 ) return 0;
-  new_elem = (fts2HashElem*)pH->xMalloc( sizeof(fts2HashElem) );
+  if( pH->htsize==0 ){
+    fts3Rehash(pH,8);
+    if( pH->htsize==0 ){
+      pH->count = 0;
+      return data;
+    }
+  }
+  new_elem = (fts3HashElem*)fts3HashMalloc( sizeof(fts3HashElem) );
   if( new_elem==0 ) return data;
   if( pH->copyKey && pKey!=0 ){
-    new_elem->pKey = pH->xMalloc( nKey );
+    new_elem->pKey = fts3HashMalloc( nKey );
     if( new_elem->pKey==0 ){
-      pH->xFree(new_elem);
+      fts3HashFree(new_elem);
       return data;
     }
     memcpy((void*)new_elem->pKey, pKey, nKey);
@@ -347,23 +359,15 @@ void *sqlite3Fts2HashInsert(
   }
   new_elem->nKey = nKey;
   pH->count++;
-  if( pH->htsize==0 ){
-    rehash(pH,8);
-    if( pH->htsize==0 ){
-      pH->count = 0;
-      pH->xFree(new_elem);
-      return data;
-    }
-  }
   if( pH->count > pH->htsize ){
-    rehash(pH,pH->htsize*2);
+    fts3Rehash(pH,pH->htsize*2);
   }
   assert( pH->htsize>0 );
   assert( (pH->htsize & (pH->htsize-1))==0 );
   h = hraw & (pH->htsize-1);
-  insertElement(pH, &pH->ht[h], new_elem);
+  fts3HashInsertElement(pH, &pH->ht[h], new_elem);
   new_elem->data = data;
   return 0;
 }
 
-#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2) */
+#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3) */

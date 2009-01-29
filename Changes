@@ -1,5 +1,10 @@
 Revision history for Perl extension DBD::SQLite.
 
+1.15
+    - Updated to SQLite 3.6.10, and bumped up the version
+      requirement for installed sqlite3 to 3.6.0 as 3.6.x
+      has backward incompatiblity (ISHIGAKI)
+
 1.14
     - Updated to SQLite 3.4.2
     - Switch to sqlite3_prepare_v2 which fixes a number of bugs

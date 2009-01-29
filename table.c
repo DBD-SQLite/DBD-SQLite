@@ -15,6 +15,8 @@
 **
 ** These routines are in a separate files so that they will not be linked
 ** if they are not used.
+**
+** $Id: table.c,v 1.38 2008/12/10 19:26:24 drh Exp $
 */
 #include "sqliteInt.h"
 #include <stdlib.h>
@@ -70,17 +72,15 @@ static int sqlite3_get_table_cb(void *pArg, int nCol, char **argv, char **colv){
   if( p->nRow==0 ){
     p->nColumn = nCol;
     for(i=0; i<nCol; i++){
-      if( colv[i]==0 ){
-        z = sqlite3_mprintf("");
-      }else{
-        z = sqlite3_mprintf("%s", colv[i]);
-      }
+      z = sqlite3_mprintf("%s", colv[i]);
+      if( z==0 ) goto malloc_failed;
       p->azResult[p->nData++] = z;
     }
   }else if( p->nColumn!=nCol ){
-    sqlite3SetString(&p->zErrMsg,
-       "sqlite3_get_table() called with two or more incompatible queries",
-       (char*)0);
+    sqlite3_free(p->zErrMsg);
+    p->zErrMsg = sqlite3_mprintf(
+       "sqlite3_get_table() called with two or more incompatible queries"
+    );
     p->rc = SQLITE_ERROR;
     return 1;
   }
@@ -92,7 +92,7 @@ static int sqlite3_get_table_cb(void *pArg, int nCol, char **argv, char **colv){
       if( argv[i]==0 ){
         z = 0;
       }else{
-        int n = strlen(argv[i])+1;
+        int n = sqlite3Strlen30(argv[i])+1;
         z = sqlite3_malloc( n );
         if( z==0 ) goto malloc_failed;
         memcpy(z, argv[i], n);
@@ -128,7 +128,7 @@ int sqlite3_get_table(
 ){
   int rc;
   TabResult res;
-  if( pazResult==0 ){ return SQLITE_ERROR; }
+
   *pazResult = 0;
   if( pnColumn ) *pnColumn = 0;
   if( pnRow ) *pnRow = 0;
@@ -139,14 +139,15 @@ int sqlite3_get_table(
   res.nData = 1;
   res.nAlloc = 20;
   res.rc = SQLITE_OK;
-  res.azResult = sqlite3_malloc( sizeof(char*)*res.nAlloc );
-  if( res.azResult==0 ) return SQLITE_NOMEM;
+  res.azResult = sqlite3_malloc(sizeof(char*)*res.nAlloc );
+  if( res.azResult==0 ){
+     db->errCode = SQLITE_NOMEM;
+     return SQLITE_NOMEM;
+  }
   res.azResult[0] = 0;
   rc = sqlite3_exec(db, zSql, sqlite3_get_table_cb, &res, pzErrMsg);
-  if( res.azResult ){
-    assert( sizeof(res.azResult[0])>= sizeof(res.nData) );
-    res.azResult[0] = (char*)res.nData;
-  }
+  assert( sizeof(res.azResult[0])>= sizeof(res.nData) );
+  res.azResult[0] = SQLITE_INT_TO_PTR(res.nData);
   if( (rc&0xff)==SQLITE_ABORT ){
     sqlite3_free_table(&res.azResult[1]);
     if( res.zErrMsg ){
@@ -154,21 +155,22 @@ int sqlite3_get_table(
         sqlite3_free(*pzErrMsg);
         *pzErrMsg = sqlite3_mprintf("%s",res.zErrMsg);
       }
-      sqliteFree(res.zErrMsg);
+      sqlite3_free(res.zErrMsg);
     }
-    db->errCode = res.rc;
-    return res.rc & db->errMask;
+    db->errCode = res.rc;  /* Assume 32-bit assignment is atomic */
+    return res.rc;
   }
-  sqliteFree(res.zErrMsg);
+  sqlite3_free(res.zErrMsg);
   if( rc!=SQLITE_OK ){
     sqlite3_free_table(&res.azResult[1]);
-    return rc & db->errMask;
+    return rc;
   }
   if( res.nAlloc>res.nData ){
     char **azNew;
     azNew = sqlite3_realloc( res.azResult, sizeof(char*)*(res.nData+1) );
     if( azNew==0 ){
       sqlite3_free_table(&res.azResult[1]);
+      db->errCode = SQLITE_NOMEM;
       return SQLITE_NOMEM;
     }
     res.nAlloc = res.nData+1;
@@ -177,7 +179,7 @@ int sqlite3_get_table(
   *pazResult = &res.azResult[1];
   if( pnColumn ) *pnColumn = res.nColumn;
   if( pnRow ) *pnRow = res.nRow;
-  return rc & db->errMask;
+  return rc;
 }
 
 /*
@@ -189,8 +191,8 @@ void sqlite3_free_table(
   if( azResult ){
     int i, n;
     azResult--;
-    if( azResult==0 ) return;
-    n = (int)azResult[0];
+    assert( azResult!=0 );
+    n = SQLITE_PTR_TO_INT(azResult[0]);
     for(i=1; i<n; i++){ if( azResult[i] ) sqlite3_free(azResult[i]); }
     sqlite3_free(azResult);
   }

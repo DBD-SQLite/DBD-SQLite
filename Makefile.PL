@@ -89,8 +89,8 @@ unless ( $force_local ) {
 			last if $version;
 		}
 	}
-	unless ( $version && ($version >= 3003009) ) {
-		warn "SQLite version must be at least 3.3.9. No header file at that\n";
+	unless ( $version && ($version >= 3006000) ) {
+		warn "SQLite version must be at least 3.6.0. No header file at that\n";
 		warn "version or higher was found. Using the local version instead.\n";
 		$force_local = 1;
 		undef $sqlite_lib;
@@ -127,7 +127,7 @@ if ( $sqlite_inc ) {
 
 my @CC_DEFINE = (
 	'-DSQLITE_CORE',
-	'-DSQLITE_ENABLE_FTS2',
+	'-DSQLITE_ENABLE_FTS3',
 	'-DNDEBUG=1',
 	"-DSQLITE_PTR_SZ=$Config{ptrsize}"
 );

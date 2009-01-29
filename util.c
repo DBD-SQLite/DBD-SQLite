@@ -14,13 +14,100 @@
 ** This file contains functions for allocating memory, comparing
 ** strings, and stuff like that.
 **
-** $Id: util.c,v 1.207 2007/06/26 00:37:28 drh Exp $
+** $Id: util.c,v 1.246 2009/01/10 16:15:22 drh Exp $
 */
 #include "sqliteInt.h"
-#include "os.h"
 #include <stdarg.h>
 #include <ctype.h>
 
+
+/*
+** Routine needed to support the testcase() macro.
+*/
+#ifdef SQLITE_COVERAGE_TEST
+void sqlite3Coverage(int x){
+  static int dummy = 0;
+  dummy += x;
+}
+#endif
+
+/*
+** Routine needed to support the ALWAYS() and NEVER() macros.
+**
+** The argument to ALWAYS() should always be true and the argument
+** to NEVER() should always be false.  If either is not the case
+** then this routine is called in order to throw an error.
+**
+** This routine only exists if assert() is operational.  It always
+** throws an assert on its first invocation.  The variable has a long
+** name to help the assert() message be more readable.  The variable
+** is used to prevent a too-clever optimizer from optimizing out the
+** entire call.
+*/
+#ifndef NDEBUG
+int sqlite3Assert(void){
+  static volatile int ALWAYS_was_false_or_NEVER_was_true = 0;
+  assert( ALWAYS_was_false_or_NEVER_was_true );      /* Always fails */
+  return ALWAYS_was_false_or_NEVER_was_true++;       /* Not Reached */
+}
+#endif
+
+/*
+** Return true if the floating point value is Not a Number (NaN).
+*/
+int sqlite3IsNaN(double x){
+  /* This NaN test sometimes fails if compiled on GCC with -ffast-math.
+  ** On the other hand, the use of -ffast-math comes with the following
+  ** warning:
+  **
+  **      This option [-ffast-math] should never be turned on by any
+  **      -O option since it can result in incorrect output for programs
+  **      which depend on an exact implementation of IEEE or ISO 
+  **      rules/specifications for math functions.
+  **
+  ** Under MSVC, this NaN test may fail if compiled with a floating-
+  ** point precision mode other than /fp:precise.  From the MSDN 
+  ** documentation:
+  **
+  **      The compiler [with /fp:precise] will properly handle comparisons 
+  **      involving NaN. For example, x != x evaluates to true if x is NaN 
+  **      ...
+  */
+#ifdef __FAST_MATH__
+# error SQLite will not work correctly with the -ffast-math option of GCC.
+#endif
+  volatile double y = x;
+  volatile double z = y;
+  return y!=z;
+}
+
+/*
+** Compute a string length that is limited to what can be stored in
+** lower 30 bits of a 32-bit signed integer.
+*/
+int sqlite3Strlen30(const char *z){
+  const char *z2 = z;
+  while( *z2 ){ z2++; }
+  return 0x3fffffff & (int)(z2 - z);
+}
+
+/*
+** Return the length of a string, except do not allow the string length
+** to exceed the SQLITE_LIMIT_LENGTH setting.
+*/
+int sqlite3Strlen(sqlite3 *db, const char *z){
+  const char *z2 = z;
+  int len;
+  int x;
+  while( *z2 ){ z2++; }
+  x = (int)(z2 - z);
+  len = 0x7fffffff & x;
+  if( len!=x || len > db->aLimit[SQLITE_LIMIT_LENGTH] ){
+    return db->aLimit[SQLITE_LIMIT_LENGTH];
+  }else{
+    return len;
+  }
+}
 
 /*
 ** Set the most recent error code and error string for the sqlite
@@ -44,15 +131,15 @@
 ** to NULL.
 */
 void sqlite3Error(sqlite3 *db, int err_code, const char *zFormat, ...){
-  if( db && (db->pErr || (db->pErr = sqlite3ValueNew())!=0) ){
+  if( db && (db->pErr || (db->pErr = sqlite3ValueNew(db))!=0) ){
     db->errCode = err_code;
     if( zFormat ){
       char *z;
       va_list ap;
       va_start(ap, zFormat);
-      z = sqlite3VMPrintf(zFormat, ap);
+      z = sqlite3VMPrintf(db, zFormat, ap);
       va_end(ap);
-      sqlite3ValueSetStr(db->pErr, -1, z, SQLITE_UTF8, sqlite3FreeX);
+      sqlite3ValueSetStr(db->pErr, -1, z, SQLITE_UTF8, SQLITE_DYNAMIC);
     }else{
       sqlite3ValueSetStr(db->pErr, 0, 0, SQLITE_UTF8, SQLITE_STATIC);
     }
@@ -78,10 +165,11 @@ void sqlite3Error(sqlite3 *db, int err_code, const char *zFormat, ...){
 */
 void sqlite3ErrorMsg(Parse *pParse, const char *zFormat, ...){
   va_list ap;
+  sqlite3 *db = pParse->db;
   pParse->nErr++;
-  sqliteFree(pParse->zErrMsg);
+  sqlite3DbFree(db, pParse->zErrMsg);
   va_start(ap, zFormat);
-  pParse->zErrMsg = sqlite3VMPrintf(zFormat, ap);
+  pParse->zErrMsg = sqlite3VMPrintf(db, zFormat, ap);
   va_end(ap);
   if( pParse->rc==SQLITE_OK ){
     pParse->rc = SQLITE_ERROR;
@@ -92,7 +180,7 @@ void sqlite3ErrorMsg(Parse *pParse, const char *zFormat, ...){
 ** Clear the error message in pParse, if any
 */
 void sqlite3ErrorClear(Parse *pParse){
-  sqliteFree(pParse->zErrMsg);
+  sqlite3DbFree(pParse->db, pParse->zErrMsg);
   pParse->zErrMsg = 0;
   pParse->nErr = 0;
 }
@@ -108,7 +196,7 @@ void sqlite3ErrorClear(Parse *pParse){
 ** "a-b-c".
 */
 void sqlite3Dequote(char *z){
-  int quote;
+  char quote;
   int i, j;
   if( z==0 ) return;
   quote = z[0];
@@ -134,46 +222,7 @@ void sqlite3Dequote(char *z){
   }
 }
 
-/* An array to map all upper-case characters into their corresponding
-** lower-case character. 
-*/
-const unsigned char sqlite3UpperToLower[] = {
-#ifdef SQLITE_ASCII
-      0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, 16, 17,
-     18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35,
-     36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
-     54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 97, 98, 99,100,101,102,103,
-    104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,
-    122, 91, 92, 93, 94, 95, 96, 97, 98, 99,100,101,102,103,104,105,106,107,
-    108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,
-    126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,
-    144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,
-    162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,
-    180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,
-    198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,
-    216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,
-    234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,
-    252,253,254,255
-#endif
-#ifdef SQLITE_EBCDIC
-      0,  1,  2,  3,  4,  5,  6,  7,  8,  9, 10, 11, 12, 13, 14, 15, /* 0x */
-     16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, /* 1x */
-     32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, /* 2x */
-     48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, /* 3x */
-     64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, /* 4x */
-     80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, /* 5x */
-     96, 97, 66, 67, 68, 69, 70, 71, 72, 73,106,107,108,109,110,111, /* 6x */
-    112, 81, 82, 83, 84, 85, 86, 87, 88, 89,122,123,124,125,126,127, /* 7x */
-    128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143, /* 8x */
-    144,145,146,147,148,149,150,151,152,153,154,155,156,157,156,159, /* 9x */
-    160,161,162,163,164,165,166,167,168,169,170,171,140,141,142,175, /* Ax */
-    176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191, /* Bx */
-    192,129,130,131,132,133,134,135,136,137,202,203,204,205,206,207, /* Cx */
-    208,145,146,147,148,149,150,151,152,153,218,219,220,221,222,223, /* Dx */
-    224,225,162,163,164,165,166,167,168,169,232,203,204,205,206,207, /* Ex */
-    239,240,241,242,243,244,245,246,247,248,249,219,220,221,222,255, /* Fx */
-#endif
-};
+/* Convenient short-hand */
 #define UpperToLower sqlite3UpperToLower
 
 /*
@@ -246,6 +295,7 @@ int sqlite3AtoF(const char *z, double *pResult){
   int sign = 1;
   const char *zBegin = z;
   LONGDOUBLE_TYPE v1 = 0.0;
+  int nSignificant = 0;
   while( isspace(*(u8*)z) ) z++;
   if( *z=='-' ){
     sign = -1;
@@ -253,16 +303,29 @@ int sqlite3AtoF(const char *z, double *pResult){
   }else if( *z=='+' ){
     z++;
   }
+  while( z[0]=='0' ){
+    z++;
+  }
   while( isdigit(*(u8*)z) ){
     v1 = v1*10.0 + (*z - '0');
     z++;
+    nSignificant++;
   }
   if( *z=='.' ){
     LONGDOUBLE_TYPE divisor = 1.0;
     z++;
+    if( nSignificant==0 ){
+      while( z[0]=='0' ){
+        divisor *= 10.0;
+        z++;
+      }
+    }
     while( isdigit(*(u8*)z) ){
-      v1 = v1*10.0 + (*z - '0');
-      divisor *= 10.0;
+      if( nSignificant<18 ){
+        v1 = v1*10.0 + (*z - '0');
+        divisor *= 10.0;
+        nSignificant++;
+      }
       z++;
     }
     v1 /= divisor;
@@ -292,8 +355,8 @@ int sqlite3AtoF(const char *z, double *pResult){
       v1 *= scale;
     }
   }
-  *pResult = sign<0 ? -v1 : v1;
-  return z - zBegin;
+  *pResult = (double)(sign<0 ? -v1 : v1);
+  return (int)(z - zBegin);
 #else
   return sqlite3Atoi64(z, pResult);
 #endif /* SQLITE_OMIT_FLOATING_POINT */
@@ -336,6 +399,7 @@ int sqlite3Atoi64(const char *zNum, i64 *pNum){
   i64 v = 0;
   int neg;
   int i, c;
+  const char *zStart;
   while( isspace(*(u8*)zNum) ) zNum++;
   if( *zNum=='-' ){
     neg = 1;
@@ -346,12 +410,13 @@ int sqlite3Atoi64(const char *zNum, i64 *pNum){
   }else{
     neg = 0;
   }
+  zStart = zNum;
   while( zNum[0]=='0' ){ zNum++; } /* Skip over leading zeros. Ticket #2454 */
   for(i=0; (c=zNum[i])>='0' && c<='9'; i++){
     v = v*10 + c - '0';
   }
   *pNum = neg ? -v : v;
-  if( c!=0 || i==0 || i>19 ){
+  if( c!=0 || (i==0 && zStart==zNum) || i>19 ){
     /* zNum is empty or contains non-numeric text or is longer
     ** than 19 digits (thus guaranting that it is too large) */
     return 0;
@@ -377,7 +442,7 @@ int sqlite3Atoi64(const char *zNum, i64 *pNum){
 ** 9223373036854775808 will not fit in 64 bits.  So it seems safer to return
 ** false.
 */
-int sqlite3FitsIn64Bits(const char *zNum){
+int sqlite3FitsIn64Bits(const char *zNum, int negFlag){
   int i, c;
   int neg = 0;
   if( *zNum=='-' ){
@@ -386,6 +451,7 @@ int sqlite3FitsIn64Bits(const char *zNum){
   }else if( *zNum=='+' ){
     zNum++;
   }
+  if( negFlag ) neg = 1-neg;
   while( *zNum=='0' ){
     zNum++;   /* Skip leading zeros.  Ticket #2454 */
   }
@@ -421,10 +487,16 @@ int sqlite3GetInt32(const char *zNum, int *pValue){
     zNum++;
   }
   while( zNum[0]=='0' ) zNum++;
-  for(i=0; i<10 && (c = zNum[i] - '0')>=0 && c<=9; i++){
+  for(i=0; i<11 && (c = zNum[i] - '0')>=0 && c<=9; i++){
     v = v*10 + c;
   }
-  if( i>9 ){
+
+  /* The longest decimal representation of a 32 bit integer is 10 digits:
+  **
+  **             1234567890
+  **     2^31 -> 2147483648
+  */
+  if( i>10 ){
     return 0;
   }
   if( v-neg>2147483647 ){
@@ -435,25 +507,6 @@ int sqlite3GetInt32(const char *zNum, int *pValue){
   }
   *pValue = (int)v;
   return 1;
-}
-
-/*
-** Check to make sure we have a valid db pointer.  This test is not
-** foolproof but it does provide some measure of protection against
-** misuse of the interface such as passing in db pointers that are
-** NULL or which have been previously closed.  If this routine returns
-** TRUE it means that the db pointer is invalid and should not be
-** dereferenced for any reason.  The calling function should invoke
-** SQLITE_MISUSE immediately.
-*/
-int sqlite3SafetyCheck(sqlite3 *db){
-  int magic;
-  if( db==0 ) return 1;
-  magic = db->magic;
-  if( magic!=SQLITE_MAGIC_CLOSED &&
-         magic!=SQLITE_MAGIC_OPEN &&
-         magic!=SQLITE_MAGIC_BUSY ) return 1;
-  return 0;
 }
 
 /*
@@ -489,17 +542,17 @@ int sqlite3PutVarint(unsigned char *p, u64 v){
   int i, j, n;
   u8 buf[10];
   if( v & (((u64)0xff000000)<<32) ){
-    p[8] = v;
+    p[8] = (u8)v;
     v >>= 8;
     for(i=7; i>=0; i--){
-      p[i] = (v & 0x7f) | 0x80;
+      p[i] = (u8)((v & 0x7f) | 0x80);
       v >>= 7;
     }
     return 9;
   }    
   n = 0;
   do{
-    buf[n++] = (v & 0x7f) | 0x80;
+    buf[n++] = (u8)((v & 0x7f) | 0x80);
     v >>= 7;
   }while( v!=0 );
   buf[0] &= 0x7f;
@@ -511,71 +564,271 @@ int sqlite3PutVarint(unsigned char *p, u64 v){
 }
 
 /*
+** This routine is a faster version of sqlite3PutVarint() that only
+** works for 32-bit positive integers and which is optimized for
+** the common case of small integers.  A MACRO version, putVarint32,
+** is provided which inlines the single-byte case.  All code should use
+** the MACRO version as this function assumes the single-byte case has
+** already been handled.
+*/
+int sqlite3PutVarint32(unsigned char *p, u32 v){
+#ifndef putVarint32
+  if( (v & ~0x7f)==0 ){
+    p[0] = v;
+    return 1;
+  }
+#endif
+  if( (v & ~0x3fff)==0 ){
+    p[0] = (u8)((v>>7) | 0x80);
+    p[1] = (u8)(v & 0x7f);
+    return 2;
+  }
+  return sqlite3PutVarint(p, v);
+}
+
+/*
 ** Read a 64-bit variable-length integer from memory starting at p[0].
 ** Return the number of bytes read.  The value is stored in *v.
 */
-int sqlite3GetVarint(const unsigned char *p, u64 *v){
-  u32 x;
-  u64 x64;
-  int n;
-  unsigned char c;
-  if( ((c = p[0]) & 0x80)==0 ){
-    *v = c;
+u8 sqlite3GetVarint(const unsigned char *p, u64 *v){
+  u32 a,b,s;
+
+  a = *p;
+  /* a: p0 (unmasked) */
+  if (!(a&0x80))
+  {
+    *v = a;
     return 1;
   }
-  x = c & 0x7f;
-  if( ((c = p[1]) & 0x80)==0 ){
-    *v = (x<<7) | c;
+
+  p++;
+  b = *p;
+  /* b: p1 (unmasked) */
+  if (!(b&0x80))
+  {
+    a &= 0x7f;
+    a = a<<7;
+    a |= b;
+    *v = a;
     return 2;
   }
-  x = (x<<7) | (c&0x7f);
-  if( ((c = p[2]) & 0x80)==0 ){
-    *v = (x<<7) | c;
+
+  p++;
+  a = a<<14;
+  a |= *p;
+  /* a: p0<<14 | p2 (unmasked) */
+  if (!(a&0x80))
+  {
+    a &= (0x7f<<14)|(0x7f);
+    b &= 0x7f;
+    b = b<<7;
+    a |= b;
+    *v = a;
     return 3;
   }
-  x = (x<<7) | (c&0x7f);
-  if( ((c = p[3]) & 0x80)==0 ){
-    *v = (x<<7) | c;
+
+  /* CSE1 from below */
+  a &= (0x7f<<14)|(0x7f);
+  p++;
+  b = b<<14;
+  b |= *p;
+  /* b: p1<<14 | p3 (unmasked) */
+  if (!(b&0x80))
+  {
+    b &= (0x7f<<14)|(0x7f);
+    /* moved CSE1 up */
+    /* a &= (0x7f<<14)|(0x7f); */
+    a = a<<7;
+    a |= b;
+    *v = a;
     return 4;
   }
-  x64 = (x<<7) | (c&0x7f);
-  n = 4;
-  do{
-    c = p[n++];
-    if( n==9 ){
-      x64 = (x64<<8) | c;
-      break;
-    }
-    x64 = (x64<<7) | (c&0x7f);
-  }while( (c & 0x80)!=0 );
-  *v = x64;
-  return n;
+
+  /* a: p0<<14 | p2 (masked) */
+  /* b: p1<<14 | p3 (unmasked) */
+  /* 1:save off p0<<21 | p1<<14 | p2<<7 | p3 (masked) */
+  /* moved CSE1 up */
+  /* a &= (0x7f<<14)|(0x7f); */
+  b &= (0x7f<<14)|(0x7f);
+  s = a;
+  /* s: p0<<14 | p2 (masked) */
+
+  p++;
+  a = a<<14;
+  a |= *p;
+  /* a: p0<<28 | p2<<14 | p4 (unmasked) */
+  if (!(a&0x80))
+  {
+    /* we can skip these cause they were (effectively) done above in calc'ing s */
+    /* a &= (0x7f<<28)|(0x7f<<14)|(0x7f); */
+    /* b &= (0x7f<<14)|(0x7f); */
+    b = b<<7;
+    a |= b;
+    s = s>>18;
+    *v = ((u64)s)<<32 | a;
+    return 5;
+  }
+
+  /* 2:save off p0<<21 | p1<<14 | p2<<7 | p3 (masked) */
+  s = s<<7;
+  s |= b;
+  /* s: p0<<21 | p1<<14 | p2<<7 | p3 (masked) */
+
+  p++;
+  b = b<<14;
+  b |= *p;
+  /* b: p1<<28 | p3<<14 | p5 (unmasked) */
+  if (!(b&0x80))
+  {
+    /* we can skip this cause it was (effectively) done above in calc'ing s */
+    /* b &= (0x7f<<28)|(0x7f<<14)|(0x7f); */
+    a &= (0x7f<<14)|(0x7f);
+    a = a<<7;
+    a |= b;
+    s = s>>18;
+    *v = ((u64)s)<<32 | a;
+    return 6;
+  }
+
+  p++;
+  a = a<<14;
+  a |= *p;
+  /* a: p2<<28 | p4<<14 | p6 (unmasked) */
+  if (!(a&0x80))
+  {
+    a &= (0x7f<<28)|(0x7f<<14)|(0x7f);
+    b &= (0x7f<<14)|(0x7f);
+    b = b<<7;
+    a |= b;
+    s = s>>11;
+    *v = ((u64)s)<<32 | a;
+    return 7;
+  }
+
+  /* CSE2 from below */
+  a &= (0x7f<<14)|(0x7f);
+  p++;
+  b = b<<14;
+  b |= *p;
+  /* b: p3<<28 | p5<<14 | p7 (unmasked) */
+  if (!(b&0x80))
+  {
+    b &= (0x7f<<28)|(0x7f<<14)|(0x7f);
+    /* moved CSE2 up */
+    /* a &= (0x7f<<14)|(0x7f); */
+    a = a<<7;
+    a |= b;
+    s = s>>4;
+    *v = ((u64)s)<<32 | a;
+    return 8;
+  }
+
+  p++;
+  a = a<<15;
+  a |= *p;
+  /* a: p4<<29 | p6<<15 | p8 (unmasked) */
+
+  /* moved CSE2 up */
+  /* a &= (0x7f<<29)|(0x7f<<15)|(0xff); */
+  b &= (0x7f<<14)|(0x7f);
+  b = b<<8;
+  a |= b;
+
+  s = s<<4;
+  b = p[-4];
+  b &= 0x7f;
+  b = b>>3;
+  s |= b;
+
+  *v = ((u64)s)<<32 | a;
+
+  return 9;
 }
 
 /*
 ** Read a 32-bit variable-length integer from memory starting at p[0].
 ** Return the number of bytes read.  The value is stored in *v.
+** A MACRO version, getVarint32, is provided which inlines the 
+** single-byte case.  All code should use the MACRO version as 
+** this function assumes the single-byte case has already been handled.
 */
-int sqlite3GetVarint32(const unsigned char *p, u32 *v){
-  u32 x;
-  int n;
-  unsigned char c;
-  if( ((signed char*)p)[0]>=0 ){
-    *v = p[0];
+u8 sqlite3GetVarint32(const unsigned char *p, u32 *v){
+  u32 a,b;
+
+  a = *p;
+  /* a: p0 (unmasked) */
+#ifndef getVarint32
+  if (!(a&0x80))
+  {
+    *v = a;
     return 1;
   }
-  x = p[0] & 0x7f;
-  if( ((signed char*)p)[1]>=0 ){
-    *v = (x<<7) | p[1];
+#endif
+
+  p++;
+  b = *p;
+  /* b: p1 (unmasked) */
+  if (!(b&0x80))
+  {
+    a &= 0x7f;
+    a = a<<7;
+    *v = a | b;
     return 2;
   }
-  x = (x<<7) | (p[1] & 0x7f);
-  n = 2;
-  do{
-    x = (x<<7) | ((c = p[n++])&0x7f);
-  }while( (c & 0x80)!=0 && n<9 );
-  *v = x;
-  return n;
+
+  p++;
+  a = a<<14;
+  a |= *p;
+  /* a: p0<<14 | p2 (unmasked) */
+  if (!(a&0x80))
+  {
+    a &= (0x7f<<14)|(0x7f);
+    b &= 0x7f;
+    b = b<<7;
+    *v = a | b;
+    return 3;
+  }
+
+  p++;
+  b = b<<14;
+  b |= *p;
+  /* b: p1<<14 | p3 (unmasked) */
+  if (!(b&0x80))
+  {
+    b &= (0x7f<<14)|(0x7f);
+    a &= (0x7f<<14)|(0x7f);
+    a = a<<7;
+    *v = a | b;
+    return 4;
+  }
+
+  p++;
+  a = a<<14;
+  a |= *p;
+  /* a: p0<<28 | p2<<14 | p4 (unmasked) */
+  if (!(a&0x80))
+  {
+    a &= (0x7f<<28)|(0x7f<<14)|(0x7f);
+    b &= (0x7f<<28)|(0x7f<<14)|(0x7f);
+    b = b<<7;
+    *v = a | b;
+    return 5;
+  }
+
+  /* We can only reach this point when reading a corrupt database
+  ** file.  In that case we are not in any hurry.  Use the (relatively
+  ** slow) general-purpose sqlite3GetVarint() routine to extract the
+  ** value. */
+  {
+    u64 v64;
+    u8 n;
+
+    p -= 4;
+    n = sqlite3GetVarint(p, &v64);
+    assert( n>5 && n<=9 );
+    *v = (u32)v64;
+    return n;
+  }
 }
 
 /*
@@ -599,30 +852,31 @@ u32 sqlite3Get4byte(const u8 *p){
   return (p[0]<<24) | (p[1]<<16) | (p[2]<<8) | p[3];
 }
 void sqlite3Put4byte(unsigned char *p, u32 v){
-  p[0] = v>>24;
-  p[1] = v>>16;
-  p[2] = v>>8;
-  p[3] = v;
+  p[0] = (u8)(v>>24);
+  p[1] = (u8)(v>>16);
+  p[2] = (u8)(v>>8);
+  p[3] = (u8)v;
 }
 
 
 
-#if !defined(SQLITE_OMIT_BLOB_LITERAL) || defined(SQLITE_HAS_CODEC) \
-    || defined(SQLITE_TEST)
+#if !defined(SQLITE_OMIT_BLOB_LITERAL) || defined(SQLITE_HAS_CODEC)
 /*
 ** Translate a single byte of Hex into an integer.
+** This routinen only works if h really is a valid hexadecimal
+** character:  0..9a..fA..F
 */
-static int hexToInt(int h){
-  if( h>='0' && h<='9' ){
-    return h - '0';
-  }else if( h>='a' && h<='f' ){
-    return h - 'a' + 10;
-  }else{
-    assert( h>='A' && h<='F' );
-    return h - 'A' + 10;
-  }
+static u8 hexToInt(int h){
+  assert( (h>='0' && h<='9') ||  (h>='a' && h<='f') ||  (h>='A' && h<='F') );
+#ifdef SQLITE_ASCII
+  h += 9*(1&(h>>6));
+#endif
+#ifdef SQLITE_EBCDIC
+  h += 9*(1&~(h>>4));
+#endif
+  return (u8)(h & 0xf);
 }
-#endif /* !SQLITE_OMIT_BLOB_LITERAL || SQLITE_HAS_CODEC || SQLITE_TEST */
+#endif /* !SQLITE_OMIT_BLOB_LITERAL || SQLITE_HAS_CODEC */
 
 #if !defined(SQLITE_OMIT_BLOB_LITERAL) || defined(SQLITE_HAS_CODEC)
 /*
@@ -631,17 +885,17 @@ static int hexToInt(int h){
 ** binary value has been obtained from malloc and must be freed by
 ** the calling routine.
 */
-void *sqlite3HexToBlob(const char *z){
+void *sqlite3HexToBlob(sqlite3 *db, const char *z, int n){
   char *zBlob;
   int i;
-  int n = strlen(z);
-  if( n%2 ) return 0;
 
-  zBlob = (char *)sqliteMalloc(n/2);
+  zBlob = (char *)sqlite3DbMallocRaw(db, n/2 + 1);
+  n--;
   if( zBlob ){
     for(i=0; i<n; i+=2){
       zBlob[i/2] = (hexToInt(z[i])<<4) | hexToInt(z[i+1]);
     }
+    zBlob[i/2] = 0;
   }
   return zBlob;
 }
@@ -673,9 +927,11 @@ void *sqlite3HexToBlob(const char *z){
 ** call to sqlite3_close(db) and db has been deallocated.  And we do
 ** not want to write into deallocated memory.
 */
+#ifdef SQLITE_DEBUG
 int sqlite3SafetyOn(sqlite3 *db){
   if( db->magic==SQLITE_MAGIC_OPEN ){
     db->magic = SQLITE_MAGIC_BUSY;
+    assert( sqlite3_mutex_held(db->mutex) );
     return 0;
   }else if( db->magic==SQLITE_MAGIC_BUSY ){
     db->magic = SQLITE_MAGIC_ERROR;
@@ -683,50 +939,55 @@ int sqlite3SafetyOn(sqlite3 *db){
   }
   return 1;
 }
+#endif
 
 /*
 ** Change the magic from SQLITE_MAGIC_BUSY to SQLITE_MAGIC_OPEN.
 ** Return an error (non-zero) if the magic was not SQLITE_MAGIC_BUSY
 ** when this routine is called.
 */
+#ifdef SQLITE_DEBUG
 int sqlite3SafetyOff(sqlite3 *db){
   if( db->magic==SQLITE_MAGIC_BUSY ){
     db->magic = SQLITE_MAGIC_OPEN;
+    assert( sqlite3_mutex_held(db->mutex) );
     return 0;
-  }else {
+  }else{
     db->magic = SQLITE_MAGIC_ERROR;
     db->u1.isInterrupted = 1;
     return 1;
   }
 }
+#endif
 
 /*
-** Return a pointer to the ThreadData associated with the calling thread.
+** Check to make sure we have a valid db pointer.  This test is not
+** foolproof but it does provide some measure of protection against
+** misuse of the interface such as passing in db pointers that are
+** NULL or which have been previously closed.  If this routine returns
+** 1 it means that the db pointer is valid and 0 if it should not be
+** dereferenced for any reason.  The calling function should invoke
+** SQLITE_MISUSE immediately.
+**
+** sqlite3SafetyCheckOk() requires that the db pointer be valid for
+** use.  sqlite3SafetyCheckSickOrOk() allows a db pointer that failed to
+** open properly and is not fit for general use but which can be
+** used as an argument to sqlite3_errmsg() or sqlite3_close().
 */
-ThreadData *sqlite3ThreadData(){
-  ThreadData *p = (ThreadData*)sqlite3OsThreadSpecificData(1);
-  if( !p ){
-    sqlite3FailedMalloc();
-  }
-  return p;
+int sqlite3SafetyCheckOk(sqlite3 *db){
+  u32 magic;
+  if( db==0 ) return 0;
+  magic = db->magic;
+  if( magic!=SQLITE_MAGIC_OPEN &&
+      magic!=SQLITE_MAGIC_BUSY ) return 0;
+  return 1;
 }
-
-/*
-** Return a pointer to the ThreadData associated with the calling thread.
-** If no ThreadData has been allocated to this thread yet, return a pointer
-** to a substitute ThreadData structure that is all zeros. 
-*/
-const ThreadData *sqlite3ThreadDataReadOnly(){
-  static const ThreadData zeroData = {0};  /* Initializer to silence warnings
-                                           ** from broken compilers */
-  const ThreadData *pTd = sqlite3OsThreadSpecificData(0);
-  return pTd ? pTd : &zeroData;
-}
-
-/*
-** Check to see if the ThreadData for this thread is all zero.  If it
-** is, then deallocate it. 
-*/
-void sqlite3ReleaseThreadData(){
-  sqlite3OsThreadSpecificData(-1);
+int sqlite3SafetyCheckSickOrOk(sqlite3 *db){
+  u32 magic;
+  if( db==0 ) return 0;
+  magic = db->magic;
+  if( magic!=SQLITE_MAGIC_SICK &&
+      magic!=SQLITE_MAGIC_OPEN &&
+      magic!=SQLITE_MAGIC_BUSY ) return 0;
+  return 1;
 }

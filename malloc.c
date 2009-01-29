@@ -9,711 +9,708 @@
 **    May you share freely, never taking more than you give.
 **
 *************************************************************************
+**
 ** Memory allocation functions used throughout sqlite.
 **
-**
-** $Id: malloc.c,v 1.4 2007/08/08 01:04:52 drh Exp $
+** $Id: malloc.c,v 1.53 2008/12/16 17:20:38 shane Exp $
 */
 #include "sqliteInt.h"
-#include "os.h"
 #include <stdarg.h>
 #include <ctype.h>
 
 /*
-** MALLOC WRAPPER ARCHITECTURE
-**
-** The sqlite code accesses dynamic memory allocation/deallocation by invoking
-** the following six APIs (which may be implemented as macros).
-**
-**     sqlite3Malloc()
-**     sqlite3MallocRaw()
-**     sqlite3Realloc()
-**     sqlite3ReallocOrFree()
-**     sqlite3Free()
-**     sqlite3AllocSize()
-**
-** The function sqlite3FreeX performs the same task as sqlite3Free and is
-** guaranteed to be a real function. The same holds for sqlite3MallocX
-**
-** The above APIs are implemented in terms of the functions provided in the
-** operating-system interface. The OS interface is never accessed directly
-** by code outside of this file.
-**
-**     sqlite3OsMalloc()
-**     sqlite3OsRealloc()
-**     sqlite3OsFree()
-**     sqlite3OsAllocationSize()
-**
-** Functions sqlite3MallocRaw() and sqlite3Realloc() may invoke 
-** sqlite3_release_memory() if a call to sqlite3OsMalloc() or
-** sqlite3OsRealloc() fails (or if the soft-heap-limit for the thread is
-** exceeded). Function sqlite3Malloc() usually invokes
-** sqlite3MallocRaw().
-**
-** MALLOC TEST WRAPPER ARCHITECTURE
-**
-** The test wrapper provides extra test facilities to ensure the library 
-** does not leak memory and handles the failure of the underlying OS level
-** allocation system correctly. It is only present if the library is 
-** compiled with the SQLITE_MEMDEBUG macro set.
-**
-**     * Guardposts to detect overwrites.
-**     * Ability to cause a specific Malloc() or Realloc() to fail.
-**     * Audit outstanding memory allocations (i.e check for leaks).
+** This routine runs when the memory allocator sees that the
+** total memory allocation is about to exceed the soft heap
+** limit.
 */
+static void softHeapLimitEnforcer(
+  void *NotUsed, 
+  sqlite3_int64 NotUsed2,
+  int allocSize
+){
+  UNUSED_PARAMETER2(NotUsed, NotUsed2);
+  sqlite3_release_memory(allocSize);
+}
 
-#define MAX(x,y) ((x)>(y)?(x):(y))
-
-#if defined(SQLITE_ENABLE_MEMORY_MANAGEMENT) && !defined(SQLITE_OMIT_DISKIO)
 /*
-** Set the soft heap-size limit for the current thread. Passing a negative
-** value indicates no limit.
+** Set the soft heap-size limit for the library. Passing a zero or 
+** negative value indicates no limit.
 */
 void sqlite3_soft_heap_limit(int n){
-  ThreadData *pTd = sqlite3ThreadData();
-  if( pTd ){
-    pTd->nSoftHeapLimit = n;
+  sqlite3_uint64 iLimit;
+  int overage;
+  if( n<0 ){
+    iLimit = 0;
+  }else{
+    iLimit = n;
   }
-  sqlite3ReleaseThreadData();
+  sqlite3_initialize();
+  if( iLimit>0 ){
+    sqlite3MemoryAlarm(softHeapLimitEnforcer, 0, iLimit);
+  }else{
+    sqlite3MemoryAlarm(0, 0, 0);
+  }
+  overage = (int)(sqlite3_memory_used() - (i64)n);
+  if( overage>0 ){
+    sqlite3_release_memory(overage);
+  }
 }
 
 /*
-** Release memory held by SQLite instances created by the current thread.
+** Attempt to release up to n bytes of non-essential memory currently
+** held by SQLite. An example of non-essential memory is memory used to
+** cache database pages that are not currently in use.
 */
 int sqlite3_release_memory(int n){
-  return sqlite3PagerReleaseMemory(n);
-}
+#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
+  int nRet = 0;
+#if 0
+  nRet += sqlite3VdbeReleaseMemory(n);
+#endif
+  nRet += sqlite3PcacheReleaseMemory(n-nRet);
+  return nRet;
 #else
-/* If SQLITE_ENABLE_MEMORY_MANAGEMENT is not defined, then define a version
-** of sqlite3_release_memory() to be used by other code in this file.
-** This is done for no better reason than to reduce the number of 
-** pre-processor #ifndef statements.
-*/
-#define sqlite3_release_memory(x) 0    /* 0 == no memory freed */
+  UNUSED_PARAMETER(n);
+  return SQLITE_OK;
 #endif
-
-#ifdef SQLITE_MEMDEBUG
-/*--------------------------------------------------------------------------
-** Begin code for memory allocation system test layer.
-**
-** Memory debugging is turned on by defining the SQLITE_MEMDEBUG macro.
-**
-** SQLITE_MEMDEBUG==1    -> Fence-posting only (thread safe) 
-** SQLITE_MEMDEBUG==2    -> Fence-posting + linked list of allocations (not ts)
-** SQLITE_MEMDEBUG==3    -> Above + backtraces (not thread safe, req. glibc)
-*/
-
-/* Figure out whether or not to store backtrace() information for each malloc.
-** The backtrace() function is only used if SQLITE_MEMDEBUG is set to 2 or 
-** greater and glibc is in use. If we don't want to use backtrace(), then just
-** define it as an empty macro and set the amount of space reserved to 0.
-*/
-#if defined(__GLIBC__) && SQLITE_MEMDEBUG>2
-  extern int backtrace(void **, int);
-  #define TESTALLOC_STACKSIZE 128
-  #define TESTALLOC_STACKFRAMES ((TESTALLOC_STACKSIZE-8)/sizeof(void*))
-#else
-  #define backtrace(x, y)
-  #define TESTALLOC_STACKSIZE 0
-  #define TESTALLOC_STACKFRAMES 0
-#endif
-
-/*
-** Number of 32-bit guard words.  This should probably be a multiple of
-** 2 since on 64-bit machines we want the value returned by sqliteMalloc()
-** to be 8-byte aligned.
-*/
-#ifndef TESTALLOC_NGUARD
-# define TESTALLOC_NGUARD 2
-#endif
-
-/*
-** Size reserved for storing file-name along with each malloc()ed blob.
-*/
-#define TESTALLOC_FILESIZE 64
-
-/*
-** Size reserved for storing the user string. Each time a Malloc() or Realloc()
-** call succeeds, up to TESTALLOC_USERSIZE bytes of the string pointed to by
-** sqlite3_malloc_id are stored along with the other test system metadata.
-*/
-#define TESTALLOC_USERSIZE 64
-const char *sqlite3_malloc_id = 0;
-
-/*
-** Blocks used by the test layer have the following format:
-**
-**        <sizeof(void *) pNext pointer>
-**        <sizeof(void *) pPrev pointer>
-**        <TESTALLOC_NGUARD 32-bit guard words>
-**            <The application level allocation>
-**        <TESTALLOC_NGUARD 32-bit guard words>
-**        <32-bit line number>
-**        <TESTALLOC_FILESIZE bytes containing null-terminated file name>
-**        <TESTALLOC_STACKSIZE bytes of backtrace() output>
-*/ 
-
-#define TESTALLOC_OFFSET_GUARD1(p)    (sizeof(void *) * 2)
-#define TESTALLOC_OFFSET_DATA(p) ( \
-  TESTALLOC_OFFSET_GUARD1(p) + sizeof(u32) * TESTALLOC_NGUARD \
-)
-#define TESTALLOC_OFFSET_GUARD2(p) ( \
-  TESTALLOC_OFFSET_DATA(p) + sqlite3OsAllocationSize(p) - TESTALLOC_OVERHEAD \
-)
-#define TESTALLOC_OFFSET_LINENUMBER(p) ( \
-  TESTALLOC_OFFSET_GUARD2(p) + sizeof(u32) * TESTALLOC_NGUARD \
-)
-#define TESTALLOC_OFFSET_FILENAME(p) ( \
-  TESTALLOC_OFFSET_LINENUMBER(p) + sizeof(u32) \
-)
-#define TESTALLOC_OFFSET_USER(p) ( \
-  TESTALLOC_OFFSET_FILENAME(p) + TESTALLOC_FILESIZE \
-)
-#define TESTALLOC_OFFSET_STACK(p) ( \
-  TESTALLOC_OFFSET_USER(p) + TESTALLOC_USERSIZE + 8 - \
-  (TESTALLOC_OFFSET_USER(p) % 8) \
-)
-
-#define TESTALLOC_OVERHEAD ( \
-  sizeof(void *)*2 +                   /* pPrev and pNext pointers */   \
-  TESTALLOC_NGUARD*sizeof(u32)*2 +              /* Guard words */       \
-  sizeof(u32) + TESTALLOC_FILESIZE +   /* File and line number */       \
-  TESTALLOC_USERSIZE +                 /* User string */                \
-  TESTALLOC_STACKSIZE                  /* backtrace() stack */          \
-)
-
-
-/*
-** For keeping track of the number of mallocs and frees.   This
-** is used to check for memory leaks.  The iMallocFail and iMallocReset
-** values are used to simulate malloc() failures during testing in 
-** order to verify that the library correctly handles an out-of-memory
-** condition.
-*/
-int sqlite3_nMalloc;         /* Number of sqliteMalloc() calls */
-int sqlite3_nFree;           /* Number of sqliteFree() calls */
-int sqlite3_memUsed;         /* TODO Total memory obtained from malloc */
-int sqlite3_memMax;          /* TODO Mem usage high-water mark */
-int sqlite3_iMallocFail;     /* Fail sqliteMalloc() after this many calls */
-int sqlite3_iMallocReset = -1; /* When iMallocFail reaches 0, set to this */
-
-void *sqlite3_pFirst = 0;         /* Pointer to linked list of allocations */
-int sqlite3_nMaxAlloc = 0;        /* High water mark of ThreadData.nAlloc */
-int sqlite3_mallocDisallowed = 0; /* assert() in sqlite3Malloc() if set */
-int sqlite3_isFail = 0;           /* True if all malloc calls should fail */
-const char *sqlite3_zFile = 0;    /* Filename to associate debug info with */
-int sqlite3_iLine = 0;            /* Line number for debug info */
-int sqlite3_mallocfail_trace = 0; /* Print a msg on malloc fail if true */
-
-/*
-** Check for a simulated memory allocation failure.  Return true if
-** the failure should be simulated.  Return false to proceed as normal.
-*/
-int sqlite3TestMallocFail(){
-  if( sqlite3_isFail ){
-    return 1;
-  }
-  if( sqlite3_iMallocFail>=0 ){
-    sqlite3_iMallocFail--;
-    if( sqlite3_iMallocFail==0 ){
-      sqlite3_iMallocFail = sqlite3_iMallocReset;
-      sqlite3_isFail = 1;
-      if( sqlite3_mallocfail_trace ){
-         sqlite3DebugPrintf("###_malloc_fails_###\n");
-      }
-      return 1;
-    }
-  }
-  return 0;
 }
 
 /*
-** The argument is a pointer returned by sqlite3OsMalloc() or xRealloc().
-** assert() that the first and last (TESTALLOC_NGUARD*4) bytes are set to the
-** values set by the applyGuards() function.
+** State information local to the memory allocation subsystem.
 */
-static void checkGuards(u32 *p)
-{
-  int i;
-  char *zAlloc = (char *)p;
-  char *z;
+static SQLITE_WSD struct Mem0Global {
+  /* Number of free pages for scratch and page-cache memory */
+  u32 nScratchFree;
+  u32 nPageFree;
 
-  /* First set of guard words */
-  z = &zAlloc[TESTALLOC_OFFSET_GUARD1(p)];
-  for(i=0; i<TESTALLOC_NGUARD; i++){
-    assert(((u32 *)z)[i]==0xdead1122);
-  }
+  sqlite3_mutex *mutex;         /* Mutex to serialize access */
 
-  /* Second set of guard words */
-  z = &zAlloc[TESTALLOC_OFFSET_GUARD2(p)];
-  for(i=0; i<TESTALLOC_NGUARD; i++){
-    u32 guard = 0;
-    memcpy(&guard, &z[i*sizeof(u32)], sizeof(u32));
-    assert(guard==0xdead3344);
-  }
-}
+  /*
+  ** The alarm callback and its arguments.  The mem0.mutex lock will
+  ** be held while the callback is running.  Recursive calls into
+  ** the memory subsystem are allowed, but no new callbacks will be
+  ** issued.  The alarmBusy variable is set to prevent recursive
+  ** callbacks.
+  */
+  sqlite3_int64 alarmThreshold;
+  void (*alarmCallback)(void*, sqlite3_int64,int);
+  void *alarmArg;
+  int alarmBusy;
+
+  /*
+  ** Pointers to the end of sqlite3GlobalConfig.pScratch and
+  ** sqlite3GlobalConfig.pPage to a block of memory that records
+  ** which pages are available.
+  */
+  u32 *aScratchFree;
+  u32 *aPageFree;
+} mem0 = { 62560955, 0, 0, 0, 0, 0, 0, 0, 0 };
+
+#define mem0 GLOBAL(struct Mem0Global, mem0)
 
 /*
-** The argument is a pointer returned by sqlite3OsMalloc() or Realloc(). The
-** first and last (TESTALLOC_NGUARD*4) bytes are set to known values for use as 
-** guard-posts.
+** Initialize the memory allocation subsystem.
 */
-static void applyGuards(u32 *p)
-{
-  int i;
-  char *z;
-  char *zAlloc = (char *)p;
-
-  /* First set of guard words */
-  z = &zAlloc[TESTALLOC_OFFSET_GUARD1(p)];
-  for(i=0; i<TESTALLOC_NGUARD; i++){
-    ((u32 *)z)[i] = 0xdead1122;
+int sqlite3MallocInit(void){
+  if( sqlite3GlobalConfig.m.xMalloc==0 ){
+    sqlite3MemSetDefault();
   }
-
-  /* Second set of guard words */
-  z = &zAlloc[TESTALLOC_OFFSET_GUARD2(p)];
-  for(i=0; i<TESTALLOC_NGUARD; i++){
-    static const int guard = 0xdead3344;
-    memcpy(&z[i*sizeof(u32)], &guard, sizeof(u32));
+  memset(&mem0, 0, sizeof(mem0));
+  if( sqlite3GlobalConfig.bCoreMutex ){
+    mem0.mutex = sqlite3MutexAlloc(SQLITE_MUTEX_STATIC_MEM);
   }
-
-  /* Line number */
-  z = &((char *)z)[TESTALLOC_NGUARD*sizeof(u32)];             /* Guard words */
-  z = &zAlloc[TESTALLOC_OFFSET_LINENUMBER(p)];
-  memcpy(z, &sqlite3_iLine, sizeof(u32));
-
-  /* File name */
-  z = &zAlloc[TESTALLOC_OFFSET_FILENAME(p)];
-  strncpy(z, sqlite3_zFile, TESTALLOC_FILESIZE);
-  z[TESTALLOC_FILESIZE - 1] = '\0';
-
-  /* User string */
-  z = &zAlloc[TESTALLOC_OFFSET_USER(p)];
-  z[0] = 0;
-  if( sqlite3_malloc_id ){
-    strncpy(z, sqlite3_malloc_id, TESTALLOC_USERSIZE);
-    z[TESTALLOC_USERSIZE-1] = 0;
-  }
-
-  /* backtrace() stack */
-  z = &zAlloc[TESTALLOC_OFFSET_STACK(p)];
-  backtrace((void **)z, TESTALLOC_STACKFRAMES);
-
-  /* Sanity check to make sure checkGuards() is working */
-  checkGuards(p);
-}
-
-/*
-** The argument is a malloc()ed pointer as returned by the test-wrapper.
-** Return a pointer to the Os level allocation.
-*/
-static void *getOsPointer(void *p)
-{
-  char *z = (char *)p;
-  return (void *)(&z[-1 * TESTALLOC_OFFSET_DATA(p)]);
-}
-
-
-#if SQLITE_MEMDEBUG>1
-/*
-** The argument points to an Os level allocation. Link it into the threads list
-** of allocations.
-*/
-static void linkAlloc(void *p){
-  void **pp = (void **)p;
-  pp[0] = 0;
-  pp[1] = sqlite3_pFirst;
-  if( sqlite3_pFirst ){
-    ((void **)sqlite3_pFirst)[0] = p;
-  }
-  sqlite3_pFirst = p;
-}
-
-/*
-** The argument points to an Os level allocation. Unlinke it from the threads
-** list of allocations.
-*/
-static void unlinkAlloc(void *p)
-{
-  void **pp = (void **)p;
-  if( p==sqlite3_pFirst ){
-    assert(!pp[0]);
-    assert(!pp[1] || ((void **)(pp[1]))[0]==p);
-    sqlite3_pFirst = pp[1];
-    if( sqlite3_pFirst ){
-      ((void **)sqlite3_pFirst)[0] = 0;
-    }
-  }else{
-    void **pprev = pp[0];
-    void **pnext = pp[1];
-    assert(pprev);
-    assert(pprev[1]==p);
-    pprev[1] = (void *)pnext;
-    if( pnext ){
-      assert(pnext[0]==p);
-      pnext[0] = (void *)pprev;
-    }
-  }
-}
-
-/*
-** Pointer p is a pointer to an OS level allocation that has just been
-** realloc()ed. Set the list pointers that point to this entry to it's new
-** location.
-*/
-static void relinkAlloc(void *p)
-{
-  void **pp = (void **)p;
-  if( pp[0] ){
-    ((void **)(pp[0]))[1] = p;
-  }else{
-    sqlite3_pFirst = p;
-  }
-  if( pp[1] ){
-    ((void **)(pp[1]))[0] = p;
-  }
-}
-#else
-#define linkAlloc(x)
-#define relinkAlloc(x)
-#define unlinkAlloc(x)
-#endif
-
-/*
-** This function sets the result of the Tcl interpreter passed as an argument
-** to a list containing an entry for each currently outstanding call made to 
-** sqliteMalloc and friends by the current thread. Each list entry is itself a
-** list, consisting of the following (in order):
-**
-**     * The number of bytes allocated
-**     * The __FILE__ macro at the time of the sqliteMalloc() call.
-**     * The __LINE__ macro ...
-**     * The value of the sqlite3_malloc_id variable ...
-**     * The output of backtrace() (if available) ...
-**
-** Todo: We could have a version of this function that outputs to stdout, 
-** to debug memory leaks when Tcl is not available.
-*/
-#if defined(TCLSH) && defined(SQLITE_DEBUG) && SQLITE_MEMDEBUG>1
-#include <tcl.h>
-int sqlite3OutstandingMallocs(Tcl_Interp *interp){
-  void *p;
-  Tcl_Obj *pRes = Tcl_NewObj();
-  Tcl_IncrRefCount(pRes);
-
-
-  for(p=sqlite3_pFirst; p; p=((void **)p)[1]){
-    Tcl_Obj *pEntry = Tcl_NewObj();
-    Tcl_Obj *pStack = Tcl_NewObj();
-    char *z;
-    u32 iLine;
-    int nBytes = sqlite3OsAllocationSize(p) - TESTALLOC_OVERHEAD;
-    char *zAlloc = (char *)p;
+  if( sqlite3GlobalConfig.pScratch && sqlite3GlobalConfig.szScratch>=100
+      && sqlite3GlobalConfig.nScratch>=0 ){
     int i;
-
-    Tcl_ListObjAppendElement(0, pEntry, Tcl_NewIntObj(nBytes));
-
-    z = &zAlloc[TESTALLOC_OFFSET_FILENAME(p)];
-    Tcl_ListObjAppendElement(0, pEntry, Tcl_NewStringObj(z, -1));
-
-    z = &zAlloc[TESTALLOC_OFFSET_LINENUMBER(p)];
-    memcpy(&iLine, z, sizeof(u32));
-    Tcl_ListObjAppendElement(0, pEntry, Tcl_NewIntObj(iLine));
-
-    z = &zAlloc[TESTALLOC_OFFSET_USER(p)];
-    Tcl_ListObjAppendElement(0, pEntry, Tcl_NewStringObj(z, -1));
-
-    z = &zAlloc[TESTALLOC_OFFSET_STACK(p)];
-    for(i=0; i<TESTALLOC_STACKFRAMES; i++){
-      char zHex[128];
-      sqlite3_snprintf(sizeof(zHex), zHex, "%p", ((void **)z)[i]);
-      Tcl_ListObjAppendElement(0, pStack, Tcl_NewStringObj(zHex, -1));
-    }
-
-    Tcl_ListObjAppendElement(0, pEntry, pStack);
-    Tcl_ListObjAppendElement(0, pRes, pEntry);
+    sqlite3GlobalConfig.szScratch = (sqlite3GlobalConfig.szScratch - 4) & ~7;
+    mem0.aScratchFree = (u32*)&((char*)sqlite3GlobalConfig.pScratch)
+                  [sqlite3GlobalConfig.szScratch*sqlite3GlobalConfig.nScratch];
+    for(i=0; i<sqlite3GlobalConfig.nScratch; i++){ mem0.aScratchFree[i] = i; }
+    mem0.nScratchFree = sqlite3GlobalConfig.nScratch;
+  }else{
+    sqlite3GlobalConfig.pScratch = 0;
+    sqlite3GlobalConfig.szScratch = 0;
   }
+  if( sqlite3GlobalConfig.pPage && sqlite3GlobalConfig.szPage>=512
+      && sqlite3GlobalConfig.nPage>=1 ){
+    int i;
+    int overhead;
+    int sz = sqlite3GlobalConfig.szPage & ~7;
+    int n = sqlite3GlobalConfig.nPage;
+    overhead = (4*n + sz - 1)/sz;
+    sqlite3GlobalConfig.nPage -= overhead;
+    mem0.aPageFree = (u32*)&((char*)sqlite3GlobalConfig.pPage)
+                  [sqlite3GlobalConfig.szPage*sqlite3GlobalConfig.nPage];
+    for(i=0; i<sqlite3GlobalConfig.nPage; i++){ mem0.aPageFree[i] = i; }
+    mem0.nPageFree = sqlite3GlobalConfig.nPage;
+  }else{
+    sqlite3GlobalConfig.pPage = 0;
+    sqlite3GlobalConfig.szPage = 0;
+  }
+  return sqlite3GlobalConfig.m.xInit(sqlite3GlobalConfig.m.pAppData);
+}
 
-  Tcl_ResetResult(interp);
-  Tcl_SetObjResult(interp, pRes);
-  Tcl_DecrRefCount(pRes);
-  return TCL_OK;
+/*
+** Deinitialize the memory allocation subsystem.
+*/
+void sqlite3MallocEnd(void){
+  sqlite3GlobalConfig.m.xShutdown(sqlite3GlobalConfig.m.pAppData);
+  memset(&mem0, 0, sizeof(mem0));
+}
+
+/*
+** Return the amount of memory currently checked out.
+*/
+sqlite3_int64 sqlite3_memory_used(void){
+  int n, mx;
+  sqlite3_int64 res;
+  sqlite3_status(SQLITE_STATUS_MEMORY_USED, &n, &mx, 0);
+  res = (sqlite3_int64)n;  /* Work around bug in Borland C. Ticket #3216 */
+  return res;
+}
+
+/*
+** Return the maximum amount of memory that has ever been
+** checked out since either the beginning of this process
+** or since the most recent reset.
+*/
+sqlite3_int64 sqlite3_memory_highwater(int resetFlag){
+  int n, mx;
+  sqlite3_int64 res;
+  sqlite3_status(SQLITE_STATUS_MEMORY_USED, &n, &mx, resetFlag);
+  res = (sqlite3_int64)mx;  /* Work around bug in Borland C. Ticket #3216 */
+  return res;
+}
+
+/*
+** Change the alarm callback
+*/
+int sqlite3MemoryAlarm(
+  void(*xCallback)(void *pArg, sqlite3_int64 used,int N),
+  void *pArg,
+  sqlite3_int64 iThreshold
+){
+  sqlite3_mutex_enter(mem0.mutex);
+  mem0.alarmCallback = xCallback;
+  mem0.alarmArg = pArg;
+  mem0.alarmThreshold = iThreshold;
+  sqlite3_mutex_leave(mem0.mutex);
+  return SQLITE_OK;
+}
+
+#ifndef SQLITE_OMIT_DEPRECATED
+/*
+** Deprecated external interface.  Internal/core SQLite code
+** should call sqlite3MemoryAlarm.
+*/
+int sqlite3_memory_alarm(
+  void(*xCallback)(void *pArg, sqlite3_int64 used,int N),
+  void *pArg,
+  sqlite3_int64 iThreshold
+){
+  return sqlite3MemoryAlarm(xCallback, pArg, iThreshold);
 }
 #endif
 
 /*
-** This is the test layer's wrapper around sqlite3OsMalloc().
+** Trigger the alarm 
 */
-static void * OSMALLOC(int n){
-  sqlite3OsEnterMutex();
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-  sqlite3_nMaxAlloc = 
-      MAX(sqlite3_nMaxAlloc, sqlite3ThreadDataReadOnly()->nAlloc);
-#endif
-  assert( !sqlite3_mallocDisallowed );
-  if( !sqlite3TestMallocFail() ){
-    u32 *p;
-    p = (u32 *)sqlite3OsMalloc(n + TESTALLOC_OVERHEAD);
-    assert(p);
-    sqlite3_nMalloc++;
-    applyGuards(p);
-    linkAlloc(p);
-    sqlite3OsLeaveMutex();
-    return (void *)(&p[TESTALLOC_NGUARD + 2*sizeof(void *)/sizeof(u32)]);
-  }
-  sqlite3OsLeaveMutex();
-  return 0;
+static void sqlite3MallocAlarm(int nByte){
+  void (*xCallback)(void*,sqlite3_int64,int);
+  sqlite3_int64 nowUsed;
+  void *pArg;
+  if( mem0.alarmCallback==0 || mem0.alarmBusy  ) return;
+  mem0.alarmBusy = 1;
+  xCallback = mem0.alarmCallback;
+  nowUsed = sqlite3StatusValue(SQLITE_STATUS_MEMORY_USED);
+  pArg = mem0.alarmArg;
+  sqlite3_mutex_leave(mem0.mutex);
+  xCallback(pArg, nowUsed, nByte);
+  sqlite3_mutex_enter(mem0.mutex);
+  mem0.alarmBusy = 0;
 }
 
-static int OSSIZEOF(void *p){
+/*
+** Do a memory allocation with statistics and alarms.  Assume the
+** lock is already held.
+*/
+static int mallocWithAlarm(int n, void **pp){
+  int nFull;
+  void *p;
+  assert( sqlite3_mutex_held(mem0.mutex) );
+  nFull = sqlite3GlobalConfig.m.xRoundup(n);
+  sqlite3StatusSet(SQLITE_STATUS_MALLOC_SIZE, n);
+  if( mem0.alarmCallback!=0 ){
+    int nUsed = sqlite3StatusValue(SQLITE_STATUS_MEMORY_USED);
+    if( nUsed+nFull >= mem0.alarmThreshold ){
+      sqlite3MallocAlarm(nFull);
+    }
+  }
+  p = sqlite3GlobalConfig.m.xMalloc(nFull);
+  if( p==0 && mem0.alarmCallback ){
+    sqlite3MallocAlarm(nFull);
+    p = sqlite3GlobalConfig.m.xMalloc(nFull);
+  }
   if( p ){
-    u32 *pOs = (u32 *)getOsPointer(p);
-    return sqlite3OsAllocationSize(pOs) - TESTALLOC_OVERHEAD;
+    nFull = sqlite3MallocSize(p);
+    sqlite3StatusAdd(SQLITE_STATUS_MEMORY_USED, nFull);
   }
-  return 0;
+  *pp = p;
+  return nFull;
 }
 
 /*
-** This is the test layer's wrapper around sqlite3OsFree(). The argument is a
-** pointer to the space allocated for the application to use.
+** Allocate memory.  This routine is like sqlite3_malloc() except that it
+** assumes the memory subsystem has already been initialized.
 */
-static void OSFREE(void *pFree){
-  u32 *p;         /* Pointer to the OS-layer allocation */
-  sqlite3OsEnterMutex();
-  p = (u32 *)getOsPointer(pFree);
-  checkGuards(p);
-  unlinkAlloc(p);
-  memset(pFree, 0x55, OSSIZEOF(pFree));
-  sqlite3OsFree(p);
-  sqlite3_nFree++;
-  sqlite3OsLeaveMutex();
-}
-
-/*
-** This is the test layer's wrapper around sqlite3OsRealloc().
-*/
-static void * OSREALLOC(void *pRealloc, int n){
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-  sqlite3_nMaxAlloc = 
-      MAX(sqlite3_nMaxAlloc, sqlite3ThreadDataReadOnly()->nAlloc);
-#endif
-  assert( !sqlite3_mallocDisallowed );
-  if( !sqlite3TestMallocFail() ){
-    u32 *p = (u32 *)getOsPointer(pRealloc);
-    checkGuards(p);
-    p = sqlite3OsRealloc(p, n + TESTALLOC_OVERHEAD);
-    applyGuards(p);
-    relinkAlloc(p);
-    return (void *)(&p[TESTALLOC_NGUARD + 2*sizeof(void *)/sizeof(u32)]);
-  }
-  return 0;
-}
-
-static void OSMALLOC_FAILED(){
-  sqlite3_isFail = 0;
-}
-
-#else
-/* Define macros to call the sqlite3OsXXX interface directly if 
-** the SQLITE_MEMDEBUG macro is not defined.
-*/
-#define OSMALLOC(x)        sqlite3OsMalloc(x)
-#define OSREALLOC(x,y)     sqlite3OsRealloc(x,y)
-#define OSFREE(x)          sqlite3OsFree(x)
-#define OSSIZEOF(x)        sqlite3OsAllocationSize(x)
-#define OSMALLOC_FAILED()
-
-#endif  /* SQLITE_MEMDEBUG */
-/*
-** End code for memory allocation system test layer.
-**--------------------------------------------------------------------------*/
-
-/*
-** This routine is called when we are about to allocate n additional bytes
-** of memory.  If the new allocation will put is over the soft allocation
-** limit, then invoke sqlite3_release_memory() to try to release some
-** memory before continuing with the allocation.
-**
-** This routine also makes sure that the thread-specific-data (TSD) has
-** be allocated.  If it has not and can not be allocated, then return
-** false.  The updateMemoryUsedCount() routine below will deallocate
-** the TSD if it ought to be.
-**
-** If SQLITE_ENABLE_MEMORY_MANAGEMENT is not defined, this routine is
-** a no-op
-*/ 
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-static int enforceSoftLimit(int n){
-  ThreadData *pTsd = sqlite3ThreadData();
-  if( pTsd==0 ){
-    return 0;
-  }
-  assert( pTsd->nAlloc>=0 );
-  if( n>0 && pTsd->nSoftHeapLimit>0 ){
-    while( pTsd->nAlloc+n>pTsd->nSoftHeapLimit && sqlite3_release_memory(n) ){}
-  }
-  return 1;
-}
-#else
-# define enforceSoftLimit(X)  1
-#endif
-
-/*
-** Update the count of total outstanding memory that is held in
-** thread-specific-data (TSD).  If after this update the TSD is
-** no longer being used, then deallocate it.
-**
-** If SQLITE_ENABLE_MEMORY_MANAGEMENT is not defined, this routine is
-** a no-op
-*/
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-static void updateMemoryUsedCount(int n){
-  ThreadData *pTsd = sqlite3ThreadData();
-  if( pTsd ){
-    pTsd->nAlloc += n;
-    assert( pTsd->nAlloc>=0 );
-    if( pTsd->nAlloc==0 && pTsd->nSoftHeapLimit==0 ){
-      sqlite3ReleaseThreadData();
-    }
-  }
-}
-#else
-#define updateMemoryUsedCount(x)  /* no-op */
-#endif
-
-/*
-** Allocate and return N bytes of uninitialised memory by calling
-** sqlite3OsMalloc(). If the Malloc() call fails, attempt to free memory 
-** by calling sqlite3_release_memory().
-*/
-void *sqlite3MallocRaw(int n, int doMemManage){
-  void *p = 0;
-  if( n>0 && !sqlite3MallocFailed() && (!doMemManage || enforceSoftLimit(n)) ){
-    while( (p = OSMALLOC(n))==0 && sqlite3_release_memory(n) ){}
-    if( !p ){
-      sqlite3FailedMalloc();
-      OSMALLOC_FAILED();
-    }else if( doMemManage ){
-      updateMemoryUsedCount(OSSIZEOF(p));
-    }
+void *sqlite3Malloc(int n){
+  void *p;
+  if( n<=0 ){
+    p = 0;
+  }else if( sqlite3GlobalConfig.bMemstat ){
+    sqlite3_mutex_enter(mem0.mutex);
+    mallocWithAlarm(n, &p);
+    sqlite3_mutex_leave(mem0.mutex);
+  }else{
+    p = sqlite3GlobalConfig.m.xMalloc(n);
   }
   return p;
 }
 
 /*
-** Resize the allocation at p to n bytes by calling sqlite3OsRealloc(). The
-** pointer to the new allocation is returned.  If the Realloc() call fails,
-** attempt to free memory by calling sqlite3_release_memory().
+** This version of the memory allocation is for use by the application.
+** First make sure the memory subsystem is initialized, then do the
+** allocation.
 */
-void *sqlite3Realloc(void *p, int n){
-  if( sqlite3MallocFailed() ){
+void *sqlite3_malloc(int n){
+#ifndef SQLITE_OMIT_AUTOINIT
+  if( sqlite3_initialize() ) return 0;
+#endif
+  return sqlite3Malloc(n);
+}
+
+/*
+** Each thread may only have a single outstanding allocation from
+** xScratchMalloc().  We verify this constraint in the single-threaded
+** case by setting scratchAllocOut to 1 when an allocation
+** is outstanding clearing it when the allocation is freed.
+*/
+#if SQLITE_THREADSAFE==0 && !defined(NDEBUG)
+static int scratchAllocOut = 0;
+#endif
+
+
+/*
+** Allocate memory that is to be used and released right away.
+** This routine is similar to alloca() in that it is not intended
+** for situations where the memory might be held long-term.  This
+** routine is intended to get memory to old large transient data
+** structures that would not normally fit on the stack of an
+** embedded processor.
+*/
+void *sqlite3ScratchMalloc(int n){
+  void *p;
+  assert( n>0 );
+
+#if SQLITE_THREADSAFE==0 && !defined(NDEBUG)
+  /* Verify that no more than one scratch allocation per thread
+  ** is outstanding at one time.  (This is only checked in the
+  ** single-threaded case since checking in the multi-threaded case
+  ** would be much more complicated.) */
+  assert( scratchAllocOut==0 );
+#endif
+
+  if( sqlite3GlobalConfig.szScratch<n ){
+    goto scratch_overflow;
+  }else{  
+    sqlite3_mutex_enter(mem0.mutex);
+    if( mem0.nScratchFree==0 ){
+      sqlite3_mutex_leave(mem0.mutex);
+      goto scratch_overflow;
+    }else{
+      int i;
+      i = mem0.aScratchFree[--mem0.nScratchFree];
+      i *= sqlite3GlobalConfig.szScratch;
+      sqlite3StatusAdd(SQLITE_STATUS_SCRATCH_USED, 1);
+      sqlite3StatusSet(SQLITE_STATUS_SCRATCH_SIZE, n);
+      sqlite3_mutex_leave(mem0.mutex);
+      p = (void*)&((char*)sqlite3GlobalConfig.pScratch)[i];
+      assert(  (((u8*)p - (u8*)0) & 7)==0 );
+    }
+  }
+#if SQLITE_THREADSAFE==0 && !defined(NDEBUG)
+  scratchAllocOut = p!=0;
+#endif
+
+  return p;
+
+scratch_overflow:
+  if( sqlite3GlobalConfig.bMemstat ){
+    sqlite3_mutex_enter(mem0.mutex);
+    sqlite3StatusSet(SQLITE_STATUS_SCRATCH_SIZE, n);
+    n = mallocWithAlarm(n, &p);
+    if( p ) sqlite3StatusAdd(SQLITE_STATUS_SCRATCH_OVERFLOW, n);
+    sqlite3_mutex_leave(mem0.mutex);
+  }else{
+    p = sqlite3GlobalConfig.m.xMalloc(n);
+  }
+#if SQLITE_THREADSAFE==0 && !defined(NDEBUG)
+  scratchAllocOut = p!=0;
+#endif
+  return p;    
+}
+void sqlite3ScratchFree(void *p){
+  if( p ){
+
+#if SQLITE_THREADSAFE==0 && !defined(NDEBUG)
+    /* Verify that no more than one scratch allocation per thread
+    ** is outstanding at one time.  (This is only checked in the
+    ** single-threaded case since checking in the multi-threaded case
+    ** would be much more complicated.) */
+    assert( scratchAllocOut==1 );
+    scratchAllocOut = 0;
+#endif
+
+    if( sqlite3GlobalConfig.pScratch==0
+           || p<sqlite3GlobalConfig.pScratch
+           || p>=(void*)mem0.aScratchFree ){
+      if( sqlite3GlobalConfig.bMemstat ){
+        int iSize = sqlite3MallocSize(p);
+        sqlite3_mutex_enter(mem0.mutex);
+        sqlite3StatusAdd(SQLITE_STATUS_SCRATCH_OVERFLOW, -iSize);
+        sqlite3StatusAdd(SQLITE_STATUS_MEMORY_USED, -iSize);
+        sqlite3GlobalConfig.m.xFree(p);
+        sqlite3_mutex_leave(mem0.mutex);
+      }else{
+        sqlite3GlobalConfig.m.xFree(p);
+      }
+    }else{
+      int i;
+      i = (int)((u8*)p - (u8*)sqlite3GlobalConfig.pScratch);
+      i /= sqlite3GlobalConfig.szScratch;
+      assert( i>=0 && i<sqlite3GlobalConfig.nScratch );
+      sqlite3_mutex_enter(mem0.mutex);
+      assert( mem0.nScratchFree<(u32)sqlite3GlobalConfig.nScratch );
+      mem0.aScratchFree[mem0.nScratchFree++] = i;
+      sqlite3StatusAdd(SQLITE_STATUS_SCRATCH_USED, -1);
+      sqlite3_mutex_leave(mem0.mutex);
+    }
+  }
+}
+
+/*
+** Allocate memory to be used by the page cache.  Make use of the
+** memory buffer provided by SQLITE_CONFIG_PAGECACHE if there is one
+** and that memory is of the right size and is not completely
+** consumed.  Otherwise, failover to sqlite3Malloc().
+*/
+#if 0
+void *sqlite3PageMalloc(int n){
+  void *p;
+  assert( n>0 );
+  assert( (n & (n-1))==0 );
+  assert( n>=512 && n<=32768 );
+
+  if( sqlite3GlobalConfig.szPage<n ){
+    goto page_overflow;
+  }else{  
+    sqlite3_mutex_enter(mem0.mutex);
+    if( mem0.nPageFree==0 ){
+      sqlite3_mutex_leave(mem0.mutex);
+      goto page_overflow;
+    }else{
+      int i;
+      i = mem0.aPageFree[--mem0.nPageFree];
+      sqlite3_mutex_leave(mem0.mutex);
+      i *= sqlite3GlobalConfig.szPage;
+      sqlite3StatusSet(SQLITE_STATUS_PAGECACHE_SIZE, n);
+      sqlite3StatusAdd(SQLITE_STATUS_PAGECACHE_USED, 1);
+      p = (void*)&((char*)sqlite3GlobalConfig.pPage)[i];
+    }
+  }
+  return p;
+
+page_overflow:
+  if( sqlite3GlobalConfig.bMemstat ){
+    sqlite3_mutex_enter(mem0.mutex);
+    sqlite3StatusSet(SQLITE_STATUS_PAGECACHE_SIZE, n);
+    n = mallocWithAlarm(n, &p);
+    if( p ) sqlite3StatusAdd(SQLITE_STATUS_PAGECACHE_OVERFLOW, n);
+    sqlite3_mutex_leave(mem0.mutex);
+  }else{
+    p = sqlite3GlobalConfig.m.xMalloc(n);
+  }
+  return p;    
+}
+void sqlite3PageFree(void *p){
+  if( p ){
+    if( sqlite3GlobalConfig.pPage==0
+           || p<sqlite3GlobalConfig.pPage
+           || p>=(void*)mem0.aPageFree ){
+      /* In this case, the page allocation was obtained from a regular 
+      ** call to sqlite3_mem_methods.xMalloc() (a page-cache-memory 
+      ** "overflow"). Free the block with sqlite3_mem_methods.xFree().
+      */
+      if( sqlite3GlobalConfig.bMemstat ){
+        int iSize = sqlite3MallocSize(p);
+        sqlite3_mutex_enter(mem0.mutex);
+        sqlite3StatusAdd(SQLITE_STATUS_PAGECACHE_OVERFLOW, -iSize);
+        sqlite3StatusAdd(SQLITE_STATUS_MEMORY_USED, -iSize);
+        sqlite3GlobalConfig.m.xFree(p);
+        sqlite3_mutex_leave(mem0.mutex);
+      }else{
+        sqlite3GlobalConfig.m.xFree(p);
+      }
+    }else{
+      /* The page allocation was allocated from the sqlite3GlobalConfig.pPage
+      ** buffer. In this case all that is add the index of the page in
+      ** the sqlite3GlobalConfig.pPage array to the set of free indexes stored
+      ** in the mem0.aPageFree[] array.
+      */
+      int i;
+      i = (u8 *)p - (u8 *)sqlite3GlobalConfig.pPage;
+      i /= sqlite3GlobalConfig.szPage;
+      assert( i>=0 && i<sqlite3GlobalConfig.nPage );
+      sqlite3_mutex_enter(mem0.mutex);
+      assert( mem0.nPageFree<sqlite3GlobalConfig.nPage );
+      mem0.aPageFree[mem0.nPageFree++] = i;
+      sqlite3StatusAdd(SQLITE_STATUS_PAGECACHE_USED, -1);
+      sqlite3_mutex_leave(mem0.mutex);
+#if !defined(NDEBUG) && 0
+      /* Assert that a duplicate was not just inserted into aPageFree[]. */
+      for(i=0; i<mem0.nPageFree-1; i++){
+        assert( mem0.aPageFree[i]!=mem0.aPageFree[mem0.nPageFree-1] );
+      }
+#endif
+    }
+  }
+}
+#endif
+
+/*
+** TRUE if p is a lookaside memory allocation from db
+*/
+#ifndef SQLITE_OMIT_LOOKASIDE
+static int isLookaside(sqlite3 *db, void *p){
+  return db && p && p>=db->lookaside.pStart && p<db->lookaside.pEnd;
+}
+#else
+#define isLookaside(A,B) 0
+#endif
+
+/*
+** Return the size of a memory allocation previously obtained from
+** sqlite3Malloc() or sqlite3_malloc().
+*/
+int sqlite3MallocSize(void *p){
+  return sqlite3GlobalConfig.m.xSize(p);
+}
+int sqlite3DbMallocSize(sqlite3 *db, void *p){
+  if( p==0 ){
+    return 0;
+  }else if( isLookaside(db, p) ){
+    return db->lookaside.sz;
+  }else{
+    return sqlite3GlobalConfig.m.xSize(p);
+  }
+}
+
+/*
+** Free memory previously obtained from sqlite3Malloc().
+*/
+void sqlite3_free(void *p){
+  if( p==0 ) return;
+  if( sqlite3GlobalConfig.bMemstat ){
+    sqlite3_mutex_enter(mem0.mutex);
+    sqlite3StatusAdd(SQLITE_STATUS_MEMORY_USED, -sqlite3MallocSize(p));
+    sqlite3GlobalConfig.m.xFree(p);
+    sqlite3_mutex_leave(mem0.mutex);
+  }else{
+    sqlite3GlobalConfig.m.xFree(p);
+  }
+}
+
+/*
+** Free memory that might be associated with a particular database
+** connection.
+*/
+void sqlite3DbFree(sqlite3 *db, void *p){
+  if( isLookaside(db, p) ){
+    LookasideSlot *pBuf = (LookasideSlot*)p;
+    pBuf->pNext = db->lookaside.pFree;
+    db->lookaside.pFree = pBuf;
+    db->lookaside.nOut--;
+  }else{
+    sqlite3_free(p);
+  }
+}
+
+/*
+** Change the size of an existing memory allocation
+*/
+void *sqlite3Realloc(void *pOld, int nBytes){
+  int nOld, nNew;
+  void *pNew;
+  if( pOld==0 ){
+    return sqlite3Malloc(nBytes);
+  }
+  if( nBytes<=0 ){
+    sqlite3_free(pOld);
     return 0;
   }
-
-  if( !p ){
-    return sqlite3Malloc(n, 1);
-  }else{
-    void *np = 0;
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-    int origSize = OSSIZEOF(p);
-#endif
-    if( enforceSoftLimit(n - origSize) ){
-      while( (np = OSREALLOC(p, n))==0 && sqlite3_release_memory(n) ){}
-      if( !np ){
-        sqlite3FailedMalloc();
-        OSMALLOC_FAILED();
-      }else{
-        updateMemoryUsedCount(OSSIZEOF(np) - origSize);
+  nOld = sqlite3MallocSize(pOld);
+  if( sqlite3GlobalConfig.bMemstat ){
+    sqlite3_mutex_enter(mem0.mutex);
+    sqlite3StatusSet(SQLITE_STATUS_MALLOC_SIZE, nBytes);
+    nNew = sqlite3GlobalConfig.m.xRoundup(nBytes);
+    if( nOld==nNew ){
+      pNew = pOld;
+    }else{
+      if( sqlite3StatusValue(SQLITE_STATUS_MEMORY_USED)+nNew-nOld >= 
+            mem0.alarmThreshold ){
+        sqlite3MallocAlarm(nNew-nOld);
+      }
+      pNew = sqlite3GlobalConfig.m.xRealloc(pOld, nNew);
+      if( pNew==0 && mem0.alarmCallback ){
+        sqlite3MallocAlarm(nBytes);
+        pNew = sqlite3GlobalConfig.m.xRealloc(pOld, nNew);
+      }
+      if( pNew ){
+        nNew = sqlite3MallocSize(pNew);
+        sqlite3StatusAdd(SQLITE_STATUS_MEMORY_USED, nNew-nOld);
       }
     }
-    return np;
-  }
-}
-
-/*
-** Free the memory pointed to by p. p must be either a NULL pointer or a 
-** value returned by a previous call to sqlite3Malloc() or sqlite3Realloc().
-*/
-void sqlite3FreeX(void *p){
-  if( p ){
-    updateMemoryUsedCount(0 - OSSIZEOF(p));
-    OSFREE(p);
-  }
-}
-
-/*
-** A version of sqliteMalloc() that is always a function, not a macro.
-** Currently, this is used only to alloc to allocate the parser engine.
-*/
-void *sqlite3MallocX(int n){
-  return sqliteMalloc(n);
-}
-
-/*
-** sqlite3Malloc
-** sqlite3ReallocOrFree
-**
-** These two are implemented as wrappers around sqlite3MallocRaw(), 
-** sqlite3Realloc() and sqlite3Free().
-*/ 
-void *sqlite3Malloc(int n, int doMemManage){
-  void *p = sqlite3MallocRaw(n, doMemManage);
-  if( p ){
-    memset(p, 0, n);
-  }
-  return p;
-}
-void *sqlite3ReallocOrFree(void *p, int n){
-  void *pNew;
-  pNew = sqlite3Realloc(p, n);
-  if( !pNew ){
-    sqlite3FreeX(p);
+    sqlite3_mutex_leave(mem0.mutex);
+  }else{
+    pNew = sqlite3GlobalConfig.m.xRealloc(pOld, nBytes);
   }
   return pNew;
 }
 
 /*
-** sqlite3ThreadSafeMalloc() and sqlite3ThreadSafeFree() are used in those
-** rare scenarios where sqlite may allocate memory in one thread and free
-** it in another. They are exactly the same as sqlite3Malloc() and 
-** sqlite3Free() except that:
-**
-**   * The allocated memory is not included in any calculations with 
-**     respect to the soft-heap-limit, and
-**
-**   * sqlite3ThreadSafeMalloc() must be matched with ThreadSafeFree(),
-**     not sqlite3Free(). Calling sqlite3Free() on memory obtained from
-**     ThreadSafeMalloc() will cause an error somewhere down the line.
+** The public interface to sqlite3Realloc.  Make sure that the memory
+** subsystem is initialized prior to invoking sqliteRealloc.
 */
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-void *sqlite3ThreadSafeMalloc(int n){
-  (void)ENTER_MALLOC;
-  return sqlite3Malloc(n, 0);
-}
-void sqlite3ThreadSafeFree(void *p){
-  (void)ENTER_MALLOC;
-  if( p ){
-    OSFREE(p);
-  }
-}
+void *sqlite3_realloc(void *pOld, int n){
+#ifndef SQLITE_OMIT_AUTOINIT
+  if( sqlite3_initialize() ) return 0;
 #endif
+  return sqlite3Realloc(pOld, n);
+}
 
 
 /*
-** Return the number of bytes allocated at location p. p must be either 
-** a NULL pointer (in which case 0 is returned) or a pointer returned by 
-** sqlite3Malloc(), sqlite3Realloc() or sqlite3ReallocOrFree().
-**
-** The number of bytes allocated does not include any overhead inserted by 
-** any malloc() wrapper functions that may be called. So the value returned
-** is the number of bytes that were available to SQLite using pointer p, 
-** regardless of how much memory was actually allocated.
-*/
-#ifdef SQLITE_ENABLE_MEMORY_MANAGEMENT
-int sqlite3AllocSize(void *p){
-  return OSSIZEOF(p);
+** Allocate and zero memory.
+*/ 
+void *sqlite3MallocZero(int n){
+  void *p = sqlite3Malloc(n);
+  if( p ){
+    memset(p, 0, n);
+  }
+  return p;
 }
+
+/*
+** Allocate and zero memory.  If the allocation fails, make
+** the mallocFailed flag in the connection pointer.
+*/
+void *sqlite3DbMallocZero(sqlite3 *db, int n){
+  void *p = sqlite3DbMallocRaw(db, n);
+  if( p ){
+    memset(p, 0, n);
+  }
+  return p;
+}
+
+/*
+** Allocate and zero memory.  If the allocation fails, make
+** the mallocFailed flag in the connection pointer.
+**
+** If db!=0 and db->mallocFailed is true (indicating a prior malloc
+** failure on the same database connection) then always return 0.
+** Hence for a particular database connection, once malloc starts
+** failing, it fails consistently until mallocFailed is reset.
+** This is an important assumption.  There are many places in the
+** code that do things like this:
+**
+**         int *a = (int*)sqlite3DbMallocRaw(db, 100);
+**         int *b = (int*)sqlite3DbMallocRaw(db, 200);
+**         if( b ) a[10] = 9;
+**
+** In other words, if a subsequent malloc (ex: "b") worked, it is assumed
+** that all prior mallocs (ex: "a") worked too.
+*/
+void *sqlite3DbMallocRaw(sqlite3 *db, int n){
+  void *p;
+#ifndef SQLITE_OMIT_LOOKASIDE
+  if( db ){
+    LookasideSlot *pBuf;
+    if( db->mallocFailed ){
+      return 0;
+    }
+    if( db->lookaside.bEnabled && n<=db->lookaside.sz
+         && (pBuf = db->lookaside.pFree)!=0 ){
+      db->lookaside.pFree = pBuf->pNext;
+      db->lookaside.nOut++;
+      if( db->lookaside.nOut>db->lookaside.mxOut ){
+        db->lookaside.mxOut = db->lookaside.nOut;
+      }
+      return (void*)pBuf;
+    }
+  }
+#else
+  if( db && db->mallocFailed ){
+    return 0;
+  }
 #endif
+  p = sqlite3Malloc(n);
+  if( !p && db ){
+    db->mallocFailed = 1;
+  }
+  return p;
+}
+
+/*
+** Resize the block of memory pointed to by p to n bytes. If the
+** resize fails, set the mallocFailed flag in the connection object.
+*/
+void *sqlite3DbRealloc(sqlite3 *db, void *p, int n){
+  void *pNew = 0;
+  if( db->mallocFailed==0 ){
+    if( p==0 ){
+      return sqlite3DbMallocRaw(db, n);
+    }
+    if( isLookaside(db, p) ){
+      if( n<=db->lookaside.sz ){
+        return p;
+      }
+      pNew = sqlite3DbMallocRaw(db, n);
+      if( pNew ){
+        memcpy(pNew, p, db->lookaside.sz);
+        sqlite3DbFree(db, p);
+      }
+    }else{
+      pNew = sqlite3_realloc(p, n);
+      if( !pNew ){
+        db->mallocFailed = 1;
+      }
+    }
+  }
+  return pNew;
+}
+
+/*
+** Attempt to reallocate p.  If the reallocation fails, then free p
+** and set the mallocFailed flag in the database connection.
+*/
+void *sqlite3DbReallocOrFree(sqlite3 *db, void *p, int n){
+  void *pNew;
+  pNew = sqlite3DbRealloc(db, p, n);
+  if( !pNew ){
+    sqlite3DbFree(db, p);
+  }
+  return pNew;
+}
 
 /*
 ** Make a copy of a string in memory obtained from sqliteMalloc(). These 
@@ -722,19 +719,27 @@ int sqlite3AllocSize(void *p){
 ** called via macros that record the current file and line number in the
 ** ThreadData structure.
 */
-char *sqlite3StrDup(const char *z){
+char *sqlite3DbStrDup(sqlite3 *db, const char *z){
   char *zNew;
-  int n;
-  if( z==0 ) return 0;
-  n = strlen(z)+1;
-  zNew = sqlite3MallocRaw(n, 1);
-  if( zNew ) memcpy(zNew, z, n);
+  size_t n;
+  if( z==0 ){
+    return 0;
+  }
+  n = (db ? sqlite3Strlen(db, z) : sqlite3Strlen30(z))+1;
+  assert( (n&0x7fffffff)==n );
+  zNew = sqlite3DbMallocRaw(db, (int)n);
+  if( zNew ){
+    memcpy(zNew, z, n);
+  }
   return zNew;
 }
-char *sqlite3StrNDup(const char *z, int n){
+char *sqlite3DbStrNDup(sqlite3 *db, const char *z, int n){
   char *zNew;
-  if( z==0 ) return 0;
-  zNew = sqlite3MallocRaw(n+1, 1);
+  if( z==0 ){
+    return 0;
+  }
+  assert( (n&0x7fffffff)==n );
+  zNew = sqlite3DbMallocRaw(db, n+1);
   if( zNew ){
     memcpy(zNew, z, n);
     zNew[n] = 0;
@@ -743,46 +748,26 @@ char *sqlite3StrNDup(const char *z, int n){
 }
 
 /*
-** Create a string from the 2nd and subsequent arguments (up to the
-** first NULL argument), store the string in memory obtained from
-** sqliteMalloc() and make the pointer indicated by the 1st argument
-** point to that string.  The 1st argument must either be NULL or 
-** point to memory obtained from sqliteMalloc().
+** Create a string from the zFromat argument and the va_list that follows.
+** Store the string in memory obtained from sqliteMalloc() and make *pz
+** point to that string.
 */
-void sqlite3SetString(char **pz, ...){
+void sqlite3SetString(char **pz, sqlite3 *db, const char *zFormat, ...){
   va_list ap;
-  int nByte;
-  const char *z;
-  char *zResult;
+  char *z;
 
-  assert( pz!=0 );
-  nByte = 1;
-  va_start(ap, pz);
-  while( (z = va_arg(ap, const char*))!=0 ){
-    nByte += strlen(z);
-  }
+  va_start(ap, zFormat);
+  z = sqlite3VMPrintf(db, zFormat, ap);
   va_end(ap);
-  sqliteFree(*pz);
-  *pz = zResult = sqliteMallocRaw( nByte );
-  if( zResult==0 ){
-    return;
-  }
-  *zResult = 0;
-  va_start(ap, pz);
-  while( (z = va_arg(ap, const char*))!=0 ){
-    int n = strlen(z);
-    memcpy(zResult, z, n);
-    zResult += n;
-  }
-  zResult[0] = 0;
-  va_end(ap);
+  sqlite3DbFree(db, *pz);
+  *pz = z;
 }
 
 
 /*
 ** This function must be called before exiting any API function (i.e. 
-** returning control to the user) that has called sqlite3Malloc or
-** sqlite3Realloc.
+** returning control to the user) that has called sqlite3_malloc or
+** sqlite3_realloc.
 **
 ** The returned value is normally a copy of the second argument to this
 ** function. However, if a malloc() failure has occured since the previous
@@ -792,44 +777,16 @@ void sqlite3SetString(char **pz, ...){
 ** then the connection error-code (the value returned by sqlite3_errcode())
 ** is set to SQLITE_NOMEM.
 */
-int sqlite3MallocHasFailed = 0;
 int sqlite3ApiExit(sqlite3* db, int rc){
-  if( sqlite3MallocFailed() ){
-    sqlite3MallocHasFailed = 0;
-    sqlite3OsLeaveMutex();
+  /* If the db handle is not NULL, then we must hold the connection handle
+  ** mutex here. Otherwise the read (and possible write) of db->mallocFailed 
+  ** is unsafe, as is the call to sqlite3Error().
+  */
+  assert( !db || sqlite3_mutex_held(db->mutex) );
+  if( db && (db->mallocFailed || rc==SQLITE_IOERR_NOMEM) ){
     sqlite3Error(db, SQLITE_NOMEM, 0);
+    db->mallocFailed = 0;
     rc = SQLITE_NOMEM;
   }
   return rc & (db ? db->errMask : 0xff);
 }
-
-/* 
-** Set the "malloc has failed" condition to true for this thread.
-*/
-void sqlite3FailedMalloc(){
-  if( !sqlite3MallocFailed() ){
-    sqlite3OsEnterMutex();
-    assert( sqlite3MallocHasFailed==0 );
-    sqlite3MallocHasFailed = 1;
-  }
-}
-
-#ifdef SQLITE_MEMDEBUG
-/*
-** This function sets a flag in the thread-specific-data structure that will
-** cause an assert to fail if sqliteMalloc() or sqliteRealloc() is called.
-*/
-void sqlite3MallocDisallow(){
-  assert( sqlite3_mallocDisallowed>=0 );
-  sqlite3_mallocDisallowed++;
-}
-
-/*
-** This function clears the flag set in the thread-specific-data structure set
-** by sqlite3MallocDisallow().
-*/
-void sqlite3MallocAllow(){
-  assert( sqlite3_mallocDisallowed>0 );
-  sqlite3_mallocDisallowed--;
-}
-#endif

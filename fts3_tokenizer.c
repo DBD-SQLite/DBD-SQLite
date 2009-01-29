@@ -17,20 +17,21 @@
 /*
 ** The code in this file is only compiled if:
 **
-**     * The FTS2 module is being built as an extension
+**     * The FTS3 module is being built as an extension
 **       (in which case SQLITE_CORE is not defined), or
 **
-**     * The FTS2 module is being built into the core of
-**       SQLite (in which case SQLITE_ENABLE_FTS2 is defined).
+**     * The FTS3 module is being built into the core of
+**       SQLite (in which case SQLITE_ENABLE_FTS3 is defined).
 */
-#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2)
+#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3)
 
-
-#include "sqlite3.h"
 #include "sqlite3ext.h"
+#ifndef SQLITE_CORE
+  SQLITE_EXTENSION_INIT1
+#endif
 
-#include "fts2_hash.h"
-#include "fts2_tokenizer.h"
+#include "fts3_hash.h"
+#include "fts3_tokenizer.h"
 #include <assert.h>
 
 /*
@@ -41,7 +42,7 @@
 **   SELECT <function-name>(<key-name>, <pointer>);
 **
 ** where <function-name> is the name passed as the second argument
-** to the sqlite3Fts2InitHashTable() function (e.g. 'fts2_tokenizer').
+** to the sqlite3Fts3InitHashTable() function (e.g. 'fts3_tokenizer').
 **
 ** If the <pointer> argument is specified, it must be a blob value
 ** containing a pointer to be stored as the hash data corresponding
@@ -58,14 +59,14 @@ static void scalarFunc(
   int argc,
   sqlite3_value **argv
 ){
-  fts2Hash *pHash;
+  fts3Hash *pHash;
   void *pPtr = 0;
   const unsigned char *zName;
   int nName;
 
   assert( argc==1 || argc==2 );
 
-  pHash = (fts2Hash *)sqlite3_user_data(context);
+  pHash = (fts3Hash *)sqlite3_user_data(context);
 
   zName = sqlite3_value_text(argv[0]);
   nName = sqlite3_value_bytes(argv[0])+1;
@@ -78,13 +79,13 @@ static void scalarFunc(
       return;
     }
     pPtr = *(void **)sqlite3_value_blob(argv[1]);
-    pOld = sqlite3Fts2HashInsert(pHash, (void *)zName, nName, pPtr);
+    pOld = sqlite3Fts3HashInsert(pHash, (void *)zName, nName, pPtr);
     if( pOld==pPtr ){
       sqlite3_result_error(context, "out of memory", -1);
       return;
     }
   }else{
-    pPtr = sqlite3Fts2HashFind(pHash, zName, nName);
+    pPtr = sqlite3Fts3HashFind(pHash, zName, nName);
     if( !pPtr ){
       char *zErr = sqlite3_mprintf("unknown tokenizer: %s", zName);
       sqlite3_result_error(context, zErr, -1);
@@ -110,8 +111,8 @@ static void scalarFunc(
 **   SELECT <function-name>(<key-name>, <pointer>);
 **
 ** where <function-name> is the name passed as the second argument
-** to the sqlite3Fts2InitHashTable() function (e.g. 'fts2_tokenizer')
-** concatenated with the string '_test' (e.g. 'fts2_tokenizer_test').
+** to the sqlite3Fts3InitHashTable() function (e.g. 'fts3_tokenizer')
+** concatenated with the string '_test' (e.g. 'fts3_tokenizer_test').
 **
 ** The return value is a string that may be interpreted as a Tcl
 ** list. For each token in the <input-string>, three elements are
@@ -132,7 +133,7 @@ static void testFunc(
   int argc,
   sqlite3_value **argv
 ){
-  fts2Hash *pHash;
+  fts3Hash *pHash;
   sqlite3_tokenizer_module *p;
   sqlite3_tokenizer *pTokenizer = 0;
   sqlite3_tokenizer_cursor *pCsr = 0;
@@ -165,8 +166,8 @@ static void testFunc(
     zArg = (const char *)sqlite3_value_text(argv[1]);
   }
 
-  pHash = (fts2Hash *)sqlite3_user_data(context);
-  p = (sqlite3_tokenizer_module *)sqlite3Fts2HashFind(pHash, zName, nName+1);
+  pHash = (fts3Hash *)sqlite3_user_data(context);
+  p = (sqlite3_tokenizer_module *)sqlite3Fts3HashFind(pHash, zName, nName+1);
 
   if( !p ){
     char *zErr = sqlite3_mprintf("unknown tokenizer: %s", zName);
@@ -223,7 +224,7 @@ int registerTokenizer(
 ){
   int rc;
   sqlite3_stmt *pStmt;
-  const char zSql[] = "SELECT fts2_tokenizer(?, ?)";
+  const char zSql[] = "SELECT fts3_tokenizer(?, ?)";
 
   rc = sqlite3_prepare_v2(db, zSql, -1, &pStmt, 0);
   if( rc!=SQLITE_OK ){
@@ -245,7 +246,7 @@ int queryTokenizer(
 ){
   int rc;
   sqlite3_stmt *pStmt;
-  const char zSql[] = "SELECT fts2_tokenizer(?)";
+  const char zSql[] = "SELECT fts3_tokenizer(?)";
 
   *pp = 0;
   rc = sqlite3_prepare_v2(db, zSql, -1, &pStmt, 0);
@@ -263,24 +264,24 @@ int queryTokenizer(
   return sqlite3_finalize(pStmt);
 }
 
-void sqlite3Fts2SimpleTokenizerModule(sqlite3_tokenizer_module const**ppModule);
+void sqlite3Fts3SimpleTokenizerModule(sqlite3_tokenizer_module const**ppModule);
 
 /*
-** Implementation of the scalar function fts2_tokenizer_internal_test().
+** Implementation of the scalar function fts3_tokenizer_internal_test().
 ** This function is used for testing only, it is not included in the
 ** build unless SQLITE_TEST is defined.
 **
-** The purpose of this is to test that the fts2_tokenizer() function
+** The purpose of this is to test that the fts3_tokenizer() function
 ** can be used as designed by the C-code in the queryTokenizer and
 ** registerTokenizer() functions above. These two functions are repeated
 ** in the README.tokenizer file as an example, so it is important to
 ** test them.
 **
-** To run the tests, evaluate the fts2_tokenizer_internal_test() scalar
+** To run the tests, evaluate the fts3_tokenizer_internal_test() scalar
 ** function with no arguments. An assert() will fail if a problem is
 ** detected. i.e.:
 **
-**     SELECT fts2_tokenizer_internal_test();
+**     SELECT fts3_tokenizer_internal_test();
 **
 */
 static void intTestFunc(
@@ -294,7 +295,7 @@ static void intTestFunc(
   sqlite3 *db = (sqlite3 *)sqlite3_user_data(context);
 
   /* Test the query function */
-  sqlite3Fts2SimpleTokenizerModule(&p1);
+  sqlite3Fts3SimpleTokenizerModule(&p1);
   rc = queryTokenizer(db, "simple", &p2);
   assert( rc==SQLITE_OK );
   assert( p1==p2 );
@@ -321,7 +322,7 @@ static void intTestFunc(
 ** been initialised to use string keys, and to take a private copy 
 ** of the key when a value is inserted. i.e. by a call similar to:
 **
-**    sqlite3Fts2HashInit(pHash, FTS2_HASH_STRING, 1);
+**    sqlite3Fts3HashInit(pHash, FTS3_HASH_STRING, 1);
 **
 ** This function adds a scalar function (see header comment above
 ** scalarFunc() in this file for details) and, if ENABLE_TABLE is
@@ -332,9 +333,9 @@ static void intTestFunc(
 ** The third argument to this function, zName, is used as the name
 ** of both the scalar and, if created, the virtual table.
 */
-int sqlite3Fts2InitHashTable(
+int sqlite3Fts3InitHashTable(
   sqlite3 *db, 
-  fts2Hash *pHash, 
+  fts3Hash *pHash, 
   const char *zName
 ){
   int rc = SQLITE_OK;
@@ -367,4 +368,4 @@ int sqlite3Fts2InitHashTable(
   return rc;
 }
 
-#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2) */
+#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3) */

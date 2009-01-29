@@ -18,3 +18,5 @@ output/.*
 ^Makefile\.[a-z]+$
 ^pm_to_blib$
 ~$
+^sqlite\-
+\.svn

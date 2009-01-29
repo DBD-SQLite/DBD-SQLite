@@ -9,17 +9,17 @@
 **    May you share freely, never taking more than you give.
 **
 *************************************************************************
-** This file implements a tokenizer for fts2 based on the ICU library.
+** This file implements a tokenizer for fts3 based on the ICU library.
 ** 
-** $Id: fts2_icu.c,v 1.1 2007/06/22 15:21:16 danielk1977 Exp $
+** $Id: fts3_icu.c,v 1.3 2008/09/01 18:34:20 danielk1977 Exp $
 */
 
-#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2)
+#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3)
 #ifdef SQLITE_ENABLE_ICU
 
 #include <assert.h>
 #include <string.h>
-#include "fts2_tokenizer.h"
+#include "fts3_tokenizer.h"
 
 #include <unicode/ubrk.h>
 #include <unicode/ucol.h>
@@ -112,6 +112,9 @@ static int icuOpen(
 
   *ppCursor = 0;
 
+  if( nInput<0 ){
+    nInput = strlen(zInput);
+  }
   nChar = nInput+1;
   pCsr = (IcuCursor *)sqlite3_malloc(
       sizeof(IcuCursor) +                /* IcuCursor */
@@ -247,11 +250,11 @@ static const sqlite3_tokenizer_module icuTokenizerModule = {
 /*
 ** Set *ppModule to point at the implementation of the ICU tokenizer.
 */
-void sqlite3Fts2IcuTokenizerModule(
+void sqlite3Fts3IcuTokenizerModule(
   sqlite3_tokenizer_module const**ppModule
 ){
   *ppModule = &icuTokenizerModule;
 }
 
 #endif /* defined(SQLITE_ENABLE_ICU) */
-#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2) */
+#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3) */

@@ -16,7 +16,11 @@
 **
 ** This file should be #included by the os_*.c files only.  It is not a
 ** general purpose header file.
+**
+** $Id: os_common.h,v 1.37 2008/05/29 20:22:37 shane Exp $
 */
+#ifndef _OS_COMMON_H_
+#define _OS_COMMON_H_
 
 /*
 ** At least two bugs have slipped in because we changed the MEMORY_DEBUG
@@ -37,16 +41,16 @@ unsigned int sqlite3_pending_byte = 0x40000000;
 #endif
 
 #ifdef SQLITE_DEBUG
-int sqlite3_os_trace = 0;
-#define OSTRACE1(X)         if( sqlite3_os_trace ) sqlite3DebugPrintf(X)
-#define OSTRACE2(X,Y)       if( sqlite3_os_trace ) sqlite3DebugPrintf(X,Y)
-#define OSTRACE3(X,Y,Z)     if( sqlite3_os_trace ) sqlite3DebugPrintf(X,Y,Z)
-#define OSTRACE4(X,Y,Z,A)   if( sqlite3_os_trace ) sqlite3DebugPrintf(X,Y,Z,A)
-#define OSTRACE5(X,Y,Z,A,B) if( sqlite3_os_trace ) sqlite3DebugPrintf(X,Y,Z,A,B)
+int sqlite3OSTrace = 0;
+#define OSTRACE1(X)         if( sqlite3OSTrace ) sqlite3DebugPrintf(X)
+#define OSTRACE2(X,Y)       if( sqlite3OSTrace ) sqlite3DebugPrintf(X,Y)
+#define OSTRACE3(X,Y,Z)     if( sqlite3OSTrace ) sqlite3DebugPrintf(X,Y,Z)
+#define OSTRACE4(X,Y,Z,A)   if( sqlite3OSTrace ) sqlite3DebugPrintf(X,Y,Z,A)
+#define OSTRACE5(X,Y,Z,A,B) if( sqlite3OSTrace ) sqlite3DebugPrintf(X,Y,Z,A,B)
 #define OSTRACE6(X,Y,Z,A,B,C) \
-    if(sqlite3_os_trace) sqlite3DebugPrintf(X,Y,Z,A,B,C)
+    if(sqlite3OSTrace) sqlite3DebugPrintf(X,Y,Z,A,B,C)
 #define OSTRACE7(X,Y,Z,A,B,C,D) \
-    if(sqlite3_os_trace) sqlite3DebugPrintf(X,Y,Z,A,B,C,D)
+    if(sqlite3OSTrace) sqlite3DebugPrintf(X,Y,Z,A,B,C,D)
 #else
 #define OSTRACE1(X)
 #define OSTRACE2(X,Y)
@@ -62,22 +66,22 @@ int sqlite3_os_trace = 0;
 ** on i486 hardware.
 */
 #ifdef SQLITE_PERFORMANCE_TRACE
-__inline__ unsigned long long int hwtime(void){
-  unsigned long long int x;
-  __asm__("rdtsc\n\t"
-          "mov %%edx, %%ecx\n\t"
-          :"=A" (x));
-  return x;
-}
-static unsigned long long int g_start;
-static unsigned int elapse;
-#define TIMER_START       g_start=hwtime()
-#define TIMER_END         elapse=hwtime()-g_start
-#define TIMER_ELAPSED     elapse
+
+/* 
+** hwtime.h contains inline assembler code for implementing 
+** high-performance timing routines.
+*/
+#include "hwtime.h"
+
+static sqlite_uint64 g_start;
+static sqlite_uint64 g_elapsed;
+#define TIMER_START       g_start=sqlite3Hwtime()
+#define TIMER_END         g_elapsed=sqlite3Hwtime()-g_start
+#define TIMER_ELAPSED     g_elapsed
 #else
 #define TIMER_START
 #define TIMER_END
-#define TIMER_ELAPSED     0
+#define TIMER_ELAPSED     ((sqlite_uint64)0)
 #endif
 
 /*
@@ -86,19 +90,22 @@ static unsigned int elapse;
 ** is used for testing the I/O recovery logic.
 */
 #ifdef SQLITE_TEST
-int sqlite3_io_error_hit = 0;
-int sqlite3_io_error_pending = 0;
-int sqlite3_io_error_persist = 0;
+int sqlite3_io_error_hit = 0;            /* Total number of I/O Errors */
+int sqlite3_io_error_hardhit = 0;        /* Number of non-benign errors */
+int sqlite3_io_error_pending = 0;        /* Count down to first I/O error */
+int sqlite3_io_error_persist = 0;        /* True if I/O errors persist */
+int sqlite3_io_error_benign = 0;         /* True if errors are benign */
 int sqlite3_diskfull_pending = 0;
 int sqlite3_diskfull = 0;
+#define SimulateIOErrorBenign(X) sqlite3_io_error_benign=(X)
 #define SimulateIOError(CODE)  \
-  if( sqlite3_io_error_pending || sqlite3_io_error_hit ) \
-     if( sqlite3_io_error_pending-- == 1 \
-         || (sqlite3_io_error_persist && sqlite3_io_error_hit) ) \
-                { local_ioerr(); CODE; }
+  if( (sqlite3_io_error_persist && sqlite3_io_error_hit) \
+       || sqlite3_io_error_pending-- == 1 )  \
+              { local_ioerr(); CODE; }
 static void local_ioerr(){
   IOTRACE(("IOERR\n"));
-  sqlite3_io_error_hit = 1;
+  sqlite3_io_error_hit++;
+  if( !sqlite3_io_error_benign ) sqlite3_io_error_hardhit++;
 }
 #define SimulateDiskfullError(CODE) \
    if( sqlite3_diskfull_pending ){ \
@@ -112,6 +119,7 @@ static void local_ioerr(){
      } \
    }
 #else
+#define SimulateIOErrorBenign(X)
 #define SimulateIOError(A)
 #define SimulateDiskfullError(A)
 #endif
@@ -126,73 +134,4 @@ int sqlite3_open_file_count = 0;
 #define OpenCounter(X)
 #endif
 
-/*
-** sqlite3GenericMalloc
-** sqlite3GenericRealloc
-** sqlite3GenericOsFree
-** sqlite3GenericAllocationSize
-**
-** Implementation of the os level dynamic memory allocation interface in terms
-** of the standard malloc(), realloc() and free() found in many operating
-** systems. No rocket science here.
-**
-** There are two versions of these four functions here. The version
-** implemented here is only used if memory-management or memory-debugging is
-** enabled. This version allocates an extra 8-bytes at the beginning of each
-** block and stores the size of the allocation there.
-**
-** If neither memory-management or debugging is enabled, the second
-** set of implementations is used instead.
-*/
-#if defined(SQLITE_ENABLE_MEMORY_MANAGEMENT) || defined (SQLITE_MEMDEBUG)
-void *sqlite3GenericMalloc(int n){
-  char *p = (char *)malloc(n+8);
-  assert(n>0);
-  assert(sizeof(int)<=8);
-  if( p ){
-    *(int *)p = n;
-    p += 8;
-  }
-  return (void *)p;
-}
-void *sqlite3GenericRealloc(void *p, int n){
-  char *p2 = ((char *)p - 8);
-  assert(n>0);
-  p2 = (char*)realloc(p2, n+8);
-  if( p2 ){
-    *(int *)p2 = n;
-    p2 += 8;
-  }
-  return (void *)p2;
-}
-void sqlite3GenericFree(void *p){
-  assert(p);
-  free((void *)((char *)p - 8));
-}
-int sqlite3GenericAllocationSize(void *p){
-  return p ? *(int *)((char *)p - 8) : 0;
-}
-#else
-void *sqlite3GenericMalloc(int n){
-  char *p = (char *)malloc(n);
-  return (void *)p;
-}
-void *sqlite3GenericRealloc(void *p, int n){
-  assert(n>0);
-  p = realloc(p, n);
-  return p;
-}
-void sqlite3GenericFree(void *p){
-  assert(p);
-  free(p);
-}
-/* Never actually used, but needed for the linker */
-int sqlite3GenericAllocationSize(void *p){ return 0; }
-#endif
-
-/*
-** The default size of a disk sector
-*/
-#ifndef PAGER_SECTOR_SIZE
-# define PAGER_SECTOR_SIZE 512
-#endif
+#endif /* !defined(_OS_COMMON_H_) */

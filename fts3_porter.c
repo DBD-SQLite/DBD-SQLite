@@ -16,13 +16,13 @@
 /*
 ** The code in this file is only compiled if:
 **
-**     * The FTS2 module is being built as an extension
+**     * The FTS3 module is being built as an extension
 **       (in which case SQLITE_CORE is not defined), or
 **
-**     * The FTS2 module is being built into the core of
-**       SQLite (in which case SQLITE_ENABLE_FTS2 is defined).
+**     * The FTS3 module is being built into the core of
+**       SQLite (in which case SQLITE_ENABLE_FTS3 is defined).
 */
-#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2)
+#if !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3)
 
 
 #include <assert.h>
@@ -31,7 +31,7 @@
 #include <string.h>
 #include <ctype.h>
 
-#include "fts2_tokenizer.h"
+#include "fts3_tokenizer.h"
 
 /*
 ** Class derived from sqlite3_tokenizer
@@ -66,9 +66,9 @@ static int porterCreate(
   sqlite3_tokenizer **ppTokenizer
 ){
   porter_tokenizer *t;
-  t = (porter_tokenizer *) calloc(sizeof(*t), 1);
+  t = (porter_tokenizer *) sqlite3_malloc(sizeof(*t));
   if( t==NULL ) return SQLITE_NOMEM;
-
+  memset(t, 0, sizeof(*t));
   *ppTokenizer = &t->base;
   return SQLITE_OK;
 }
@@ -77,7 +77,7 @@ static int porterCreate(
 ** Destroy a tokenizer
 */
 static int porterDestroy(sqlite3_tokenizer *pTokenizer){
-  free(pTokenizer);
+  sqlite3_free(pTokenizer);
   return SQLITE_OK;
 }
 
@@ -94,7 +94,7 @@ static int porterOpen(
 ){
   porter_tokenizer_cursor *c;
 
-  c = (porter_tokenizer_cursor *) malloc(sizeof(*c));
+  c = (porter_tokenizer_cursor *) sqlite3_malloc(sizeof(*c));
   if( c==NULL ) return SQLITE_NOMEM;
 
   c->zInput = zInput;
@@ -120,8 +120,8 @@ static int porterOpen(
 */
 static int porterClose(sqlite3_tokenizer_cursor *pCursor){
   porter_tokenizer_cursor *c = (porter_tokenizer_cursor *) pCursor;
-  free(c->zToken);
-  free(c);
+  sqlite3_free(c->zToken);
+  sqlite3_free(c);
   return SQLITE_OK;
 }
 /*
@@ -603,7 +603,7 @@ static int porterNext(
       int n = c->iOffset-iStartOffset;
       if( n>c->nAllocated ){
         c->nAllocated = n+20;
-        c->zToken = realloc(c->zToken, c->nAllocated);
+        c->zToken = sqlite3_realloc(c->zToken, c->nAllocated);
         if( c->zToken==NULL ) return SQLITE_NOMEM;
       }
       porter_stemmer(&z[iStartOffset], n, c->zToken, pnBytes);
@@ -633,10 +633,10 @@ static const sqlite3_tokenizer_module porterTokenizerModule = {
 ** Allocate a new porter tokenizer.  Return a pointer to the new
 ** tokenizer in *ppModule
 */
-void sqlite3Fts2PorterTokenizerModule(
+void sqlite3Fts3PorterTokenizerModule(
   sqlite3_tokenizer_module const**ppModule
 ){
   *ppModule = &porterTokenizerModule;
 }
 
-#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS2) */
+#endif /* !defined(SQLITE_CORE) || defined(SQLITE_ENABLE_FTS3) */

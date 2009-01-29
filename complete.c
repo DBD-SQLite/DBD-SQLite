@@ -16,7 +16,7 @@
 ** separating it out, the code will be automatically omitted from
 ** static links that do not use it.
 **
-** $Id: complete.c,v 1.3 2006/01/18 15:25:17 danielk1977 Exp $
+** $Id: complete.c,v 1.7 2008/06/13 18:24:27 drh Exp $
 */
 #include "sqliteInt.h"
 #ifndef SQLITE_OMIT_COMPLETE
@@ -24,8 +24,16 @@
 /*
 ** This is defined in tokenize.c.  We just have to import the definition.
 */
-extern const char sqlite3IsIdChar[];
-#define IdChar(C)  (((c=C)&0x80)!=0 || (c>0x1f && sqlite3IsIdChar[c-0x20]))
+#ifndef SQLITE_AMALGAMATION
+#ifdef SQLITE_ASCII
+extern const char sqlite3IsAsciiIdChar[];
+#define IdChar(C)  (((c=C)&0x80)!=0 || (c>0x1f && sqlite3IsAsciiIdChar[c-0x20]))
+#endif
+#ifdef SQLITE_EBCDIC
+extern const char sqlite3IsEbcdicIdChar[];
+#define IdChar(C)  (((c=C)>=0x42 && sqlite3IsEbcdicIdChar[c-0x40]))
+#endif
+#endif /* SQLITE_AMALGAMATION */
 
 
 /*
@@ -248,13 +256,19 @@ int sqlite3_complete(const char *zSql){
 int sqlite3_complete16(const void *zSql){
   sqlite3_value *pVal;
   char const *zSql8;
-  int rc = 0;
+  int rc = SQLITE_NOMEM;
 
-  pVal = sqlite3ValueNew();
+#ifndef SQLITE_OMIT_AUTOINIT
+  rc = sqlite3_initialize();
+  if( rc ) return rc;
+#endif
+  pVal = sqlite3ValueNew(0);
   sqlite3ValueSetStr(pVal, -1, zSql, SQLITE_UTF16NATIVE, SQLITE_STATIC);
   zSql8 = sqlite3ValueText(pVal, SQLITE_UTF8);
   if( zSql8 ){
     rc = sqlite3_complete(zSql8);
+  }else{
+    rc = SQLITE_NOMEM;
   }
   sqlite3ValueFree(pVal);
   return sqlite3ApiExit(0, rc);
