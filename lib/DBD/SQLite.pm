@@ -5,7 +5,7 @@ use strict;
 
 use DBI;
 use vars qw($err $errstr $state $drh $VERSION @ISA);
-$VERSION = '1.14';
+$VERSION = '1.15';
 
 use DynaLoader();
 @ISA = ('DynaLoader');
@@ -543,6 +543,10 @@ And then retreival just works:
   # now $blobo == $blob
 
 =head1 NOTES
+
+Although the database is stored in a single file, the directory containing the
+database file must be writable by SQLite because the library will create
+several temporary files there.
 
 To access the database from the command line, try using dbish which comes with
 the DBI module. Just type:
