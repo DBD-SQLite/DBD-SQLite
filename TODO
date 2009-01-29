@@ -1,0 +1,27 @@
+There're several pended RT bugs/patches at the moment (mainly due to the lack of tests/patches or segfaults on tests). Here's the list.
+
+http://rt.cpan.org/Public/Bug/Display.html?id=41631
+(patch required)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=40594
+(patch required, and the following tests may break)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=30167
+(need to see what is the best solution right now)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=34828
+(segfault while testing under Windows)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=36836
+(patch required)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=13631
+(test required)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=35449
+(break tests)
+
+http://rt.cpan.org/Public/Bug/Display.html?id=29629
+(patch required)
+
+Maybe we need to switch to Test::More to support TODO tests.
