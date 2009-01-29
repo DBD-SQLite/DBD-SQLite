@@ -526,7 +526,7 @@ rather than the size of the blob in bytes. In order to store natively as a
 BLOB use the following code:
 
   use DBI qw(:sql_types);
-  my $dbh = DBI->connect("dbi:sqlite:/path/to/db");
+  my $dbh = DBI->connect("dbi:sqlite:/path/to/db","","");
   
   my $blob = `cat foo.jpg`;
   my $sth = $dbh->prepare("INSERT INTO mytable VALUES (1, ?)");
