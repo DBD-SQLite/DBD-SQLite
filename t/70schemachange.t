@@ -2,6 +2,12 @@
 
 use strict;
 use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver);
+
+if ($^O eq 'MSWin32') {
+    print "1..0 # Skip changing active database's schema doesn't work under Windows\n";
+    exit 0;
+}
+
 $DBI::errstr = '';  # Make -w happy
 require DBI;
 
