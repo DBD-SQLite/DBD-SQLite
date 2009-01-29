@@ -63,21 +63,6 @@ busy_timeout(dbh, timeout=0)
   OUTPUT:
     RETVAL
 
-void
-_do(dbh, statement)
-    SV * dbh
-    char * statement
-    CODE:
-    {
-        D_imp_dbh(dbh);
-        IV retval;
-        retval = sqlite_db_do(dbh, imp_dbh, statement);
-        if (retval == 0)
-            XST_mPV(0, "0E0"); /* (true but zero) */
-        else
-            XST_mUNDEF(0); /* <= -2 means error */
-    }
-
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE

@@ -62,15 +62,6 @@ sub connect {
 
 package DBD::SQLite::db;
 
-sub do {
-    my ($dbh, $statement, $attr, @params) = @_;
-    return DBD::SQLite::db::_do($dbh, $statement) unless defined $attr && @params;
-    my $sth = $dbh->prepare($statement, $attr) or return undef;
-    $sth->execute(@params) or return undef;
-    my $rows = $sth->rows;
-    ($rows == 0) ? "0E0" : $rows;
-}
-
 sub prepare {
     my ($dbh, $statement, @attribs) = @_;
 
