@@ -231,6 +231,25 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 }
 
 int
+sqlite_db_do(SV *dbh, imp_dbh_t *imp_dbh, char *statement)
+{
+    dTHR;
+    int retval;
+    char *errmsg;
+
+    sqlite_trace(2, "DO");
+    if ((retval = sqlite3_exec(imp_dbh->db, statement,
+        NULL, NULL, &errmsg))
+        != SQLITE_OK)
+    {
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        return -2;
+    }
+
+    return 0;
+}
+
+int
 sqlite_discon_all(SV *drh, imp_drh_t *imp_drh)
 {
     dTHR;
