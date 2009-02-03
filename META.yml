@@ -1,11 +1,20 @@
-# http://module-build.sourceforge.net/META-spec.html
-#XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
-name:         DBD-SQLite
-version:      1.14
-version_from: lib/DBD/SQLite.pm
-installdirs:  site
+--- #YAML:1.0
+name:               DBD-SQLite
+version:            1.15
+abstract:           ~
+author:  []
+license:            perl
+distribution_type:  module
+configure_requires:
+    DBI:                  1.21
+    ExtUtils::MakeMaker:  0
 requires:
-    DBI:                           1.21
-
-distribution_type: module
-generated_by: ExtUtils::MakeMaker version 6.17
+    DBI:  1.21
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.48
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

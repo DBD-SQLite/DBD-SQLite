@@ -4,6 +4,7 @@ Revision history for Perl extension DBD::SQLite.
     - Updated to SQLite 3.6.10, and bumped up the version
       requirement for installed sqlite3 to 3.6.0 as 3.6.x
       has backward incompatiblity (ISHIGAKI)
+    - license and configure_requires in Makefile.PL and META.yml (Alexandr Ciornii)
 
 1.14
     - Updated to SQLite 3.4.2
