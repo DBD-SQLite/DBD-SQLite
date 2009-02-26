@@ -296,7 +296,7 @@ DBD::SQLite - Self Contained RDBMS in a DBI Driver
 =head1 DESCRIPTION
 
 SQLite is a public domain RDBMS database engine that you can find
-at http://www.hwaci.com/sw/sqlite/.
+at L<http://www.hwaci.com/sw/sqlite/>.
 
 Rather than ask you to install SQLite first, because SQLite is public
 domain, DBD::SQLite includes the entire thing in the distribution. So
@@ -310,7 +310,7 @@ SQLite supports the following features:
 
 =item Implements a large subset of SQL92
 
-See http://www.hwaci.com/sw/sqlite/lang.html for details.
+See L<http://www.hwaci.com/sw/sqlite/lang.html> for details.
 
 =item A complete DB in a single disk file
 
@@ -358,10 +358,10 @@ strings coming out of the database. For more details on the UTF-8 flag see
 L<perlunicode>. The default is for the UTF-8 flag to be turned off.
 
 Also note that due to some bizareness in SQLite's type system (see
-http://www.sqlite.org/datatype3.html), if you want to retain
+L<http://www.sqlite.org/datatype3.html>), if you want to retain
 blob-style behavior for B<some> columns under C<< $dbh->{unicode} = 1
 >> (say, to store images in the database), you have to state so
-explicitely using the 3-argument form of L<DBI/bind_param> when doing
+explicitly using the 3-argument form of L<DBI/bind_param> when doing
 updates:
 
     use DBI qw(:sql_types);
@@ -428,7 +428,7 @@ After this, it could be use from SQL as:
 
 =head2 $dbh->func( $name, $argc, $pkg, 'create_aggregate' )
 
-This method will register a new aggregate function which can then used
+This method will register a new aggregate function which can then be used
 from SQL. The method's parameters are:
 
 =over
@@ -463,7 +463,7 @@ the method.
 
 =item step(@_)
 
-This method will be called once for each rows in the aggregate.
+This method will be called once for each row in the aggregate.
 
 =item finalize()
 
@@ -527,19 +527,19 @@ BLOB use the following code:
 
   use DBI qw(:sql_types);
   my $dbh = DBI->connect("dbi:sqlite:/path/to/db","","");
-  
+
   my $blob = `cat foo.jpg`;
   my $sth = $dbh->prepare("INSERT INTO mytable VALUES (1, ?)");
   $sth->bind_param(1, $blob, SQL_BLOB);
   $sth->execute();
 
-And then retreival just works:
+And then retrieval just works:
 
   $sth = $dbh->prepare("SELECT * FROM mytable WHERE id = 1");
   $sth->execute();
   my $row = $sth->fetch;
   my $blobo = $row->[1];
-  
+
   # now $blobo == $blob
 
 =head1 NOTES
@@ -590,7 +590,8 @@ peace of mind. Also try playing with the cache_size pragma.
 
 =head1 BUGS
 
-Likely to be many, please use http://rt.cpan.org/ for reporting bugs.
+Likely to be many, please use
+L<http://rt.cpan.org/Public/Dist/Display.html?Name=DBD-SQLite> for reporting bugs.
 
 =head1 AUTHOR
 
