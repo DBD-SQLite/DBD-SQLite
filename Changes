@@ -4,6 +4,12 @@ Revision history for Perl extension DBD::SQLite.
     - Updated to SQLite 3.6.10, and bumped up the version
       requirement for installed sqlite3 to 3.6.0 as 3.6.x
       has backward incompatiblity (ISHIGAKI)
+    - fixed "closing dbh with active statement handles" issue
+      with a patch by TOKUHIROM. (ISHIGAKI)
+    - skip 70schemachange test for Windows users. (ISHIGAKI)
+    - applied RT patches including #29497, #32723, #30558,
+      #34408, #36467, #37215, #41047. (ISHIGAKI)
+    - added TODO to show which issues are to be fixed. (ISHIGAKI)
     - license and configure_requires in Makefile.PL and META.yml (Alexandr Ciornii)
 
 1.14
