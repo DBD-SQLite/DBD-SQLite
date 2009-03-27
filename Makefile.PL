@@ -167,7 +167,7 @@ WriteMakefile(
 	EXE_FILES    => [],
 	INC          => join( ' ', @CC_INC    ),
 	DEFINE       => join( ' ', @CC_DEFINE ),
-	( @CC_LIBS ? join( ' ', @CC_LIBS ) : () ),
+	( @CC_LIBS ? ( LIBS => join( ' ', @CC_LIBS ) ) : () ),
 );
 
 package MY;
