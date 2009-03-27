@@ -1,5 +1,6 @@
 package DBD::SQLite;
 
+use 5.005;
 use strict;
 use DBI;
 use DynaLoader();

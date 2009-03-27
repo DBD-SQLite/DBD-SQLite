@@ -1,3 +1,4 @@
+use 5.005;
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
@@ -144,13 +145,23 @@ unless ( $Config{usethreads} ) {
 WriteMakefile(
 	NAME         => 'DBD::SQLite',
 	VERSION_FROM => 'lib/DBD/SQLite.pm',
-	PREREQ_PM    => { DBI => 1.21, },
-	($ExtUtils::MakeMaker::VERSION ge '6.46'? 
-	  ('LICENSE'		=> 'perl',
-	   'META_MERGE'		=> {'configure_requires'=>{DBI => 1.21,}}, ) : ()),
+	PREREQ_PM    => {
+		'DBI'        => 1.21,
+		'Test::More' => '0.42',
+	},
+	($ExtUtils::MakeMaker::VERSION ge '6.46'? (
+		'LICENSE'    => 'perl',
+		'META_MERGE' => {
+			'configure_requires' => {
+				DBI => 1.21,
+			},
+		},
+	) : ()),
 	OBJECT       => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
 	OPTIMIZE     => '-O2',
-	clean        => { FILES => 'SQLite.xsi config.h tv.log output' },
+	clean        => {
+		FILES => 'SQLite.xsi config.h tv.log output',
+	},
 	PL_FILES     => {},
 	EXE_FILES    => [],
 	INC          => join( ' ', @CC_INC    ),
