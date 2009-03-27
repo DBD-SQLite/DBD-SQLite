@@ -144,6 +144,7 @@ unless ( $Config{usethreads} ) {
 
 WriteMakefile(
 	NAME         => 'DBD::SQLite',
+	ABSTRACT     => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM => 'lib/DBD/SQLite.pm',
 	PREREQ_PM    => {
 		'DBI'        => 1.21,

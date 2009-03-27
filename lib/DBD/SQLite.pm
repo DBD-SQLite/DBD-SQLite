@@ -287,7 +287,7 @@ __END__
 
 =head1 NAME
 
-DBD::SQLite - Self Contained RDBMS in a DBI Driver
+DBD::SQLite - Self Contained SQLite RDBMS in a DBI Driver
 
 =head1 SYNOPSIS
 
