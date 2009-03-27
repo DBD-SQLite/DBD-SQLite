@@ -588,10 +588,11 @@ Which will prevent sqlite from doing fsync's when writing (which
 slows down non-transactional writes significantly) at the expense of some
 peace of mind. Also try playing with the cache_size pragma.
 
-=head1 BUGS
+=head1 SUPPORT
 
-Likely to be many, please use
-L<http://rt.cpan.org/Public/Dist/Display.html?Name=DBD-SQLite> for reporting bugs.
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
 
 =head1 AUTHOR
 
