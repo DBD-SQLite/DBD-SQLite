@@ -1,14 +1,14 @@
-# $Id: SQLite.pm,v 1.52 2006/04/10 01:50:05 matt Exp $
-
 package DBD::SQLite;
+
 use strict;
-
 use DBI;
-use vars qw($err $errstr $state $drh $VERSION @ISA);
-$VERSION = '1.19_01';
-
 use DynaLoader();
-@ISA = ('DynaLoader');
+
+use vars qw($err $errstr $state $drh $VERSION @ISA);
+BEGIN {
+	$VERSION = '1.19_01';
+	@ISA     = ('DynaLoader');
+}
 
 __PACKAGE__->bootstrap($VERSION);
 
@@ -595,14 +595,28 @@ L<http://rt.cpan.org/Public/Dist/Display.html?Name=DBD-SQLite> for reporting bug
 
 =head1 AUTHOR
 
-Matt Sergeant, matt@sergeant.org
+Matt Sergeant E<lt>matt@sergeant.orgE<gt>
 
-Perl extension functions contributed by Francis J. Lacoste
-<flacoste@logreport.org> and Wolfgang Sourdeau
-<wolfgang@logreport.org>
+Francis J. Lacoste E<lt>flacoste@logreport.orgE<gt>
 
-=head1 SEE ALSO
+Wolfgang Sourdeau E<lt>wolfgang@logreport.orgE<gt>
 
-L<DBI>.
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+=head1 COPYRIGHT
+
+The bundled SQLite is Public Domain.
+
+DBD::SQLite is copyright 2002 - 2007 Matt Sergeant.
+
+Some parts copyright 2008 Francis J. Lacoste and Wolfgang Sourdeau.
+
+Some parts copyright 2008 - 2009 Adam Kennedy.
+
+This program is free software; you can redistribute
+it and/or modify it under the same terms as Perl itself.
+
+The full text of the license can be found in the
+LICENSE file included with this module.
 
 =cut
