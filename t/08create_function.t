@@ -5,8 +5,7 @@ BEGIN {
 	$| = 1;
 }
 
-use Test::More skip_all => 'Temporarily skipping known-bad test';
-#use Test::More tests => 18;
+use Test::More tests => 18;
 use DBI;
 
 sub now {
