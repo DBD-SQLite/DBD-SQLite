@@ -14,10 +14,9 @@
 ** other files are for internal use by SQLite and should not be
 ** accessed by users of the library.
 **
-** $Id: main.c,v 1.521 2009/01/10 16:15:22 drh Exp $
+** $Id: main.c,v 1.528 2009/02/05 16:31:46 drh Exp $
 */
 #include "sqliteInt.h"
-#include <ctype.h>
 
 #ifdef SQLITE_ENABLE_FTS3
 # include "fts3.h"
@@ -192,6 +191,7 @@ int sqlite3_initialize(void){
   ** reason.  So we run it once during initialization.
   */
 #ifndef NDEBUG
+#ifndef SQLITE_OMIT_FLOATING_POINT
   /* This section of code's only "output" is via assert() statements. */
   if ( rc==SQLITE_OK ){
     u64 x = (((u64)1)<<63)-1;
@@ -201,6 +201,7 @@ int sqlite3_initialize(void){
     memcpy(&y, &x, 8);
     assert( sqlite3IsNaN(y) );
   }
+#endif
 #endif
 
   return rc;
@@ -387,9 +388,22 @@ static int setupLookaside(sqlite3 *db, void *pBuf, int sz, int cnt){
   if( db->lookaside.nOut ){
     return SQLITE_BUSY;
   }
-  if( sz<0 ) sz = 0;
+  /* Free any existing lookaside buffer for this handle before
+  ** allocating a new one so we don't have to have space for 
+  ** both at the same time.
+  */
+  if( db->lookaside.bMalloced ){
+    sqlite3_free(db->lookaside.pStart);
+  }
+  /* The size of a lookaside slot needs to be larger than a pointer
+  ** to be useful.
+  */
+  if( sz<=(int)sizeof(LookasideSlot*) ) sz = 0;
   if( cnt<0 ) cnt = 0;
-  if( pBuf==0 ){
+  if( sz==0 || cnt==0 ){
+    sz = 0;
+    pStart = 0;
+  }else if( pBuf==0 ){
     sz = (sz + 7)&~7;
     sqlite3BeginBenignMalloc();
     pStart = sqlite3Malloc( sz*cnt );
@@ -398,16 +412,13 @@ static int setupLookaside(sqlite3 *db, void *pBuf, int sz, int cnt){
     sz = sz&~7;
     pStart = pBuf;
   }
-  if( db->lookaside.bMalloced ){
-    sqlite3_free(db->lookaside.pStart);
-  }
   db->lookaside.pStart = pStart;
   db->lookaside.pFree = 0;
   db->lookaside.sz = (u16)sz;
-  db->lookaside.bMalloced = pBuf==0 ?1:0;
   if( pStart ){
     int i;
     LookasideSlot *p;
+    assert( sz > sizeof(LookasideSlot*) );
     p = (LookasideSlot*)pStart;
     for(i=cnt-1; i>=0; i--){
       p->pNext = db->lookaside.pFree;
@@ -416,9 +427,11 @@ static int setupLookaside(sqlite3 *db, void *pBuf, int sz, int cnt){
     }
     db->lookaside.pEnd = p;
     db->lookaside.bEnabled = 1;
+    db->lookaside.bMalloced = pBuf==0 ?1:0;
   }else{
     db->lookaside.pEnd = 0;
     db->lookaside.bEnabled = 0;
+    db->lookaside.bMalloced = 0;
   }
   return SQLITE_OK;
 }
@@ -586,11 +599,21 @@ int sqlite3_close(sqlite3 *db){
   /* If there are any outstanding VMs, return SQLITE_BUSY. */
   if( db->pVdbe ){
     sqlite3Error(db, SQLITE_BUSY, 
-        "Unable to close due to unfinalised statements");
+        "unable to close due to unfinalised statements");
     sqlite3_mutex_leave(db->mutex);
     return SQLITE_BUSY;
   }
   assert( sqlite3SafetyCheckSickOrOk(db) );
+
+  for(j=0; j<db->nDb; j++){
+    Btree *pBt = db->aDb[j].pBt;
+    if( pBt && sqlite3BtreeIsInBackup(pBt) ){
+      sqlite3Error(db, SQLITE_BUSY, 
+          "unable to close due to unfinished backup operation");
+      sqlite3_mutex_leave(db->mutex);
+      return SQLITE_BUSY;
+    }
+  }
 
   /* Free any outstanding Savepoint structures. */
   sqlite3CloseSavepoints(db);
@@ -932,7 +955,7 @@ int sqlite3CreateFunc(
   if( p && p->iPrefEnc==enc && p->nArg==nArg ){
     if( db->activeVdbeCnt ){
       sqlite3Error(db, SQLITE_BUSY, 
-        "Unable to delete/modify user-function due to active statements");
+        "unable to delete/modify user-function due to active statements");
       assert( !db->mallocFailed );
       return SQLITE_BUSY;
     }else{
@@ -1342,7 +1365,7 @@ static int createCollation(
   if( pColl && pColl->xCmp ){
     if( db->activeVdbeCnt ){
       sqlite3Error(db, SQLITE_BUSY, 
-        "Unable to delete/modify collation sequence due to active statements");
+        "unable to delete/modify collation sequence due to active statements");
       return SQLITE_BUSY;
     }
     sqlite3ExpirePreparedStatements(db);
@@ -2125,6 +2148,25 @@ int sqlite3_test_control(int op, ...){
       xBenignBegin = va_arg(ap, void_function);
       xBenignEnd = va_arg(ap, void_function);
       sqlite3BenignMallocHooks(xBenignBegin, xBenignEnd);
+      break;
+    }
+
+    /*
+    **  sqlite3_test_control(PENDING_BYTE, unsigned int X)
+    **
+    ** Set the PENDING byte to the value in the argument, if X>0.
+    ** Make no changes if X==0.  Return the value of the pending byte
+    ** as it existing before this routine was called.
+    **
+    ** IMPORTANT:  Changing the PENDING byte from 0x40000000 results in
+    ** an incompatible database file format.  Changing the PENDING byte
+    ** while any database connection is open results in undefined and
+    ** dileterious behavior.
+    */
+    case SQLITE_TESTCTRL_PENDING_BYTE: {
+      unsigned int newVal = va_arg(ap, unsigned int);
+      rc = sqlite3PendingByte;
+      if( newVal ) sqlite3PendingByte = newVal;
       break;
     }
   }

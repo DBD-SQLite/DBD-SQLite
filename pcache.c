@@ -11,7 +11,7 @@
 *************************************************************************
 ** This file implements that page cache.
 **
-** @(#) $Id: pcache.c,v 1.39 2008/12/04 20:40:10 drh Exp $
+** @(#) $Id: pcache.c,v 1.43 2009/01/23 16:45:01 danielk1977 Exp $
 */
 #include "sqliteInt.h"
 
@@ -23,14 +23,13 @@ struct PCache {
   PgHdr *pSynced;                     /* Last synced page in dirty page list */
   int nRef;                           /* Number of referenced pages */
   int nMax;                           /* Configured cache size */
-  int nMin;                           /* Configured minimum cache size */
   int szPage;                         /* Size of every page in this cache */
   int szExtra;                        /* Size of extra space for each page */
   int bPurgeable;                     /* True if pages are on backing store */
   int (*xStress)(void*,PgHdr*);       /* Call to try make a page clean */
   void *pStress;                      /* Argument to xStress */
   sqlite3_pcache *pCache;             /* Pluggable cache module */
-  PgHdr *pPage1;
+  PgHdr *pPage1;                      /* Reference to page 1 */
 };
 
 /*
@@ -181,7 +180,6 @@ void sqlite3PcacheOpen(
   p->xStress = xStress;
   p->pStress = pStress;
   p->nMax = 100;
-  p->nMin = 10;
 }
 
 /*
@@ -263,14 +261,21 @@ int sqlite3PcacheFetch(
   }
 
   if( pPage ){
+    if( !pPage->pData ){
+      memset(pPage, 0, sizeof(PgHdr) + pCache->szExtra);
+      pPage->pExtra = (void*)&pPage[1];
+      pPage->pData = (void *)&((char *)pPage)[sizeof(PgHdr) + pCache->szExtra];
+      pPage->pCache = pCache;
+      pPage->pgno = pgno;
+    }
+    assert( pPage->pCache==pCache );
+    assert( pPage->pgno==pgno );
+    assert( pPage->pExtra==(void *)&pPage[1] );
+
     if( 0==pPage->nRef ){
       pCache->nRef++;
     }
     pPage->nRef++;
-    pPage->pData = (void*)&pPage[1];
-    pPage->pExtra = (void*)&((char*)pPage->pData)[pCache->szPage];
-    pPage->pCache = pCache;
-    pPage->pgno = pgno;
     if( pgno==1 ){
       pCache->pPage1 = pPage;
     }
@@ -431,9 +436,8 @@ void sqlite3PcacheClose(PCache *pCache){
 /* 
 ** Discard the contents of the cache.
 */
-int sqlite3PcacheClear(PCache *pCache){
+void sqlite3PcacheClear(PCache *pCache){
   sqlite3PcacheTruncate(pCache, 0);
-  return SQLITE_OK;
 }
 
 /*

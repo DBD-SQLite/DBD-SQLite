@@ -9,7 +9,7 @@
 **    May you share freely, never taking more than you give.
 **
 *************************************************************************
-** $Id: btreeInt.h,v 1.38 2008/12/27 15:23:13 danielk1977 Exp $
+** $Id: btreeInt.h,v 1.42 2009/02/03 16:51:25 danielk1977 Exp $
 **
 ** This file implements a external (disk-based) database using BTrees.
 ** For a detailed discussion of BTrees, refer to
@@ -204,10 +204,6 @@
 **      *     zero or more pages numbers of leaves
 */
 #include "sqliteInt.h"
-#include "pager.h"
-#include "btree.h"
-#include "os.h"
-#include <assert.h>
 
 /* Round up a number to the next larger multiple of 8.  This is used
 ** to force 8-byte alignment on 64-bit architectures.
@@ -328,6 +324,7 @@ struct Btree {
   u8 sharable;       /* True if we can share pBt with another db */
   u8 locked;         /* True if db currently has pBt locked */
   int wantToLock;    /* Number of nested calls to sqlite3BtreeEnter() */
+  int nBackup;       /* Number of backup operations reading this btree */
   Btree *pNext;      /* List of other sharable Btrees from the same db */
   Btree *pPrev;      /* Back pointer of the same list */
 };
@@ -383,6 +380,7 @@ struct BtShared {
   void *pSchema;        /* Pointer to space allocated by sqlite3BtreeSchema() */
   void (*xFreeSchema)(void*);  /* Destructor for BtShared.pSchema */
   sqlite3_mutex *mutex; /* Non-recursive mutex required to access this struct */
+  Bitvec *pHasContent;  /* Set of pages moved to free-list this transaction */
 #ifndef SQLITE_OMIT_SHARED_CACHE
   int nRef;             /* Number of references to this structure */
   BtShared *pNext;      /* Next on a list of sharable BtShared structs */
@@ -490,18 +488,10 @@ struct BtCursor {
 #define CURSOR_REQUIRESEEK       2
 #define CURSOR_FAULT             3
 
-/* The database page the PENDING_BYTE occupies. This page is never used.
-** TODO: This macro is very similary to PAGER_MJ_PGNO() in pager.c. They
-** should possibly be consolidated (presumably in pager.h).
-**
-** If disk I/O is omitted (meaning that the database is stored purely
-** in memory) then there is no pending byte.
+/* 
+** The database page the PENDING_BYTE occupies. This page is never used.
 */
-#ifdef SQLITE_OMIT_DISKIO
-# define PENDING_BYTE_PAGE(pBt)  0x7fffffff
-#else
-# define PENDING_BYTE_PAGE(pBt) ((Pgno)((PENDING_BYTE/(pBt)->pageSize)+1))
-#endif
+# define PENDING_BYTE_PAGE(pBt) PAGER_MJ_PGNO(pBt)
 
 /*
 ** A linked list of the following structures is stored at BtShared.pLock.

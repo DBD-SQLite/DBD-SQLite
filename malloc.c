@@ -12,11 +12,10 @@
 **
 ** Memory allocation functions used throughout sqlite.
 **
-** $Id: malloc.c,v 1.53 2008/12/16 17:20:38 shane Exp $
+** $Id: malloc.c,v 1.56 2009/02/17 18:37:29 drh Exp $
 */
 #include "sqliteInt.h"
 #include <stdarg.h>
-#include <ctype.h>
 
 /*
 ** This routine runs when the memory allocator sees that the
@@ -154,7 +153,9 @@ int sqlite3MallocInit(void){
 ** Deinitialize the memory allocation subsystem.
 */
 void sqlite3MallocEnd(void){
-  sqlite3GlobalConfig.m.xShutdown(sqlite3GlobalConfig.m.pAppData);
+  if( sqlite3GlobalConfig.m.xShutdown ){
+    sqlite3GlobalConfig.m.xShutdown(sqlite3GlobalConfig.m.pAppData);
+  }
   memset(&mem0, 0, sizeof(mem0));
 }
 
@@ -265,7 +266,15 @@ static int mallocWithAlarm(int n, void **pp){
 */
 void *sqlite3Malloc(int n){
   void *p;
-  if( n<=0 ){
+  if( n<=0 || NEVER(n>=0x7fffff00) ){
+    /* The NEVER(n>=0x7fffff00) term is added out of paranoia.  We want to make
+    ** absolutely sure that there is nothing within SQLite that can cause a
+    ** memory allocation of a number of bytes which is near the maximum signed
+    ** integer value and thus cause an integer overflow inside of the xMalloc()
+    ** implementation.  The n>=0x7fffff00 gives us 255 bytes of headroom.  The
+    ** test should never be true because SQLITE_MAX_LENGTH should be much
+    ** less than 0x7fffff00 and it should catch large memory allocations
+    ** before they reach this point. */
     p = 0;
   }else if( sqlite3GlobalConfig.bMemstat ){
     sqlite3_mutex_enter(mem0.mutex);
@@ -554,7 +563,8 @@ void *sqlite3Realloc(void *pOld, int nBytes){
   if( pOld==0 ){
     return sqlite3Malloc(nBytes);
   }
-  if( nBytes<=0 ){
+  if( nBytes<=0 || NEVER(nBytes>=0x7fffff00) ){
+    /* The NEVER(...) term is explained in comments on sqlite3Malloc() */
     sqlite3_free(pOld);
     return 0;
   }

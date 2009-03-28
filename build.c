@@ -22,10 +22,9 @@
 **     COMMIT
 **     ROLLBACK
 **
-** $Id: build.c,v 1.511 2008/12/30 06:24:58 danielk1977 Exp $
+** $Id: build.c,v 1.518 2009/02/13 03:43:32 drh Exp $
 */
 #include "sqliteInt.h"
-#include <ctype.h>
 
 /*
 ** This routine is called when a new SQL statement is beginning to
@@ -366,7 +365,7 @@ static void freeIndex(Index *p){
 ** it is not unlinked from the Table that it indexes.
 ** Unlinking from the Table must be done by the calling function.
 */
-static void sqliteDeleteIndex(Index *p){
+static void sqlite3DeleteIndex(Index *p){
   Index *pOld;
   const char *zName = p->zName;
 
@@ -411,8 +410,8 @@ void sqlite3UnlinkAndDeleteIndex(sqlite3 *db, int iDb, const char *zIdxName){
 ** if there were schema changes during the transaction or if a
 ** schema-cookie mismatch occurs.
 **
-** If iDb<=0 then reset the internal schema tables for all database
-** files.  If iDb>=2 then reset the internal schema for only the
+** If iDb==0 then reset the internal schema tables for all database
+** files.  If iDb>=1 then reset the internal schema for only the
 ** single file indicated.
 */
 void sqlite3ResetInternalSchema(sqlite3 *db, int iDb){
@@ -526,7 +525,7 @@ void sqlite3DeleteTable(Table *pTable){
   for(pIndex = pTable->pIndex; pIndex; pIndex=pNext){
     pNext = pIndex->pNext;
     assert( pIndex->pSchema==pTable->pSchema );
-    sqliteDeleteIndex(pIndex);
+    sqlite3DeleteIndex(pIndex);
   }
 
 #ifndef SQLITE_OMIT_FOREIGN_KEY
@@ -622,28 +621,38 @@ void sqlite3OpenMasterTable(Parse *p, int iDb){
 }
 
 /*
-** The token *pName contains the name of a database (either "main" or
-** "temp" or the name of an attached db). This routine returns the
-** index of the named database in db->aDb[], or -1 if the named db 
-** does not exist.
+** Parameter zName points to a nul-terminated buffer containing the name
+** of a database ("main", "temp" or the name of an attached db). This
+** function returns the index of the named database in db->aDb[], or
+** -1 if the named db cannot be found.
 */
-int sqlite3FindDb(sqlite3 *db, Token *pName){
-  int i = -1;    /* Database number */
-  int n;         /* Number of characters in the name */
-  Db *pDb;       /* A database whose name space is being searched */
-  char *zName;   /* Name we are searching for */
-
-  zName = sqlite3NameFromToken(db, pName);
+int sqlite3FindDbName(sqlite3 *db, const char *zName){
+  int i = -1;         /* Database number */
   if( zName ){
-    n = sqlite3Strlen30(zName);
+    Db *pDb;
+    int n = sqlite3Strlen30(zName);
     for(i=(db->nDb-1), pDb=&db->aDb[i]; i>=0; i--, pDb--){
       if( (!OMIT_TEMPDB || i!=1 ) && n==sqlite3Strlen30(pDb->zName) && 
           0==sqlite3StrICmp(pDb->zName, zName) ){
         break;
       }
     }
-    sqlite3DbFree(db, zName);
   }
+  return i;
+}
+
+/*
+** The token *pName contains the name of a database (either "main" or
+** "temp" or the name of an attached db). This routine returns the
+** index of the named database in db->aDb[], or -1 if the named db 
+** does not exist.
+*/
+int sqlite3FindDb(sqlite3 *db, Token *pName){
+  int i;                               /* Database number */
+  char *zName;                         /* Name we are searching for */
+  zName = sqlite3NameFromToken(db, pName);
+  i = sqlite3FindDbName(db, zName);
+  sqlite3DbFree(db, zName);
   return i;
 }
 
@@ -1339,9 +1348,9 @@ static void identPut(char *z, int *pIdx, char *zSignedIdent){
   int i, j, needQuote;
   i = *pIdx;
   for(j=0; zIdent[j]; j++){
-    if( !isalnum(zIdent[j]) && zIdent[j]!='_' ) break;
+    if( !sqlite3Isalnum(zIdent[j]) && zIdent[j]!='_' ) break;
   }
-  needQuote =  zIdent[j]!=0 || isdigit(zIdent[0])
+  needQuote =  zIdent[j]!=0 || sqlite3Isdigit(zIdent[0])
                   || sqlite3KeywordCode(zIdent, j)!=TK_ID;
   if( needQuote ) z[i++] = '"';
   for(j=0; zIdent[j]; j++){
@@ -1358,7 +1367,7 @@ static void identPut(char *z, int *pIdx, char *zSignedIdent){
 ** table.  Memory to hold the text of the statement is obtained
 ** from sqliteMalloc() and must be freed by the calling function.
 */
-static char *createTableStmt(sqlite3 *db, Table *p, int isTemp){
+static char *createTableStmt(sqlite3 *db, Table *p){
   int i, k, n;
   char *zStmt;
   char *zSep, *zSep2, *zEnd, *z;
@@ -1387,8 +1396,7 @@ static char *createTableStmt(sqlite3 *db, Table *p, int isTemp){
     db->mallocFailed = 1;
     return 0;
   }
-  sqlite3_snprintf(n, zStmt,
-                  !OMIT_TEMPDB&&isTemp ? "CREATE TEMP TABLE ":"CREATE TABLE ");
+  sqlite3_snprintf(n, zStmt, "CREATE TABLE ");
   k = sqlite3Strlen30(zStmt);
   identPut(zStmt, &k, p->zName);
   zStmt[k++] = '(';
@@ -1553,7 +1561,7 @@ void sqlite3EndTable(
 
     /* Compute the complete text of the CREATE statement */
     if( pSelect ){
-      zStmt = createTableStmt(db, p, p->pSchema==db->aDb[1].pSchema);
+      zStmt = createTableStmt(db, p);
     }else{
       n = (int)(pEnd->z - pParse->sNameToken.z) + 1;
       zStmt = sqlite3MPrintf(db, 
@@ -1712,7 +1720,7 @@ void sqlite3CreateView(
   sEnd.n = 0;
   n = (int)(sEnd.z - pBegin->z);
   z = (const unsigned char*)pBegin->z;
-  while( n>0 && (z[n-1]==';' || isspace(z[n-1])) ){ n--; }
+  while( n>0 && (z[n-1]==';' || sqlite3Isspace(z[n-1])) ){ n--; }
   sEnd.z = &z[n-1];
   sEnd.n = 1;
 
@@ -2420,7 +2428,8 @@ void sqlite3CreateIndex(
   pDb = &db->aDb[iDb];
 
   if( pTab==0 || pParse->nErr ) goto exit_create_index;
-  if( sqlite3StrNICmp(pTab->zName, "sqlite_", 7)==0 ){
+  if( sqlite3StrNICmp(pTab->zName, "sqlite_", 7)==0 
+       && memcmp(&pTab->zName[7],"altertab_",9)!=0 ){
     sqlite3ErrorMsg(pParse, "table %s may not be indexed", pTab->zName);
     goto exit_create_index;
   }
@@ -3422,11 +3431,6 @@ void sqlite3CodeVerifySchema(Parse *pParse, int iDb){
 ** rollback the whole transaction.  For operations where all constraints
 ** can be checked before any changes are made to the database, it is never
 ** necessary to undo a write and the checkpoint should not be set.
-**
-** Only database iDb and the temp database are made writable by this call.
-** If iDb==0, then the main and temp databases are made writable.   If
-** iDb==1 then only the temp database is made writable.  If iDb>1 then the
-** specified auxiliary database and the temp database are made writable.
 */
 void sqlite3BeginWriteOperation(Parse *pParse, int setStatement, int iDb){
   Vdbe *v = sqlite3GetVdbe(pParse);
@@ -3435,9 +3439,6 @@ void sqlite3BeginWriteOperation(Parse *pParse, int setStatement, int iDb){
   pParse->writeMask |= 1<<iDb;
   if( setStatement && pParse->nested==0 ){
     sqlite3VdbeAddOp1(v, OP_Statement, iDb);
-  }
-  if( (OMIT_TEMPDB || iDb!=1) && pParse->db->aDb[1].pBt!=0 ){
-    sqlite3BeginWriteOperation(pParse, setStatement, 1);
   }
 }
 

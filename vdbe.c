@@ -43,10 +43,9 @@
 ** in this file for details.  If in doubt, do not deviate from existing
 ** commenting and indentation practices when changing or adding code.
 **
-** $Id: vdbe.c,v 1.811 2009/01/14 00:55:10 drh Exp $
+** $Id: vdbe.c,v 1.817 2009/02/16 17:55:47 shane Exp $
 */
 #include "sqliteInt.h"
-#include <ctype.h>
 #include "vdbeInt.h"
 
 /*
@@ -1229,7 +1228,8 @@ case OP_Remainder: {           /* same as TK_REM, in1, in2, out3 */
       case OP_Subtract:    b -= a;       break;
       case OP_Multiply:    b *= a;       break;
       case OP_Divide: {
-        if( a==0.0 ) goto arithmetic_result_is_null;
+        /* (double)0 In case of SQLITE_OMIT_FLOATING_POINT... */
+        if( a==(double)0 ) goto arithmetic_result_is_null;
         b /= a;
         break;
       }
@@ -1874,7 +1874,7 @@ case OP_IfNot: {            /* jump, in1 */
     c = pOp->p3;
   }else{
 #ifdef SQLITE_OMIT_FLOATING_POINT
-    c = sqlite3VdbeIntValue(pIn1);
+    c = sqlite3VdbeIntValue(pIn1)!=0;
 #else
     c = sqlite3VdbeRealValue(pIn1)!=0.0;
 #endif
@@ -3490,7 +3490,7 @@ case OP_NewRowid: {           /* out2-prerelease */
     ** larger than the previous rowid.  This has been shown experimentally
     ** to double the speed of the COPY operation.
     */
-    int res, rx=SQLITE_OK, cnt;
+    int res=0, rx=SQLITE_OK, cnt;
     i64 x;
     cnt = 0;
     if( (sqlite3BtreeFlags(pC->pCursor)&(BTREE_INTKEY|BTREE_ZERODATA)) !=
@@ -3714,7 +3714,7 @@ case OP_Insert: {
 */
 case OP_Delete: {
   int i = pOp->p1;
-  i64 iKey;
+  i64 iKey = 0;
   VdbeCursor *pC;
 
   assert( i>=0 && i<p->nCursor );
@@ -4025,7 +4025,7 @@ case OP_Next: {        /* jump */
 /* Opcode: IdxInsert P1 P2 P3 * *
 **
 ** Register P2 holds a SQL index key made using the
-** MakeIdxRec instructions.  This opcode writes that key
+** MakeRecord instructions.  This opcode writes that key
 ** into the index P1.  Data for the entry is nil.
 **
 ** P3 is a flag that provides a hint to the b-tree layer that this
@@ -4092,7 +4092,7 @@ case OP_IdxDelete: {
 ** the end of the index key pointed to by cursor P1.  This integer should be
 ** the rowid of the table entry to which this index entry points.
 **
-** See also: Rowid, MakeIdxRec.
+** See also: Rowid, MakeRecord.
 */
 case OP_IdxRowid: {              /* out2-prerelease */
   int i = pOp->p1;

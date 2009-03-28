@@ -12,10 +12,9 @@
 ** This file contains routines used for analyzing expressions and
 ** for generating VDBE code that evaluates expressions in SQLite.
 **
-** $Id: expr.c,v 1.409 2009/01/10 13:24:51 drh Exp $
+** $Id: expr.c,v 1.411 2009/02/04 03:59:25 shane Exp $
 */
 #include "sqliteInt.h"
-#include <ctype.h>
 
 /*
 ** Return the 'affinity' of the expression pExpr if any.
@@ -1452,7 +1451,7 @@ static char *dup8bytes(Vdbe *v, const char *in){
 */
 static void codeReal(Vdbe *v, const char *z, int n, int negateFlag, int iMem){
   assert( z || v==0 || sqlite3VdbeDb(v)->mallocFailed );
-  assert( !z || !isdigit(z[n]) );
+  assert( !z || !sqlite3Isdigit(z[n]) );
   UNUSED_PARAMETER(n);
   if( z ){
     double value;
@@ -1486,7 +1485,7 @@ static void codeInteger(Vdbe *v, Expr *pExpr, int negFlag, int iMem){
   }else if( (z = (char*)pExpr->token.z)!=0 ){
     int i;
     int n = pExpr->token.n;
-    assert( !isdigit(z[n]) );
+    assert( !sqlite3Isdigit(z[n]) );
     if( sqlite3GetInt32(z, &i) ){
       if( negFlag ) i = -i;
       sqlite3VdbeAddOp2(v, OP_Integer, i, iMem);
@@ -1933,12 +1932,10 @@ int sqlite3ExprCodeTarget(Parse *pParse, Expr *pExpr, int target){
     case TK_UMINUS: {
       Expr *pLeft = pExpr->pLeft;
       assert( pLeft );
-      if( pLeft->op==TK_FLOAT || pLeft->op==TK_INTEGER ){
-        if( pLeft->op==TK_FLOAT ){
-          codeReal(v, (char*)pLeft->token.z, pLeft->token.n, 1, target);
-        }else{
-          codeInteger(v, pLeft, 1, target);
-        }
+      if( pLeft->op==TK_FLOAT ){
+        codeReal(v, (char*)pLeft->token.z, pLeft->token.n, 1, target);
+      }else if( pLeft->op==TK_INTEGER ){
+        codeInteger(v, pLeft, 1, target);
       }else{
         regFree1 = r1 = sqlite3GetTempReg(pParse);
         sqlite3VdbeAddOp2(v, OP_Integer, 0, r1);

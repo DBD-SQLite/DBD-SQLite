@@ -16,7 +16,7 @@
 #define OP_RowKey                              14
 #define OP_IsUnique                            15
 #define OP_SetNumColumns                       16
-#define OP_Eq                                  71   /* same as TK_EQ       */
+#define OP_Eq                                  73   /* same as TK_EQ       */
 #define OP_VUpdate                             17
 #define OP_Expire                              18
 #define OP_NullRow                             20
@@ -43,19 +43,19 @@
 #define OP_IdxDelete                           41
 #define OP_Sort                                42
 #define OP_ResetCount                          43
-#define OP_NotNull                             69   /* same as TK_NOTNULL  */
-#define OP_Ge                                  75   /* same as TK_GE       */
-#define OP_Remainder                           85   /* same as TK_REM      */
-#define OP_Divide                              84   /* same as TK_SLASH    */
+#define OP_NotNull                             71   /* same as TK_NOTNULL  */
+#define OP_Ge                                  77   /* same as TK_GE       */
+#define OP_Remainder                           87   /* same as TK_REM      */
+#define OP_Divide                              86   /* same as TK_SLASH    */
 #define OP_Integer                             44
 #define OP_Explain                             45
 #define OP_IncrVacuum                          46
 #define OP_AggStep                             47
 #define OP_CreateIndex                         48
 #define OP_NewRowid                            49
-#define OP_And                                 64   /* same as TK_AND      */
-#define OP_ShiftLeft                           79   /* same as TK_LSHIFT   */
-#define OP_Real                               129   /* same as TK_FLOAT    */
+#define OP_And                                 66   /* same as TK_AND      */
+#define OP_ShiftLeft                           81   /* same as TK_LSHIFT   */
+#define OP_Real                               130   /* same as TK_FLOAT    */
 #define OP_Return                              50
 #define OP_Trace                               51
 #define OP_IfPos                               52
@@ -63,29 +63,29 @@
 #define OP_Rewind                              54
 #define OP_SeekGe                              55
 #define OP_Affinity                            56
-#define OP_Gt                                  72   /* same as TK_GT       */
+#define OP_Gt                                  74   /* same as TK_GT       */
 #define OP_AddImm                              57
-#define OP_Subtract                            82   /* same as TK_MINUS    */
+#define OP_Subtract                            84   /* same as TK_MINUS    */
 #define OP_Null                                58
 #define OP_VColumn                             59
 #define OP_Clear                               60
-#define OP_IsNull                              68   /* same as TK_ISNULL   */
+#define OP_IsNull                              70   /* same as TK_ISNULL   */
 #define OP_If                                  61
 #define OP_Permutation                         62
 #define OP_ToBlob                             142   /* same as TK_TO_BLOB  */
-#define OP_RealAffinity                        65
-#define OP_Yield                               66
+#define OP_RealAffinity                        63
+#define OP_Yield                               64
 #define OP_AggFinal                            67
-#define OP_IfZero                              76
-#define OP_Last                                87
-#define OP_Rowid                               88
+#define OP_IfZero                              68
+#define OP_Last                                69
+#define OP_Rowid                               78
 #define OP_Sequence                            89
-#define OP_NotFound                            92
-#define OP_SeekGt                              93
+#define OP_NotFound                            90
+#define OP_SeekGt                              91
 #define OP_MakeRecord                          94
 #define OP_ToText                             141   /* same as TK_TO_TEXT  */
-#define OP_BitAnd                              77   /* same as TK_BITAND   */
-#define OP_Add                                 81   /* same as TK_PLUS     */
+#define OP_BitAnd                              79   /* same as TK_BITAND   */
+#define OP_Add                                 83   /* same as TK_PLUS     */
 #define OP_ResultRow                           95
 #define OP_String                              96
 #define OP_Goto                                97
@@ -98,10 +98,10 @@
 #define OP_Column                             104
 #define OP_Not                                 19   /* same as TK_NOT      */
 #define OP_Compare                            105
-#define OP_Le                                  73   /* same as TK_LE       */
-#define OP_BitOr                               78   /* same as TK_BITOR    */
-#define OP_Multiply                            83   /* same as TK_STAR     */
-#define OP_String8                             91   /* same as TK_STRING   */
+#define OP_Le                                  75   /* same as TK_LE       */
+#define OP_BitOr                               80   /* same as TK_BITOR    */
+#define OP_Multiply                            85   /* same as TK_STAR     */
+#define OP_String8                             93   /* same as TK_STRING   */
 #define OP_VOpen                              106
 #define OP_CreateTable                        107
 #define OP_Found                              108
@@ -116,10 +116,10 @@
 #define OP_Next                               116
 #define OP_Prev                               117
 #define OP_SeekLe                             118
-#define OP_Lt                                  74   /* same as TK_LT       */
-#define OP_Ne                                  70   /* same as TK_NE       */
+#define OP_Lt                                  76   /* same as TK_LT       */
+#define OP_Ne                                  72   /* same as TK_NE       */
 #define OP_MustBeInt                          119
-#define OP_ShiftRight                          80   /* same as TK_RSHIFT   */
+#define OP_ShiftRight                          82   /* same as TK_RSHIFT   */
 #define OP_CollSeq                            120
 #define OP_Gosub                              121
 #define OP_ContextPush                        122
@@ -127,14 +127,14 @@
 #define OP_Destroy                            124
 #define OP_IdxGE                              125
 #define OP_ReadCookie                         126
-#define OP_BitNot                              90   /* same as TK_BITNOT   */
-#define OP_Or                                  63   /* same as TK_OR       */
+#define OP_BitNot                              92   /* same as TK_BITNOT   */
+#define OP_Or                                  65   /* same as TK_OR       */
 #define OP_Jump                               127
 #define OP_ToReal                             145   /* same as TK_TO_REAL  */
 #define OP_ToNumeric                          143   /* same as TK_TO_NUMERIC*/
 #define OP_Function                           128
-#define OP_Concat                              86   /* same as TK_CONCAT   */
-#define OP_SCopy                              130
+#define OP_Concat                              88   /* same as TK_CONCAT   */
+#define OP_SCopy                              129
 #define OP_Int64                              131
 
 /* The following opcode values are never used */
@@ -167,15 +167,15 @@
 /*  32 */ 0x10, 0x00, 0x02, 0x02, 0x01, 0x00, 0x00, 0x08,\
 /*  40 */ 0x00, 0x00, 0x01, 0x00, 0x02, 0x00, 0x01, 0x00,\
 /*  48 */ 0x02, 0x02, 0x04, 0x00, 0x05, 0x11, 0x01, 0x11,\
-/*  56 */ 0x00, 0x04, 0x02, 0x00, 0x00, 0x05, 0x00, 0x2c,\
-/*  64 */ 0x2c, 0x04, 0x04, 0x00, 0x05, 0x05, 0x15, 0x15,\
-/*  72 */ 0x15, 0x15, 0x15, 0x15, 0x05, 0x2c, 0x2c, 0x2c,\
-/*  80 */ 0x2c, 0x2c, 0x2c, 0x2c, 0x2c, 0x2c, 0x2c, 0x01,\
-/*  88 */ 0x02, 0x02, 0x04, 0x02, 0x11, 0x11, 0x00, 0x00,\
+/*  56 */ 0x00, 0x04, 0x02, 0x00, 0x00, 0x05, 0x00, 0x04,\
+/*  64 */ 0x04, 0x2c, 0x2c, 0x00, 0x05, 0x01, 0x05, 0x05,\
+/*  72 */ 0x15, 0x15, 0x15, 0x15, 0x15, 0x15, 0x02, 0x2c,\
+/*  80 */ 0x2c, 0x2c, 0x2c, 0x2c, 0x2c, 0x2c, 0x2c, 0x2c,\
+/*  88 */ 0x2c, 0x02, 0x11, 0x11, 0x04, 0x02, 0x00, 0x00,\
 /*  96 */ 0x02, 0x01, 0x00, 0x00, 0x21, 0x00, 0x02, 0x00,\
 /* 104 */ 0x00, 0x00, 0x00, 0x02, 0x11, 0x08, 0x00, 0x00,\
 /* 112 */ 0x00, 0x05, 0x00, 0x0c, 0x01, 0x01, 0x11, 0x05,\
 /* 120 */ 0x00, 0x01, 0x00, 0x00, 0x02, 0x11, 0x02, 0x01,\
-/* 128 */ 0x00, 0x02, 0x04, 0x02, 0x00, 0x00, 0x00, 0x00,\
+/* 128 */ 0x00, 0x04, 0x02, 0x02, 0x00, 0x00, 0x00, 0x00,\
 /* 136 */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x04, 0x04,\
 /* 144 */ 0x04, 0x04,}

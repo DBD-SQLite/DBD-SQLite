@@ -43,7 +43,7 @@
 **   *  Definitions of sqlite3_vfs objects for all locking methods
 **      plus implementations of sqlite3_os_init() and sqlite3_os_end().
 **
-** $Id: os_unix.c,v 1.237 2009/01/15 04:30:03 drh Exp $
+** $Id: os_unix.c,v 1.241 2009/02/09 17:34:07 drh Exp $
 */
 #include "sqliteInt.h"
 #if SQLITE_OS_UNIX              /* This file is used on unix only */
@@ -183,7 +183,9 @@ struct unixFile {
   unsigned char locktype;          /* The type of lock held on this fd */
   int lastErrno;                   /* The unix errno from the last I/O error */
   void *lockingContext;            /* Locking style specific state */
-  int openFlags;                   /* The flags specified at open */
+#if SQLITE_ENABLE_LOCKING_STYLE
+  int openFlags;                   /* The flags specified at open() */
+#endif
 #if SQLITE_THREADSAFE && defined(__linux__)
   pthread_t tid;                   /* The thread that "owns" this unixFile */
 #endif
@@ -202,6 +204,11 @@ struct unixFile {
   unsigned char transCntrChng;   /* True if the transaction counter changed */
   unsigned char dbUpdate;        /* True if any part of database file changed */
   unsigned char inNormalWrite;   /* True if in a normal write operation */
+
+  /* If true, that means we are dealing with a database file that has
+  ** a range of locking bytes from PENDING_BYTE through PENDING_BYTE+511
+  ** which should never be read or written.  Asserts() will verify this */
+  unsigned char isLockable;      /* True if file might be locked */
 #endif
 #ifdef SQLITE_TEST
   /* In test mode, increase the size of this structure a bit so that 
@@ -920,6 +927,7 @@ static int findLockInfo(
     return SQLITE_IOERR;
   }
 
+#ifdef __APPLE__
   /* On OS X on an msdos filesystem, the inode number is reported
   ** incorrectly for zero-size files.  See ticket #3260.  To work
   ** around this problem (we consider it a bug in OS X, not SQLite)
@@ -931,13 +939,17 @@ static int findLockInfo(
   ** the first page of the database, no damage is done.
   */
   if( statbuf.st_size==0 ){
-    write(fd, "S", 1);
+    rc = write(fd, "S", 1);
+    if( rc!=1 ){
+      return SQLITE_IOERR;
+    }
     rc = fstat(fd, &statbuf);
     if( rc!=0 ){
       pFile->lastErrno = errno;
       return SQLITE_IOERR;
     }
   }
+#endif
 
   memset(&lockKey, 0, sizeof(lockKey));
   lockKey.fid.dev = statbuf.st_dev;
@@ -1084,6 +1096,7 @@ static int unixCheckReservedLock(sqlite3_file *id, int *pResOut){
 
   /* Otherwise see if some other process holds it.
   */
+#ifndef __DJGPP__
   if( !reserved ){
     struct flock lock;
     lock.l_whence = SEEK_SET;
@@ -1098,6 +1111,7 @@ static int unixCheckReservedLock(sqlite3_file *id, int *pResOut){
       reserved = 1;
     }
   }
+#endif
   
   unixLeaveMutex();
   OSTRACE4("TEST WR-LOCK %d %d %d\n", pFile->h, rc, reserved);
@@ -1425,7 +1439,7 @@ static int unixUnlock(sqlite3_file *id, int locktype){
         if( IS_LOCK_ERROR(rc) ){
           pFile->lastErrno = tErrno;
         }
-				goto end_unlock;
+        goto end_unlock;
       }
     }
     lock.l_type = F_UNLCK;
@@ -2682,6 +2696,12 @@ static int unixRead(
 ){
   int got;
   assert( id );
+
+  /* Never read or write any of the bytes in the locking range */
+  assert( ((unixFile*)id)->isLockable==0
+          || offset>=PENDING_BYTE+512
+          || offset+amt<=PENDING_BYTE );
+
   got = seekAndRead((unixFile*)id, offset, pBuf, amt);
   if( got==amt ){
     return SQLITE_OK;
@@ -2747,6 +2767,11 @@ static int unixWrite(
   assert( id );
   assert( amt>0 );
 
+  /* Never read or write any of the bytes in the locking range */
+  assert( ((unixFile*)id)->isLockable==0
+          || offset>=PENDING_BYTE+512
+          || offset+amt<=PENDING_BYTE );
+
 #ifndef NDEBUG
   /* If we are doing a normal write to a database file (as opposed to
   ** doing a hot-journal rollback or a write to some file other than a
@@ -2758,11 +2783,12 @@ static int unixWrite(
     unixFile *pFile = (unixFile*)id;
     pFile->dbUpdate = 1;  /* The database has been modified */
     if( offset<=24 && offset+amt>=27 ){
+      int rc;
       char oldCntr[4];
       SimulateIOErrorBenign(1);
-      seekAndRead(pFile, 24, oldCntr, 4);
+      rc = seekAndRead(pFile, 24, oldCntr, 4);
       SimulateIOErrorBenign(0);
-      if( memcmp(oldCntr, &((char*)pBuf)[24-offset], 4)!=0 ){
+      if( rc!=4 || memcmp(oldCntr, &((char*)pBuf)[24-offset], 4)!=0 ){
         pFile->transCntrChng = 1;  /* The transaction counter has changed */
       }
     }
@@ -3669,6 +3695,12 @@ static int unixOpen(
   if( pOutFlags ){
     *pOutFlags = flags;
   }
+
+#ifndef NDEBUG
+  if( (flags & SQLITE_OPEN_MAIN_DB)!=0 ){
+    ((unixFile*)pFile)->isLockable = 1;
+  }
+#endif
 
   assert(fd!=0);
   if( isOpenDirectory ){
