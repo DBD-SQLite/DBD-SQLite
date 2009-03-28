@@ -2,6 +2,7 @@ Revision history for Perl extension DBD::SQLite.
 
 1.19_02 not yet released
     - Updated to SQLite 3.6.11 (ISHIGAKI)
+    - added/updated several prototypes
 
 1.19_01 Fri 27 Mar 2009
     - Updated to SQLite 3.6.10, and bumped up the version
