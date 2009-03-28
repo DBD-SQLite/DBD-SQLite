@@ -1,20 +1,21 @@
-Revision history for Perl extension DBD::SQLite.
+Revision history for Perl extension DBD-SQLite.
 
-1.19_02 not yet released
+1.19_02 Sun 29 Mar 2009
     - Updated to SQLite 3.6.11 (ISHIGAKI)
-    - added/updated several prototypes
+    - Added/updated several prototypes (ISHIGAKI)
+    - Moved TODO into the POD (ADAMK)
 
 1.19_01 Fri 27 Mar 2009
     - Updated to SQLite 3.6.10, and bumped up the version
       requirement for installed sqlite3 to 3.6.0 as 3.6.x
       has backward incompatiblity (ISHIGAKI)
-    - fixed "closing dbh with active statement handles" issue
+    - Fixed "closing dbh with active statement handles" issue
       with a patch by TOKUHIROM. (ISHIGAKI)
-    - skip 70schemachange test for Windows users. (ISHIGAKI)
-    - applied RT patches including #29497, #32723, #30558,
+    - Skip 70schemachange test for Windows users. (ISHIGAKI)
+    - Applied RT patches including #29497, #32723, #30558,
       #34408, #36467, #37215, #41047. (ISHIGAKI)
-    - added TODO to show which issues are to be fixed. (ISHIGAKI)
-    - license and configure_requires in Makefile.PL and META.yml (Alexandr Ciornii)
+    - Added TODO to show which issues are to be fixed. (ISHIGAKI)
+    - License and configure_requires in Makefile.PL and META.yml (Alexandr Ciornii)
     - Spelling check for SQLite.pm (Alexandr Ciornii)
     - Adding arbitrary Perl 5.005 minimum
 

@@ -2,14 +2,16 @@ package DBD::SQLite;
 
 use 5.005;
 use strict;
-use DBI;
+use DBI       ();
 use DynaLoader();
 
-use vars qw($err $errstr $state $drh $VERSION @ISA);
+use vars qw($VERSION @ISA);
 BEGIN {
-	$VERSION = '1.19_01';
+	$VERSION = '1.19_02';
 	@ISA     = ('DynaLoader');
 }
+
+use vars qw{$err $errstr $state $drh };
 
 __PACKAGE__->bootstrap($VERSION);
 
@@ -594,6 +596,39 @@ peace of mind. Also try playing with the cache_size pragma.
 Bugs should be reported via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
+
+=head1 TO DO
+
+There're several pended RT bugs/patches at the moment
+(mainly due to the lack of tests/patches or segfaults on tests).
+
+Here's the list.
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=41631>
+(patch required)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=40594>
+(patch required, and the following tests may break)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=30167>
+(need to see what is the best solution right now)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=34828>
+(segfault while testing under Windows)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=36836>
+(patch required)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=13631>
+(test required)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=35449>
+(break tests)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=29629>
+(patch required)
+
+Switch tests to Test::More to support more advanced testing behaviours
 
 =head1 AUTHOR
 
