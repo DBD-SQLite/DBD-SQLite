@@ -63,57 +63,56 @@ $dbh->do( 'INSERT INTO func_test VALUES ( 0, 4 )' );
 
 $dbh->func( "add2", 2, \&add2, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT add2(1,3)" );
-ok( $result->[0] == 4 );
+is($result->[0], 4, "SELECT add2(1,3)" );
 
 $result = $dbh->selectall_arrayref( "SELECT add2(a,b) FROM func_test" );
-ok( $result->[0][0] = 4  && $result->[1][0] == 4 );
+is_deeply( $result, [ [4], [4] ], "SELECT add2(a,b) FROM func_test" );
 
 $dbh->func( "my_sum", -1, \&my_sum, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT my_sum( '2', 3, 4, '5')" );
-ok( $result->[0] == 14 );
+is( $result->[0], 14, "SELECT my_sum( '2', 3, 4, '5')" );
 
 $dbh->func( "error", -1, \&error, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT error( 'I died' )" );
 ok( !$result );
-ok( $DBI::errstr =~ /function is dying: I died/ );
+like( $DBI::errstr, qr/function is dying: I died/ );
 
 $dbh->func( "void_return", -1, \&void_return, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT void_return( 'I died' )" );
-ok( $result && !defined $result->[0] );
+is_deeply( $result, [ undef ], "SELECT void_return( 'I died' )" );
 
 $dbh->func( "return_null", -1, \&return_null, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT return_null()" );
-ok( $result && !defined $result->[0] );
+is_deeply( $result, [ undef ], "SELECT return_null()" );
 
 $dbh->func( "return2", -1, \&return2, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT return2()" );
-ok( $result &&  $result->[0] == 2 );
+is_deeply( $result, [ 2 ], "SELECT return2()" );
 
 $dbh->func( "my_defined", 1, \&my_defined, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT my_defined(1)" );
-ok( $result &&  $result->[0] );
+is_deeply( $result, [ 1 ], "SELECT my_defined(1)" );
 
 $result = $dbh->selectrow_arrayref( "SELECT my_defined('')" );
-print "# Result: @$result\n";
-ok( $result &&  $result->[0] );
+is_deeply( $result, [ 1 ], "SELECT my_defined('')" );
 
 $result = $dbh->selectrow_arrayref( "SELECT my_defined('abc')" );
-ok( $result &&  $result->[0] );
+is_deeply( $result, [ 1 ], "SELECT my_defined('abc')" );
 
 $result = $dbh->selectrow_arrayref( "SELECT my_defined(NULL)" );
-ok( $result &&  !$result->[0] );
+is_deeply( $result, [ '0' ], "SELECT my_defined(NULL)" );
 
 $dbh->func( "noop", 1, \&noop, "create_function" );
 $result = $dbh->selectrow_arrayref( "SELECT noop(NULL)" );
-ok( $result &&  !defined $result->[0] );
+is_deeply( $result, [ undef ], "SELECT noop(NULL)" );
 
 $result = $dbh->selectrow_arrayref( "SELECT noop(1)" );
-ok( $result &&  $result->[0] == 1);
+is_deeply( $result, [ 1 ], "SELECT noop(1)" );
 
 $result = $dbh->selectrow_arrayref( "SELECT noop('')" );
-ok( $result &&  $result->[0] eq '' );
+is_deeply( $result, [ '' ], "SELECT noop('')" );
 
 $result = $dbh->selectrow_arrayref( "SELECT noop(1.0625)" );
-ok( $result &&  $result->[0] == 1.0625 );
+is_deeply( $result, [ 1.0625 ], "SELECT noop(1.0625)" );
 
 $dbh->disconnect;
