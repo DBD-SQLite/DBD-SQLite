@@ -11,7 +11,7 @@ BEGIN {
 	@ISA     = ('DynaLoader');
 }
 
-use vars qw{$err $errstr $state $drh };
+use vars qw{$err $errstr $state $drh $sqlite_version};
 
 __PACKAGE__->bootstrap($VERSION);
 
@@ -284,12 +284,75 @@ return; # XXX code just copied from DBD::Oracle, not yet thought about
 }
 
 
-1;
+# Taken from Fey::Loader::SQLite
+sub column_info {
+    my($dbh, $catalog, $schema, $table, $column) = @_;
+
+    $column = undef
+        if defined $column && $column eq '%';
+
+    my $sth_columns = $dbh->prepare( qq{PRAGMA table_info('$table')} );
+    $sth_columns->execute;
+
+    my @names = qw( TABLE_CAT TABLE_SCHEM TABLE_NAME COLUMN_NAME
+                    DATA_TYPE TYPE_NAME COLUMN_SIZE BUFFER_LENGTH
+                    DECIMAL_DIGITS NUM_PREC_RADIX NULLABLE
+                    REMARKS COLUMN_DEF SQL_DATA_TYPE SQL_DATETIME_SUB
+                    CHAR_OCTET_LENGTH ORDINAL_POSITION IS_NULLABLE
+                );
+
+    my @cols;
+    while ( my $col_info = $sth_columns->fetchrow_hashref ) {
+        next if defined $column && $column ne $col_info->{name};
+
+        my %col;
+
+        $col{TABLE_NAME} = $table;
+        $col{COLUMN_NAME} = $col_info->{name};
+
+        my $type = $col_info->{type};
+        if ( $type =~ s/(\w+)\((\d+)(?:,(\d+))?\)/$1/ ) {
+            $col{COLUMN_SIZE} = $2;
+            $col{DECIMAL_DIGITS} = $3;
+        }
+
+        $col{TYPE_NAME} = $type;
+
+        $col{COLUMN_DEF} = $col_info->{dflt_value}
+            if defined $col_info->{dflt_value};
+
+        if ( $col_info->{notnull} ) {
+            $col{NULLABLE} = 0;
+            $col{IS_NULLABLE} = 'NO';
+        }
+        else {
+            $col{NULLABLE} = 1;
+            $col{IS_NULLABLE} = 'YES';
+        }
+
+        for my $key (@names) {
+            $col{$key} = undef
+                unless exists $col{$key};
+        }
+
+        push @cols, \%col;
+    }
+
+    my $sponge = DBI->connect("DBI:Sponge:", '','')
+        or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
+    my $sth = $sponge->prepare("column_info $table", {
+        rows => [ map { [ @{$_}{@names} ] } @cols ],
+        NUM_OF_FIELDS => scalar @names,
+        NAME => \@names,
+    }) or return $dbh->DBI::set_err($sponge->err(), $sponge->errstr());
+    return $sth;
+}
+
 __END__
 
 =head1 NAME
 
-DBD::SQLite - Self Contained SQLite RDBMS in a DBI Driver
+DBD::SQLite - Self Contained RDBMS in a DBI Driver
 
 =head1 SYNOPSIS
 
@@ -399,7 +462,7 @@ Set the current busy timeout. The timeout is in milliseconds.
 
 =head2 $dbh->func( $name, $argc, $func_ref, "create_function" )
 
-This method will register a new function which will be useable in SQL
+This method will register a new function which will be useable in an SQL
 query. The method's parameters are:
 
 =over
@@ -640,6 +703,8 @@ Wolfgang Sourdeau E<lt>wolfgang@logreport.orgE<gt>
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
+Max Maischein E<lt>corion@cpan.orgE<gt>
+
 =head1 COPYRIGHT
 
 The bundled SQLite is Public Domain.
@@ -649,6 +714,8 @@ DBD::SQLite is copyright 2002 - 2007 Matt Sergeant.
 Some parts copyright 2008 Francis J. Lacoste and Wolfgang Sourdeau.
 
 Some parts copyright 2008 - 2009 Adam Kennedy.
+
+Some parts taken from L<DBD::SQLite::Amalgamation>.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.
