@@ -13,7 +13,7 @@ BEGIN {
     use_ok 'DBD::SQLite'
         or BAIL_OUT 'DBD::SQLite(::Amalgamation) failed to load. No sense in continuing.';
     no warnings 'once';
-    diag "Testing DBD::SQLite version '$DBD::SQLite::VERSION' on DBI '$DBI::VERSION'";
+    #diag "Testing DBD::SQLite version '$DBD::SQLite::VERSION' on DBI '$DBI::VERSION'";
     
     #*DBD::SQLite::db::column_info = \&DBD::SQLite::db::_sqlite_column_info;
 };
