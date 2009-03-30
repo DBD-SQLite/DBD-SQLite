@@ -150,14 +150,14 @@ WriteMakefile(
 		'DBI'        => 1.21,
 		'Test::More' => '0.42',
 	},
-	($ExtUtils::MakeMaker::VERSION ge '6.46'? (
+	( $ExtUtils::MakeMaker::VERSION ge '6.46'? (
 		'LICENSE'    => 'perl',
 		'META_MERGE' => {
 			'configure_requires' => {
 				DBI => 1.21,
 			},
 		},
-	) : ()),
+	) : () ),
 	OBJECT       => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
 	OPTIMIZE     => '-O2',
 	clean        => {
@@ -167,7 +167,9 @@ WriteMakefile(
 	EXE_FILES    => [],
 	INC          => join( ' ', @CC_INC    ),
 	DEFINE       => join( ' ', @CC_DEFINE ),
-	( @CC_LIBS ? ( LIBS => join( ' ', @CC_LIBS ) ) : () ),
+	( @CC_LIBS ? (
+		LIBS => join( ' ', @CC_LIBS )
+	) : () ),
 );
 
 package MY;
@@ -175,7 +177,9 @@ package MY;
 sub postamble {
 	require DBI;
 	require DBI::DBD;
-	eval { DBI::DBD::dbd_postamble(@_) };
+	eval {
+		DBI::DBD::dbd_postamble(@_)
+	};
 }
 
 sub libscan {
