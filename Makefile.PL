@@ -63,7 +63,7 @@ if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
 # Now check for a compatible sqlite3
 unless ( $force_local ) {
 	my ($dir, $file, $fh, $version);
-	print "Checking installed SQLite version...\n";
+	print "Checking installed SQLite version...\n" if $ENV{AUTOMATED_TESTING};
 	if ( $sqlite_inc ) {
 		open($fh, '< ' . File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
 			or die "Error opening sqlite3.h in $sqlite_inc: $!";
@@ -97,7 +97,7 @@ unless ( $force_local ) {
 		undef $sqlite_lib;
 		undef $sqlite_inc;
 	} else {
-		print "Looks good\n";
+		print "Looks good\n" if $ENV{AUTOMATED_TESTING};
 	}
 }
 
