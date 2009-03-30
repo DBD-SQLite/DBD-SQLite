@@ -73,7 +73,7 @@ $result = $dbh->selectrow_arrayref( "SELECT my_sum( '2', 3, 4, '5')" );
 is( $result->[0], 14, "SELECT my_sum( '2', 3, 4, '5')" );
 
 SKIP: {
-    skip "this test is currently broken on some platforms; set DBD_SQLITE_TODO=1 to test this", 2 unless $ENV{DBD_SQLITE_TODO};
+    # skip "this test is currently broken on some platforms; set DBD_SQLITE_TODO=1 to test this", 2 unless $ENV{DBD_SQLITE_TODO};
 
     $dbh->func( "error", -1, \&error, "create_function" );
     $result = $dbh->selectrow_arrayref( "SELECT error( 'I died' )" );
