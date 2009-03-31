@@ -15,7 +15,7 @@
 ** only within the VDBE.  Interface routines refer to a Mem using the
 ** name sqlite_value
 **
-** $Id: vdbemem.c,v 1.137 2009/02/04 03:59:25 shane Exp $
+** $Id: vdbemem.c,v 1.139 2009/03/29 15:12:10 drh Exp $
 */
 #include "sqliteInt.h"
 #include "vdbeInt.h"
@@ -321,6 +321,10 @@ static i64 doubleToInt64(double r){
   if( r<(double)minInt ){
     return minInt;
   }else if( r>(double)maxInt ){
+    /* minInt is correct here - not maxInt.  It turns out that assigning
+    ** a very large positive number to an integer results in a very large
+    ** negative integer.  This makes no sense, but it is what x86 hardware
+    ** does so for compatibility we will do the same in software. */
     return minInt;
   }else{
     return (i64)r;
@@ -333,9 +337,10 @@ static i64 doubleToInt64(double r){
 ** If pMem is an integer, then the value is exact.  If pMem is
 ** a floating-point then the value returned is the integer part.
 ** If pMem is a string or blob, then we make an attempt to convert
-** it into a integer and return that.  If pMem is NULL, return 0.
+** it into a integer and return that.  If pMem represents an
+** an SQL-NULL value, return 0.
 **
-** If pMem is a string, its encoding might be changed.
+** If pMem represents a string value, its encoding might be changed.
 */
 i64 sqlite3VdbeIntValue(Mem *pMem){
   int flags;

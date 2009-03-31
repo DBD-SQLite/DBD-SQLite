@@ -18,7 +18,7 @@
 ** file simultaneously, or one process from reading the database while
 ** another is writing.
 **
-** @(#) $Id: pager.c,v 1.570 2009/02/17 17:56:30 danielk1977 Exp $
+** @(#) $Id: pager.c,v 1.576 2009/03/31 02:54:40 drh Exp $
 */
 #ifndef SQLITE_OMIT_DISKIO
 #include "sqliteInt.h"
@@ -98,12 +98,6 @@ int sqlite3PagerTrace=1;  /* True to enable tracing */
 #define PAGER_RESERVED    2   /* same as RESERVED_LOCK */
 #define PAGER_EXCLUSIVE   4   /* same as EXCLUSIVE_LOCK */
 #define PAGER_SYNCED      5
-
-/*
-** This macro rounds values up so that if the value is an address it
-** is guaranteed to be an address that is aligned to an 8-byte boundary.
-*/
-#define FORCE_ALIGNMENT(X)   (((X)+7)&~7)
 
 /*
 ** A macro used for invoking the codec if there is one
@@ -762,7 +756,7 @@ static int writeJournalHdr(Pager *pPager){
   ** A faster alternative is to write 0xFFFFFFFF to the nRec field. When
   ** reading the journal this value tells SQLite to assume that the
   ** rest of the journal file contains valid page records. This assumption
-  ** is dangerous, as if a failure occured whilst writing to the journal
+  ** is dangerous, as if a failure occurred whilst writing to the journal
   ** file it may contain some garbage data. There are two scenarios
   ** where this risk can be ignored:
   **
@@ -1143,7 +1137,7 @@ static void pager_unlock(Pager *pPager){
 
 /*
 ** This function should be called when an IOERR, CORRUPT or FULL error
-** may have occured. The first argument is a pointer to the pager 
+** may have occurred. The first argument is a pointer to the pager 
 ** structure, the second the error-code about to be returned by a pager 
 ** API function. The value returned is a copy of the second argument 
 ** to this function. 
@@ -1156,7 +1150,7 @@ static void pager_unlock(Pager *pPager){
 ** A persistent error indicates that the contents of the pager-cache 
 ** cannot be trusted. This state can be cleared by completely discarding 
 ** the contents of the pager-cache. If a transaction was active when
-** the persistent error occured, then the rollback journal may need
+** the persistent error occurred, then the rollback journal may need
 ** to be replayed to restore the contents of the database file (as if
 ** it were a hot-journal).
 */
@@ -1505,6 +1499,7 @@ static int pager_playback_one_page(
   ** Do not attempt to write if database file has never been opened.
   */
   pPg = pager_lookup(pPager, pgno);
+  assert( pPg || !MEMDB );
   PAGERTRACE(("PLAYBACK %d page %d hash(%08x) %s\n",
                PAGERID(pPager), pgno, pager_datahash(pPager->pageSize, aData),
                (isMainJrnl?"main-journal":"sub-journal")
@@ -2054,7 +2049,7 @@ end_playback:
   );
 
   /* If this playback is happening automatically as a result of an IO or 
-  ** malloc error that occured after the change-counter was updated but 
+  ** malloc error that occurred after the change-counter was updated but 
   ** before the transaction was committed, then the change-counter 
   ** modification may just have been reverted. If this happens in exclusive 
   ** mode, then subsequent transactions performed by the connection will not
@@ -3268,7 +3263,7 @@ int sqlite3PagerOpen(
     testcase( rc!=SQLITE_OK );
   }
 
-  /* If an error occured in either of the blocks above, free the 
+  /* If an error occurred in either of the blocks above, free the 
   ** Pager structure and close the file.
   */
   if( rc!=SQLITE_OK ){
@@ -3279,7 +3274,7 @@ int sqlite3PagerOpen(
   }
 
   /* Initialize the PCache object. */
-  nExtra = FORCE_ALIGNMENT(nExtra);
+  nExtra = ROUND8(nExtra);
   sqlite3PcacheOpen(szPageDflt, nExtra, !memDb,
                     !memDb?pagerStress:0, (void *)pPager, pPager->pPCache);
 
@@ -3335,11 +3330,12 @@ int sqlite3PagerOpen(
 ** PAGER_SHARED state. It tests if there is a hot journal present in
 ** the file-system for the given pager. A hot journal is one that 
 ** needs to be played back. According to this function, a hot-journal
-** file exists if the following three criteria are met:
+** file exists if the following criteria are met:
 **
 **   * The journal file exists in the file system, and
 **   * No process holds a RESERVED or greater lock on the database file, and
-**   * The database file itself is greater than 0 bytes in size.
+**   * The database file itself is greater than 0 bytes in size, and
+**   * The first byte of the journal file exists and is not 0x00.
 **
 ** If the current size of the database file is 0 but a journal file
 ** exists, that is probably an old journal left over from a prior
@@ -3347,14 +3343,12 @@ int sqlite3PagerOpen(
 ** just deleted using OsDelete, *pExists is set to 0 and SQLITE_OK
 ** is returned.
 **
-** This routine does not open the journal file to examine its
-** content.  Hence, the journal might contain the name of a master
-** journal file that has been deleted, and hence not be hot.  Or
-** the header of the journal might be zeroed out.  This routine
-** does not discover these cases of a non-hot journal - if the
-** journal file exists and is not empty this routine assumes it
-** is hot.  The pager_playback() routine will discover that the
-** journal file is not really hot and will no-op.
+** This routine does not check if there is a master journal filename
+** at the end of the file. If there is, and that master journal file
+** does not exist, then the journal file is not really hot. In this
+** case this routine will return a false-positive. The pager_playback()
+** routine will discover that the journal file is not really hot and 
+** will not roll it back. 
 **
 ** If a hot-journal file is found to exist, *pExists is set to 1 and 
 ** SQLITE_OK returned. If no hot-journal file is present, *pExists is
@@ -3365,29 +3359,52 @@ int sqlite3PagerOpen(
 static int hasHotJournal(Pager *pPager, int *pExists){
   sqlite3_vfs * const pVfs = pPager->pVfs;
   int rc;                       /* Return code */
-  int exists = 0;               /* True if a journal file is present */
-  int locked = 0;               /* True if some process holds a RESERVED lock */
+  int exists;                   /* True if a journal file is present */
 
   assert( pPager!=0 );
   assert( pPager->useJournal );
   assert( isOpen(pPager->fd) );
+  assert( !isOpen(pPager->jfd) );
 
   *pExists = 0;
   rc = sqlite3OsAccess(pVfs, pPager->zJournal, SQLITE_ACCESS_EXISTS, &exists);
   if( rc==SQLITE_OK && exists ){
+    int locked;                 /* True if some process holds a RESERVED lock */
     rc = sqlite3OsCheckReservedLock(pPager->fd, &locked);
     if( rc==SQLITE_OK && !locked ){
       int nPage;
+
+      /* Check the size of the database file. If it consists of 0 pages,
+      ** then delete the journal file. See the header comment above for 
+      ** the reasoning here.
+      */
       rc = sqlite3PagerPagecount(pPager, &nPage);
       if( rc==SQLITE_OK ){
-       if( nPage==0 ){
-          sqlite3OsDelete(pVfs, pPager->zJournal, 0);
+        if( nPage==0 ){
+          rc = sqlite3OsDelete(pVfs, pPager->zJournal, 0);
         }else{
-          *pExists = 1;
+          /* The journal file exists and no other connection has a reserved
+          ** or greater lock on the database file. Now check that there is
+          ** at least one non-zero bytes at the start of the journal file.
+          ** If there is, then we consider this journal to be hot. If not, 
+          ** it can be ignored.
+          */
+          int f = SQLITE_OPEN_READONLY|SQLITE_OPEN_MAIN_JOURNAL;
+          rc = sqlite3OsOpen(pVfs, pPager->zJournal, pPager->jfd, f, &f);
+          if( rc==SQLITE_OK ){
+            u8 first = 0;
+            rc = sqlite3OsRead(pPager->jfd, (void *)&first, 1, 0);
+            if( rc==SQLITE_IOERR_SHORT_READ ){
+              rc = SQLITE_OK;
+            }
+            sqlite3OsClose(pPager->jfd);
+            *pExists = (first!=0);
+          }
         }
       }
     }
   }
+
   return rc;
 }
 
@@ -3413,10 +3430,13 @@ static int readDbPage(PgHdr *pPg){
   if( !isOpen(pPager->fd) ){
     assert( pPager->tempFile );
     memset(pPg->pData, 0, pPager->pageSize);
-    return SQLITE_IOERR_SHORT_READ;
+    return SQLITE_OK;
   }
   iOffset = (pgno-1)*(i64)pPager->pageSize;
   rc = sqlite3OsRead(pPager->fd, pPg->pData, pPager->pageSize, iOffset);
+  if( rc==SQLITE_IOERR_SHORT_READ ){
+    rc = SQLITE_OK;
+  }
   if( pgno==1 ){
     u8 *dbFileVers = &((u8*)pPg->pData)[24];
     memcpy(&pPager->dbFileVers, dbFileVers, sizeof(pPager->dbFileVers));
@@ -3800,7 +3820,7 @@ int sqlite3PagerAcquire(
     }else{
       assert( pPg->pPager==pPager );
       rc = readDbPage(pPg);
-      if( rc!=SQLITE_OK && rc!=SQLITE_IOERR_SHORT_READ ){
+      if( rc!=SQLITE_OK ){
         pagerDropPage(pPg);
         return rc;
       }
@@ -3933,7 +3953,7 @@ static int pager_open_journal(Pager *pPager){
       sqlite3MemJournalOpen(pPager->jfd);
     }else{
       const int flags =                   /* VFS flags to open journal file */
-        SQLITE_OPEN_READWRITE|SQLITE_OPEN_EXCLUSIVE|SQLITE_OPEN_CREATE|
+        SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE|
         (pPager->tempFile ? 
           (SQLITE_OPEN_DELETEONCLOSE|SQLITE_OPEN_TEMP_JOURNAL):
           (SQLITE_OPEN_MAIN_JOURNAL)
@@ -4135,7 +4155,7 @@ static int pager_write(PgHdr *pPg){
           pPager->needSync = 1;
         }
 
-        /* An error has occured writing to the journal file. The 
+        /* An error has occurred writing to the journal file. The 
         ** transaction will be rolled back by the layer above.
         */
         if( rc!=SQLITE_OK ){
@@ -4851,7 +4871,7 @@ int sqlite3PagerOpenSavepoint(Pager *pPager, int nSavepoint){
 ** Parameter op is always either SAVEPOINT_ROLLBACK or SAVEPOINT_RELEASE.
 ** If it is SAVEPOINT_RELEASE, then release and destroy the savepoint with
 ** index iSavepoint. If it is SAVEPOINT_ROLLBACK, then rollback all changes
-** that have occured since the specified savepoint was created.
+** that have occurred since the specified savepoint was created.
 **
 ** The savepoint to rollback or release is identified by parameter 
 ** iSavepoint. A value of 0 means to operate on the outermost savepoint
@@ -4997,6 +5017,7 @@ int sqlite3PagerMovepage(Pager *pPager, DbPage *pPg, Pgno pgno, int isCommit){
   PgHdr *pPgOld;               /* The page being overwritten. */
   Pgno needSyncPgno = 0;       /* Old value of pPg->pgno, if sync is required */
   int rc;                      /* Return code */
+  Pgno origPgno;               /* The original page number */
 
   assert( pPg->nRef>0 );
 
@@ -5055,6 +5076,7 @@ int sqlite3PagerMovepage(Pager *pPager, DbPage *pPg, Pgno pgno, int isCommit){
     pPg->flags |= (pPgOld->flags&PGHDR_NEED_SYNC);
   }
 
+  origPgno = pPg->pgno;
   sqlite3PcacheMove(pPg, pgno);
   if( pPgOld ){
     sqlite3PcacheDrop(pPgOld);
@@ -5095,6 +5117,19 @@ int sqlite3PagerMovepage(Pager *pPager, DbPage *pPg, Pgno pgno, int isCommit){
     pPgHdr->flags |= PGHDR_NEED_SYNC;
     sqlite3PcacheMakeDirty(pPgHdr);
     sqlite3PagerUnref(pPgHdr);
+  }
+
+  /*
+  ** For an in-memory database, make sure the original page continues
+  ** to exist, in case the transaction needs to roll back.  We allocate
+  ** the page now, instead of at rollback, because we can better deal
+  ** with an out-of-memory error now.  Ticket #3761.
+  */
+  if( MEMDB ){
+    DbPage *pNew;
+    rc = sqlite3PagerAcquire(pPager, origPgno, &pNew, 1);
+    if( rc!=SQLITE_OK ) return rc;
+    sqlite3PagerUnref(pNew);
   }
 
   return SQLITE_OK;
