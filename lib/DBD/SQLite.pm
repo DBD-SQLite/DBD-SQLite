@@ -60,6 +60,12 @@ sub connect {
     DBD::SQLite::db::_login($dbh, $real_dbname, $user, $auth)
         or return undef;
 
+    # install perl collations
+    my $perl_collation        = sub {$_[0] cmp $_[1]};
+    my $perl_locale_collation = sub {use locale; $_[0] cmp $_[1]};
+    $dbh->func( "perl",       $perl_collation,        "create_collation" );
+    $dbh->func( "perllocale", $perl_locale_collation, "create_collation" );
+
     return $dbh;
 }
 

@@ -54,6 +54,26 @@ create_aggregate(dbh, name, argc, aggr)
         sqlite3_db_create_aggregate( dbh, name, argc, aggr );
     }
 
+void
+create_collation(dbh, name, func)
+    SV *dbh
+    char *name
+    SV *func
+    CODE:
+    {
+        sqlite3_db_create_collation( dbh, name, func );
+    }
+
+void
+progress_handler(dbh, n_opcodes, handler)
+    SV *dbh
+    int n_opcodes
+    SV *handler
+    CODE:
+    {
+        sqlite3_db_progress_handler( dbh, n_opcodes, handler );
+    }
+
 int
 busy_timeout(dbh, timeout=0)
   SV *dbh

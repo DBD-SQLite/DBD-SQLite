@@ -144,15 +144,10 @@ int
 sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHR;
-    sqlite3_stmt *pStmt;
     DBIc_ACTIVE_off(imp_dbh);
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit) == FALSE) {
         sqlite_db_rollback(dbh, imp_dbh);
-    }
-
-    while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0))!=0 ) {
-        sqlite3_finalize(pStmt);
     }
 
     if (sqlite3_close(imp_dbh->db) == SQLITE_BUSY) {
@@ -162,11 +157,9 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
     imp_dbh->db = NULL;
 
     av_undef(imp_dbh->functions);
-    SvREFCNT_dec(imp_dbh->functions);
     imp_dbh->functions = (AV *)NULL;
 
     av_undef(imp_dbh->aggregates);
-    SvREFCNT_dec(imp_dbh->aggregates);
     imp_dbh->aggregates = (AV *)NULL;
 
     return TRUE;
@@ -405,7 +398,8 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             if (imp_sth->retval == SQLITE_ROW) {
                 continue;
             }
-            sqlite3_reset(imp_sth->stmt);
+            /* There are bug reports that say this should be sqlite3_reset() */
+            sqlite3_finalize(imp_sth->stmt);
             sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
             return -5;
         }
@@ -612,13 +606,9 @@ sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
 void
 sqlite_st_destroy (SV *sth, imp_sth_t *imp_sth)
 {
-    D_imp_dbh_from_sth;
     /* warn("destroy statement: %s\n", imp_sth->statement); */
     DBIc_ACTIVE_off(imp_sth);
-    if (DBIc_ACTIVE(imp_dbh)) {
-        /* finalize sth when active connection */
-        sqlite3_finalize(imp_sth->stmt);
-    }
+    sqlite3_finalize(imp_sth->stmt);
     Safefree(imp_sth->statement);
     SvREFCNT_dec((SV*)imp_sth->params);
     SvREFCNT_dec((SV*)imp_sth->col_types);
@@ -1101,5 +1091,150 @@ sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr_pkg )
                sqlite3_errmsg(imp_dbh->db) );
     }
 }
+
+
+int sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
+                                               int len2, const void *string2)
+{
+    dSP;
+    int cmp;
+    int n_retval;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs( sv_2mortal ( newSVpvn( string1, len1) ) );
+    XPUSHs( sv_2mortal ( newSVpvn( string2, len2) ) );
+    PUTBACK;
+    n_retval = call_sv((void*)func, G_SCALAR);
+    if (n_retval != 1) {
+      croak("collation function returned %d arguments", n_retval);
+    }
+    SPAGAIN;
+    cmp = POPi;
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
+    return cmp;
+}
+
+int sqlite_db_collation_dispatcher_utf8(
+  void *func, int len1, const void *string1,
+              int len2, const void *string2)
+{
+    dSP;
+    int cmp;
+    int n_retval;
+    SV *sv1, *sv2;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    sv1 = newSVpvn( string1, len1);
+    SvUTF8_on(sv1);
+    sv2 = newSVpvn( string2, len2);
+    SvUTF8_on(sv2);
+    XPUSHs( sv_2mortal ( sv1 ) );
+    XPUSHs( sv_2mortal ( sv2 ) );
+    PUTBACK;
+    n_retval = call_sv((void*)func, G_SCALAR);
+    if (n_retval != 1) {
+      croak("collation function returned %d arguments", n_retval);
+    }
+    SPAGAIN;
+    cmp = POPi;
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
+    return cmp;
+}
+
+
+void
+sqlite3_db_create_collation( SV *dbh, const char *name, SV *func )
+{
+    D_imp_dbh(dbh);
+    int rv, rv2;
+    void *aa = "aa";
+    void *zz = "zz";
+
+    SV *func_sv = newSVsv(func);
+
+    /* Check that this is a proper collation function */
+    rv = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, aa);
+    if (rv != 0) {
+      warn("improper collation function: %s(aa, aa) returns %d!", name, rv); 
+    }
+    rv  = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, zz);
+    rv2 = sqlite_db_collation_dispatcher(func_sv, 2, zz, 2, aa);
+    if (rv2 != (rv * -1)) {
+      warn("improper collation function: '%s' is not symmetric", name); 
+    }
+
+    /* Copy the func reference so that it can be deallocated at disconnect */
+    av_push( imp_dbh->functions, func_sv );
+
+    /* Register the func within sqlite3 */
+    rv = sqlite3_create_collation( 
+      imp_dbh->db, name, SQLITE_UTF8,
+      func_sv, 
+      imp_dbh->unicode ? sqlite_db_collation_dispatcher_utf8 
+                       : sqlite_db_collation_dispatcher
+      );
+
+    if ( rv != SQLITE_OK )
+    {
+        croak( "sqlite_create_collation failed with error %s", 
+               sqlite3_errmsg(imp_dbh->db) );
+    }
+}
+
+
+int sqlite_db_progress_handler_dispatcher( void *handler )
+{
+    dSP;
+    int n_retval;
+    int retval;
+
+    PUSHMARK(SP);
+    n_retval = call_sv( handler, G_SCALAR );
+    if ( n_retval != 1 ) {
+      croak( "progress_handler returned %d arguments", n_retval );
+    }
+    SPAGAIN;
+    retval = POPi;
+    PUTBACK;
+
+    return retval;
+}
+
+
+
+void
+sqlite3_db_progress_handler( SV *dbh, int n_opcodes, SV *handler )
+{
+    D_imp_dbh(dbh);
+
+    if (handler == &PL_sv_undef) {
+      /* remove previous handler */
+      sqlite3_progress_handler( imp_dbh->db, 0, NULL, NULL);
+    }
+    else {
+      int rv;
+      SV *handler_sv = newSVsv(handler);
+
+      /* Copy the handler ref so that it can be deallocated at disconnect */
+      av_push( imp_dbh->functions, handler_sv );
+
+      /* Register the func within sqlite3 */
+      sqlite3_progress_handler( imp_dbh->db, n_opcodes, 
+                                sqlite_db_progress_handler_dispatcher,
+                                handler_sv );
+    }
+}
+
+
 
 /* end */
