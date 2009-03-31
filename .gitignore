@@ -6,3 +6,4 @@ SQLite.c
 pm_to_blib
 output/
 Makefile
+Makefile.old
