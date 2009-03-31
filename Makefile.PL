@@ -76,7 +76,7 @@ unless ( $force_local ) {
 		close($fh);
 	} else {
 		# Go hunting for the file (Matt: Add more dirs here as you see fit)
-		for $dir ([ qw(usr include) ], [ qw(usr local include) ]) {
+		foreach $dir ( [ qw(usr include) ], [ qw(usr local include) ] ) {
 			$file = File::Spec->catfile('', @$dir, 'sqlite3.h');
 			next unless (-f $file);
 			open($fh, "< $file") or die "Error opening $file: $!";
@@ -147,14 +147,14 @@ WriteMakefile(
 	ABSTRACT     => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM => 'lib/DBD/SQLite.pm',
 	PREREQ_PM    => {
-		'DBI'        => 1.21,
+		'DBI'        => '1.21',
 		'Test::More' => '0.42',
 	},
 	( $ExtUtils::MakeMaker::VERSION ge '6.46'? (
 		'LICENSE'    => 'perl',
 		'META_MERGE' => {
 			'configure_requires' => {
-				DBI => 1.21,
+				DBI => '1.21',
 			},
 		},
 	) : () ),
