@@ -398,8 +398,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             if (imp_sth->retval == SQLITE_ROW) {
                 continue;
             }
-            /* There are bug reports that say this should be sqlite3_reset() */
-            sqlite3_finalize(imp_sth->stmt);
+            sqlite3_reset(imp_sth->stmt);
             sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
             return -5;
         }
