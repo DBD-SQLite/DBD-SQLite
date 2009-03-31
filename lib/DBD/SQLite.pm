@@ -7,7 +7,7 @@ use DynaLoader();
 
 use vars qw($VERSION @ISA);
 BEGIN {
-	$VERSION = '1.19_04';
+	$VERSION = '1.19_05';
 	@ISA     = ('DynaLoader');
 }
 
