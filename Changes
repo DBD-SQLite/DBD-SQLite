@@ -1,5 +1,8 @@
 Revision history for Perl extension DBD-SQLite.
 
+1.19_04 not yet released
+    - Updated to SQLite 3.6.12 (ISHIGAKI)
+
 1.19_03 Tue 31 Mar 2009
     - Added ->column_info() (CORION)
 
