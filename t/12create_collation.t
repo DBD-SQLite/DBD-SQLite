@@ -10,7 +10,15 @@ use Test::More tests => 8;
 use DBI;
 use Encode qw/decode/;
 
-
+BEGIN {
+    # sadly perl for windows (and probably sqlite, too) may hang
+    # if the system locale doesn't support european languages.
+    # en-us should be a safe default. if it doesn't work, use 'C'.
+    if ($^O eq 'MSWin32') {
+        use POSIX 'locale_h';
+        setlocale(LC_COLLATE, 'en-us');
+    }
+}
 
 my @words = qw/berger Bergère bergère Bergere
                HOT hôte 
