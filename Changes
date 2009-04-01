@@ -5,7 +5,7 @@ Revision history for Perl extension DBD-SQLite.
     . DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19_04
       should be feature identical now.
 
-1.19_04 not yet released
+1.19_04 Tue 31 Mar 2009
     - Updated to SQLite 3.6.12 (ISHIGAKI)
 
 1.19_03 Tue 31 Mar 2009
