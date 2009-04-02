@@ -682,9 +682,6 @@ L<http://rt.cpan.org/Public/Bug/Display.html?id=40594>
 L<http://rt.cpan.org/Public/Bug/Display.html?id=30167>
 (need to see what is the best solution right now)
 
-L<http://rt.cpan.org/Public/Bug/Display.html?id=34828>
-(segfault while testing under Windows)
-
 L<http://rt.cpan.org/Public/Bug/Display.html?id=36836>
 (patch required)
 
