@@ -1,5 +1,5 @@
 use strict;
-use Test;
+use Test::More;
 use DBI;
 use Fatal qw(open);
 my @c_files = <*.c>, <*.xs>;
@@ -14,11 +14,11 @@ foreach my $file (@c_files) {
         if (/^(.*)\/\//) {
             my $m = $1;
             if ($m !~ /\*/ && $m !~ /http:$/) { # skip the // in c++ comment in parse.c
-                ok(0, 1, "C++ comment in $file line $line");
+                fail("C++ comment in $file line $line");
                 next FILE;
             }
         }
     }
-    ok(1,1,"$file has no C++ comments");
+    pass("$file has no C++ comments");
     close(F);
 }

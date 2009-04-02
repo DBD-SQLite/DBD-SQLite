@@ -1,6 +1,6 @@
 $|++;
 use strict;
-use Test;
+use Test::More;
 BEGIN { plan tests => 4 }
 use DBI;
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");

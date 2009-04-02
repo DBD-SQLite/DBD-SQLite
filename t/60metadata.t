@@ -1,5 +1,5 @@
 use strict;
-use Test;
+use Test::More;
 BEGIN { plan tests => 27 }
 use DBI;
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { });

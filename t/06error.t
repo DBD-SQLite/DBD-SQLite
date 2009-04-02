@@ -1,5 +1,5 @@
 use strict;
-use Test;
+use Test::More;
 BEGIN { plan tests => 2 }
 use DBI;
 

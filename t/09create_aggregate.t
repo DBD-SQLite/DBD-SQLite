@@ -62,7 +62,7 @@ sub finalize {
 
 package main;
 
-use Test;
+use Test::More;
 BEGIN { plan tests => 15 }
 use DBI;
 

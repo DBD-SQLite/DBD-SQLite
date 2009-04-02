@@ -1,5 +1,5 @@
 use strict;
-use Test;
+use Test::More;
 BEGIN { plan tests => 21 }
 use DBI;
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { RaiseError => 1, AutoCommit => 1 });
@@ -14,7 +14,7 @@ ok($sth);
 ok($sth->execute);
 my $row = $sth->fetch;
 ok($row);
-ok(@$row, 3);
+is(@$row, 3);
 print join(", ", @$row), "\n";
 my $rows = $sth->execute;
 ok($rows);
@@ -35,7 +35,7 @@ my $num_rows = 0;
 while ($row = $sth->fetch) {
 	$num_rows++;
 }	
-ok($num_rows, 1, "Check num_rows ($num_rows) == 1");
+is($num_rows, 1, "Check num_rows ($num_rows) == 1");
 $sth->finish;
 $dbh->do("delete from f where f1='test'");
 $sth = $dbh->prepare("INSERT INTO f (f1, f2, f3) VALUES (?, ?, ?)");
