@@ -5,6 +5,9 @@
 #   This tests, whether the number of rows can be retrieved.
 #
 
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $state);
+
 $^W = 1;
 $| = 1;
 
@@ -22,7 +25,7 @@ $test_password = '';
 #
 use DBI;
 $mdriver = "";
-foreach $file ("lib.pl", "t/lib.pl", "DBD-~DBD_DRIVER~/t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl", "DBD-~DBD_DRIVER~/t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -56,6 +59,7 @@ sub TrueRows($) {
 #   Main loop; leave this untouched, put tests after creating
 #   the new table.
 #
+my ($dbh, $table, $def, $cursor, $numrows);
 while (Testing()) {
     #
     #   Connect to the database

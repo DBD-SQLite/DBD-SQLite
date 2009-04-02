@@ -4,6 +4,7 @@
 #
 # database specific definitions for a 'CSV' database
 
+use strict;
 
 #   This function generates a mapping of ANSI type names to
 #   database specific type names; it is called by TableDefinition().

@@ -5,6 +5,8 @@
 #   This is a test for statement attributes being present appropriately.
 #
 
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state $COL_KEY $COL_NULLABLE);
 
 #
 #   Make -w happy
@@ -22,7 +24,7 @@ use DBI;
 use vars qw($verbose);
 
 $dbdriver = "";
-foreach $file ("lib.pl", "t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -32,7 +34,7 @@ foreach $file ("lib.pl", "t/lib.pl") {
 }
 
 
-@table_def = (
+my @table_def = (
 	      ["id",   "INTEGER",  4, $COL_KEY],
 	      ["name", "CHAR",    64, $COL_NULLABLE]
 	     );
@@ -51,6 +53,7 @@ sub ServerError() {
 #   Main loop; leave this untouched, put tests after creating
 #   the new table.
 #
+my ($dbh, $table, $def, $cursor, $ref);
 while (Testing()) {
     #
     #   Connect to the database
@@ -90,7 +93,7 @@ while (Testing()) {
 	   or DbiError($cursor->err, $cursor->errstr);
     if (!$state && $verbose) {
 	print "Names:\n";
-	for ($i = 0;  $i < @$ref;  $i++) {
+	for (my $i = 0;  $i < @$ref;  $i++) {
 	    print "    ", $$ref[$i], "\n";
 	}
     }
@@ -103,7 +106,7 @@ while (Testing()) {
 	   or DbiError($cursor->err, $cursor->errstr);
     if (!$state && $verbose) {
 	print "Nullable:\n";
-	for ($i = 0;  $i < @$ref;  $i++) {
+	for (my $i = 0;  $i < @$ref;  $i++) {
 	    print "    ", ($$ref[$i] & $COL_NULLABLE) ? "yes" : "no", "\n";
 	}
     }

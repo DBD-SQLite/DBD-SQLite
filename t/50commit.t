@@ -4,6 +4,10 @@
 #
 #   This is testing the transaction support.
 #
+
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $state);
+
 $^W = 1;
 
 
@@ -12,7 +16,7 @@ $^W = 1;
 #
 require DBI;
 $mdriver = "";
-foreach $file ("lib.pl", "t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -58,6 +62,7 @@ sub NumRows($$$) {
 #   Main loop; leave this untouched, put tests after creating
 #   the new table.
 #
+my ($dbh, $def, $table, $msg);
 while (Testing()) {
     #
     #   Connect to the database
@@ -105,7 +110,7 @@ while (Testing()) {
 	Test($state or $dbh->do("INSERT INTO $table VALUES (1, 'Jochen')"))
 	    or ErrMsgF("Failed to insert value: err %s, errstr %s.\n",
 		       $dbh->err, $dbh->errstr);
-	my $msg;
+
 	Test($state or !($msg = NumRows($dbh, $table, 1)))
 	    or ErrMsg($msg);
 	Test($state or $dbh->rollback)

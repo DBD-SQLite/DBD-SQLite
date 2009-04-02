@@ -6,6 +6,8 @@
 #   and modify/extend it.
 #
 
+use strict;
+
 $^W = 1;
 $| = 1;
 

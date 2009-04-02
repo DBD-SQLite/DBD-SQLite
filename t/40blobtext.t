@@ -1,5 +1,6 @@
 #!/usr/bin/perl -w
 
+use strict;
 use Test;
 BEGIN { plan tests => 26 }
 use DBI;

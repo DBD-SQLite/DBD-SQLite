@@ -6,6 +6,8 @@
 #   and modify/extend it.
 #
 
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $state);
 $^W = 1;
 
 #
@@ -22,7 +24,7 @@ $test_password = '';
 require DBI;
 use vars qw($COL_NULLABLE);
 $mdriver = "";
-foreach $file ("lib.pl", "t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -57,6 +59,7 @@ if (!defined(&SQL_INTEGER)) {
 #   Main loop; leave this untouched, put tests after creating
 #   the new table.
 #
+my ($dbh, $def, $table, $cursor, $id, $name, $ref);
 while (Testing()) {
     #
     #   Connect to the database

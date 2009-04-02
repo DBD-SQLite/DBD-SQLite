@@ -1,3 +1,4 @@
+use strict;
 use Test;
 use DBI;
 use Fatal qw(open);

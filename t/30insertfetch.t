@@ -4,6 +4,9 @@
 #
 #   This is a simple insert/fetch test.
 #
+
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $state);
 $^W = 1;
 
 #
@@ -19,7 +22,7 @@ $test_password = '';
 #
 use DBI;
 $mdriver = "";
-foreach $file ("lib.pl", "t/lib.pl", "DBD-~DBD_DRIVER~/t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl", "DBD-~DBD_DRIVER~/t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -42,6 +45,7 @@ sub ServerError() {
 #   Main loop; leave this untouched, put tests after creating
 #   the new table.
 #
+my ($dbh, $def, $table, $cursor);
 while (Testing()) {
 
     #

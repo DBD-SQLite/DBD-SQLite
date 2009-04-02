@@ -1,3 +1,4 @@
+use strict;
 use Test;
 BEGIN { plan tests => 21 }
 use DBI;

@@ -5,6 +5,7 @@
 #   This driver should check whether 'ChopBlanks' works.
 #
 
+use strict;
 
 #
 #   Make -w happy

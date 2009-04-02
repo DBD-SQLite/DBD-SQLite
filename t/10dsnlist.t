@@ -6,13 +6,15 @@
 #   after listdsn.
 #
 
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $state);
 
 #
 #   Include lib.pl
 #
 require DBI;
 $mdriver = "";
-foreach $file ("lib.pl", "t/lib.pl", "DBD-~DBD_DRIVER~/t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl", "DBD-~DBD_DRIVER~/t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -39,18 +41,18 @@ sub ServerError() {
 #
 #   Main loop; leave this untouched, put tests into the loop
 #
+my @dsn;
 while (Testing()) {
     # Check if the server is awake.
-    $dbh = undef;
+    my $dbh = undef;
     Test($state or ($dbh = DBI->connect($test_dsn, $test_user,
 					$test_password)))
 	or ServerError();
 
     Test($state or (@dsn = DBI->data_sources($mdriver)) >= 0);
     if (!$state) {
-	my $d;
 	print "List of $mdriver data sources:\n";
-	foreach $d (@dsn) {
+	foreach my $d (@dsn) {
 	    print "    $d\n";
 	}
 	print "List ends.\n";
@@ -67,8 +69,7 @@ while (Testing()) {
 		    "DBI:$mdriver:test;localhost",
 		    "DBI:$mdriver:database=test;host=localhost");
     }
-    my($dsn);
-    foreach $dsn (@dsnList) {
+    foreach my $dsn (@dsnList) {
 	Test($state or ($dbh = DBI->connect($dsn, $test_user,
 					    $test_password)))
 	    or print "Cannot connect to DSN $dsn: ${DBI::errstr}\n";

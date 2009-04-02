@@ -6,6 +6,7 @@ BEGIN {
     }
 }
 
+use strict;
 use Test::More tests => 8;
 use DBI;
 use Encode qw/decode/;
@@ -27,7 +28,7 @@ my @words = qw/berger Bergère bergère Bergere
                fétu fête fève ferme/;
 
 # my @words_utf8 = map {decode("iso-8859-1", $_)} @words;
-@words_utf8 = @words;
+my @words_utf8 = @words;
 utf8::upgrade($_) foreach @words_utf8;
 
 

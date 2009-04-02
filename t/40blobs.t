@@ -6,6 +6,8 @@
 #   is expected to work correctly.
 #
 
+use strict;
+use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state);
 $^W = 1;
 
 
@@ -24,7 +26,7 @@ $test_password = '';
 use DBI qw(:sql_types);
 
 $mdriver = "";
-foreach $file ("lib.pl", "t/lib.pl") {
+foreach my $file ("lib.pl", "t/lib.pl") {
     do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
 			   exit 10;
 		      }
@@ -74,6 +76,7 @@ sub ShowBlob($) {
 #   Main loop; leave this untouched, put tests after creating
 #   the new table.
 #
+my ($dbh, $table, $cursor, $row);
 while (Testing()) {
     #
     #   Connect to the database
@@ -90,7 +93,7 @@ while (Testing()) {
 	   or DbiError($dbh->error, $dbh->errstr);
 
     my($def);
-    foreach $size (128) {
+    foreach my $size (128) {
 	#
 	#   Create a new table
 	#
@@ -110,10 +113,10 @@ while (Testing()) {
 	my ($blob, $qblob) = "";
 	if (!$state) {
 	    my $b = "";
-	    for ($j = 0;  $j < 256;  $j++) {
+	    for (my $j = 0;  $j < 256;  $j++) {
 		$b .= chr($j);
 	    }
-	    for ($i = 0;  $i < $size;  $i++) {
+	    for (my $i = 0;  $i < $size;  $i++) {
 		$blob .= $b;
 	    }
 	    if ($mdriver eq 'pNET') {
