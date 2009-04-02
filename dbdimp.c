@@ -412,7 +412,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
         /* warn("Finalize\n"); */
         sqlite3_reset(imp_sth->stmt);
         imp_sth->nrow = sqlite3_changes(imp_dbh->db);
-        DBIc_ACTIVE_on(imp_sth);
+        /* DBIc_ACTIVE_on(imp_sth); */
         /* warn("Total changes: %d\n", sqlite3_total_changes(imp_dbh->db)); */
         /* warn("Nrow: %d\n", imp_sth->nrow); */
         return imp_sth->nrow;
