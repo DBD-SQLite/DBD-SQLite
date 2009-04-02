@@ -1,9 +1,9 @@
 Revision history for Perl extension DBD-SQLite.
 
-1.19_05 not yet released
-    - Added collations from DBD::SQLite::Amalgamation (CORION)
-    . DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19_04
+1.19_05 Thu  2 Apr 2009
+    - DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19_04
       should be feature identical now.
+    - Added collations from DBD::SQLite::Amalgamation (CORION)
     - Removed statement handle activation after "execute" if
       there's no row to fetch. I hope this silences the
       Class::DBI's warnings. (ISHIGAKI)
