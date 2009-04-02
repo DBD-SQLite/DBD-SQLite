@@ -42,8 +42,15 @@ EOT
 #
 # In absense of either of those, expect SQLite 3.X.X libs and headers in the
 # common places known to Perl or the C compiler.
+
+# 2009/04/02
+# But why do we need to use an older, system-installed library?
+# Let's always use the bundled one. -- ISHIGAKI
+
 require File::Spec;
 my ($force_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
+
+=begin dont_try_looking_for_a_buggy_library
 if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
 	$sqlite_base =~ /=(.*)/;
 	$sqlite_base = $1;
@@ -100,6 +107,14 @@ unless ( $force_local ) {
 		print "Looks good\n" if $ENV{AUTOMATED_TESTING};
 	}
 }
+=cut
+
+# Use always the bundled one.
+# XXX: ... and this message should be more informative.
+
+$force_local = 1;
+print "We're using the bundled sqlite library.\n" if $ENV{AUTOMATED_TESTING};
+
 
 @ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
