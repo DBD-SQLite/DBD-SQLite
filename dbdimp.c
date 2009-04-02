@@ -426,6 +426,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
                           return 0;
                           /* There are bug reports that say this should be sqlite3_reset() */
         default:          sqlite3_finalize(imp_sth->stmt);
+                          imp_sth->stmt = NULL;
                           sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
                           return -6;
     }
