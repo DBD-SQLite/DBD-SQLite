@@ -2,8 +2,9 @@ use strict;
 use Test;
 use DBI;
 BEGIN { plan tests => 11 }
-my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");
+my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", {AutoCommit => 1});
 ok($dbh);
+$dbh->do("CREATE TABLE f (f1, f2, f3)");
 ok($dbh->do("delete from f"));
 my $sth = $dbh->prepare("INSERT INTO f VALUES (?, ?, ?)", { go_last_insert_id_args => [undef, undef, undef, undef] });
 ok($sth);

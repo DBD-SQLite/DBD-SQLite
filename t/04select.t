@@ -2,8 +2,12 @@ use strict;
 use Test;
 BEGIN { plan tests => 21 }
 use DBI;
-my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { RaiseError => 1 });
+my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { RaiseError => 1, AutoCommit => 1 });
 ok($dbh);
+$dbh->do("CREATE TABLE f (f1, f2, f3)");
+my $sth = $dbh->prepare("INSERT INTO f VALUES (?, ?, ?)", { go_last_insert_id_args => [undef, undef, undef, undef] });
+$sth->execute("Fred", "Bloggs", "fred\@bloggs.com");
+
 # $dbh->trace(4);
 my $sth = $dbh->prepare("SELECT * FROM f");
 ok($sth);
