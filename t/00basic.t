@@ -1,8 +1,4 @@
-use Test;
+use strict;
+use Test::More;
 BEGIN { plan tests => 1 }
-END { ok($loaded) }
-use DBD::SQLite;
-$loaded++;
-
-unlink("foo", "output/foo", "output/database", "output/datbase");
-
+BEGIN { use_ok('DBD::SQLite') }
