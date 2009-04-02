@@ -24,3 +24,5 @@ ok($dbh->do("delete from f where f1='test'"), 3);
 $sth->finish;
 undef $sth;
 $dbh->disconnect;
+
+END { unlink 'foo' }

@@ -128,3 +128,5 @@ while (Testing()) {
 			       $cursor->{'NUM_OF_FIELDS'});
     Test($state or (undef $cursor) or 1);
 }
+
+END { unlink 'output/foo'; rmdir 'output' }

@@ -105,3 +105,5 @@ while (Testing()) {
 	   or DbiError($dbh->err, $dbh->errstr);
 
 }
+
+END { unlink 'output/foo'; rmdir 'output' }

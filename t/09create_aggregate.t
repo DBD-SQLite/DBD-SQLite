@@ -127,3 +127,5 @@ $dbh->func( "fail_undef", -1, $aggr, 'create_aggregate' );
 $result = $dbh->selectrow_arrayref( "SELECT fail_undef() FROM aggr_test" );
 # ok( !$result && $DBI::errstr =~ /new\(\) should return a blessed reference/ );
 ok( !defined $result->[0] && $last_warn =~ /new\(\) should return a blessed reference/ );
+
+END { unlink 'foo' }

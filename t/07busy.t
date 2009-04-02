@@ -5,7 +5,6 @@ use Test;
 BEGIN { plan tests => 8 }
 use DBI;
 
-unlink('foo', 'foo-journal');
 my $db = DBI->connect('dbi:SQLite:foo', '', '', 
 {
     RaiseError => 1,
@@ -74,3 +73,5 @@ if (!defined($pid)) {
     $db->commit;
     wait;
 }
+
+END { unlink('foo', 'foo-journal') }

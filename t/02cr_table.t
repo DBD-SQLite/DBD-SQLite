@@ -3,7 +3,6 @@ use strict;
 use Test;
 BEGIN { plan tests => 4 }
 use DBI;
-unlink("foo");
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");
 ok($dbh);
 $dbh->{AutoCommit} = 1;
@@ -16,3 +15,5 @@ print("# ", join(', ', @$names), "\n");
 ok($names->[0] eq "f1");	# make sure the "f." is removed
 undef $sth;
 $dbh->disconnect;
+
+END { unlink 'foo' }

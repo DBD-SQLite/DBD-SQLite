@@ -96,3 +96,5 @@ is_deeply(\@sorted, $db_sorted, "collate no_accents (@sorted // @$db_sorted)");
 
 
 $dbh->disconnect;
+
+END { unlink 'foo' }

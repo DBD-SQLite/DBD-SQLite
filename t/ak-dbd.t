@@ -354,3 +354,5 @@ while (Testing()) {
 	    or ErrMsg("disconnect failed: $dbh->errstr.\n");
     }
 }
+
+END { unlink 'output/foo'; rmdir 'output' }

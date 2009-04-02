@@ -53,3 +53,5 @@ $sth->finish;
 undef $sth;
 $dbh->do("delete from f where f1='test'");
 $dbh->disconnect;
+
+END { unlink 'foo' }

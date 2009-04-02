@@ -94,3 +94,5 @@ while (Testing()) {
   Test($state or $dbh->disconnect())
       or DbiError($dbh->err, $dbh->errstr);
 }
+
+END { unlink 'output/foo'; rmdir 'output' }

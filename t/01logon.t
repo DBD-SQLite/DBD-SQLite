@@ -13,3 +13,4 @@ ok($dbh->func('busy_timeout'), 5000);
 print "# sqlite_busy_timeout=", $dbh->func('busy_timeout'), "\n";
 $dbh->disconnect;
 
+END { unlink 'foo' }

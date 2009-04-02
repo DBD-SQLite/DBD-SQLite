@@ -222,3 +222,5 @@ while (Testing()) {
 	or ErrMsgF("Cannot DROP test table $table: %s.\n",
 		   $dbh->errstr);
 }
+
+END { unlink 'output/foo'; rmdir 'output' }

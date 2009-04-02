@@ -36,3 +36,5 @@ while(my $raD = $sth->fetchrow_arrayref()) {
 }
 undef $sth;
 $dbh->disconnect;
+
+END { unlink 'foo' }

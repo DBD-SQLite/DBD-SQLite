@@ -198,3 +198,5 @@ while (Testing()) {
     Test($state or $dbh->do("DROP TABLE $table"))
 	   or DbiError($dbh->err, $dbh->errstr);
 }
+
+END { unlink 'output/foo'; rmdir 'output' }

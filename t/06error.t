@@ -19,3 +19,5 @@ eval {
   $db->do('insert into testerror values (1, 5)');
 };
 ok($@);
+
+END { unlink 'foo' }

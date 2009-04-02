@@ -51,3 +51,5 @@ ok($types->[1] eq 'char(1)');
 ok $dbh->do("create table meta5 ( f1 integer PRIMARY KEY )");
 @pk = $dbh->primary_key(undef, undef, 'meta5');
 ok($pk[0] eq 'f1');
+
+END { unlink 'foo' }

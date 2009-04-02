@@ -146,5 +146,4 @@ while (Testing()) {
 	or ErrMsgF("Cannot disconnect: %s.\n", $dbh->errmsg);
 }
 
-
-
+END { unlink 'output/foo'; rmdir 'output' }

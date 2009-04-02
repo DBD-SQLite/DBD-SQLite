@@ -148,3 +148,4 @@ while (Testing()) {
 
 }
 
+END { unlink 'output/foo'; rmdir 'output' }

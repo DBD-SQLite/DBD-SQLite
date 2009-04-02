@@ -81,3 +81,5 @@ exit 0;
 
 # Hate -w :-)
 $test_dsn = $test_user = $test_password = $DBI::errstr;
+
+END { unlink 'output/foo'; rmdir 'output' }

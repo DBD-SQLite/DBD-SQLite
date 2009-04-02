@@ -62,7 +62,7 @@ undef $sel;
 
 $db->disconnect;
 
-unlink('foo', 'foo-journal');
+END { unlink('foo', 'foo-journal'); }
 
 
 sub dumpblob {
@@ -85,3 +85,4 @@ sub dumpblob {
     }
     if ($ENV{SHOW_BLOBS}) { close(OUT) }
 }
+

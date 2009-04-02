@@ -133,4 +133,6 @@ Test($lengths->[0]->[0] == $lengths->[0]->[1],
      "Database actually understands char set") or
     warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
 
-END { $dbh->do("DROP TABLE $table"); }
+END { $dbh->do("DROP TABLE $table"); $dbh->disconnect; }
+
+END { unlink 'output/foo'; rmdir 'output' }
