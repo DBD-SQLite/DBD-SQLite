@@ -215,7 +215,7 @@ WriteMakefile(
 	OBJECT           => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
 	OPTIMIZE         => '-O2',
 	clean            => {
-		FILES => 'SQLite.xsi config.h tv.log output',
+		FILES => 'SQLite.xsi config.h tv.log',
 	},
 	PL_FILES         => {},
 	EXE_FILES        => [],

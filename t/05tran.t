@@ -9,11 +9,10 @@ BEGIN {
 use Test::More tests => 2;
 use t::lib::Test;
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "",
-  {AutoCommit => 0, RaiseError => 1});
-
-# $dbh->trace(2);
-ok($dbh);
+my $dbh = connect_ok(
+	AutoCommit => 0,
+	RaiseError => 1,
+);
 
 $dbh->do("CREATE TABLE MST (id, lbl)");
 $dbh->do("CREATE TABLE TRN (no, id, qty)");

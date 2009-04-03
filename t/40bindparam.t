@@ -6,40 +6,25 @@ BEGIN {
 	$^W = 1;
 }
 
-use vars qw($test_dsn $test_user $test_password $mdriver $state);
+use t::lib::Test;
 
-#
-#   Make -w happy
-#
-$test_dsn = '';
-$test_user = '';
-$test_password = '';
-
+use vars qw($state);
 
 #
 #   Include lib.pl
 #
-require DBI;
 use vars qw($COL_NULLABLE);
-$mdriver = "";
-foreach my $file ("lib.pl", "t/lib.pl") {
-    do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
-			   exit 10;
-		      }
-    if ($mdriver ne '') {
-	last;
-    }
-}
-if ($mdriver eq 'pNET') {
-    print "1..0\n";
-    exit 0;
+do 't/lib.pl';
+if ($@) {
+	print STDERR "Error while executing lib.pl: $@\n";
+	exit 10;
 }
 
 sub ServerError() {
     my $err = $DBI::errstr;  # Hate -w ...
     print STDERR ("Cannot connect: ", $DBI::errstr, "\n",
 	"\tEither your server is not up and running or you have no\n",
-	"\tpermissions for acessing the DSN $test_dsn.\n",
+	"\tpermissions for acessing the DSN 'DBI:SQLite:dbname=foo'.\n",
 	"\tThis test requires a running server and write permissions.\n",
 	"\tPlease make sure your server is running and you have\n",
 	"\tpermissions, then retry.\n");
@@ -61,7 +46,7 @@ my ($dbh, $def, $table, $cursor, $id, $name, $ref);
 while (Testing()) {
     #
     #   Connect to the database
-    Test($state or $dbh = DBI->connect($test_dsn, $test_user, $test_password),
+    Test($state or $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', ''),
 	 'connect')
 	or ServerError();
     
@@ -145,7 +130,7 @@ while (Testing()) {
     #
     #   Connect to the database
     #
-    Test($state or $dbh = DBI->connect($test_dsn, $test_user, $test_password),
+    Test($state or $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', ''),
 	 'connect for read')
 	or ServerError();
 
@@ -197,4 +182,3 @@ while (Testing()) {
 	   or DbiError($dbh->err, $dbh->errstr);
 }
 
-END { unlink 'output/foo'; rmdir 'output' }

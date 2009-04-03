@@ -8,11 +8,12 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 use t::lib::Test;
 
-my $dbh = sqlite_connect();
+my $dbh = connect_ok();
 ok( $dbh->{sqlite_version}, '->{sqlite_version} ok' );
+is( $dbh->{AutoCommit}, 1, 'AutoCommit is on by default' );
 diag("sqlite_version=$dbh->{sqlite_version}");
 ok( $dbh->func('busy_timeout'), 'Found initial busy_timeout' );
 ok( $dbh->func(5000, 'busy_timeout') );

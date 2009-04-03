@@ -9,18 +9,19 @@ BEGIN {
 	$^W = 1;
 }
 
+use t::lib::Test;
+
 #
 #   Include std stuff
 #
 
 use Carp;
 use DBI qw(:sql_types);
-our ($mdriver, $test_dsn, $test_user, $test_password, $file);
-foreach $file ("lib.pl", "t/lib.pl") {
-    do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
-			   exit 10;
-		      }
-    last if ($mdriver);
+
+do 't/lib.pl';
+if ($@) {
+	print STDERR "Error while executing lib.pl: $@\n";
+	exit 10;
 }
 
 BEGIN {if ($] < 5.006) {
@@ -64,10 +65,10 @@ Test(! is_utf8($bytestring),
 
 ### Real DBD::SQLite testing starts here
 
-my $dbh = DBI->connect($test_dsn, $test_user, $test_password,
+my $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', '',
                        {RaiseError => 1})
 	or die <<'MESSAGE';
-Cannot connect to database $test_dsn, please check directory and
+Cannot connect to database 'DBI:SQLite:dbname=foo', please check directory and
 permissions.
 MESSAGE
 
@@ -106,12 +107,12 @@ Test($textback eq $bytestring, "Same text, different encoding");
 
 # Start over but now activate Unicode support.
 
-if ($ENV{DBI_AUTOPROXY}) {
+if ( $ENV{DBI_AUTOPROXY} ) {
     # for testing DBD::Gofer we have to create a new dbh with unicode enabled
     # because we can't change the attribute for an existing dbh
-    $dbh = DBI->connect($test_dsn, $test_user, $test_password, {
+    $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', '', {
         RaiseError => 1,
-        unicode => 1,
+        unicode    => 1,
     })
 }
 else {
@@ -133,4 +134,7 @@ Test($lengths->[0]->[0] == $lengths->[0]->[1],
      "Database actually understands char set") or
     warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
 
-END { $dbh->do("DROP TABLE $table"); $dbh->disconnect; unlink 'output/foo'; rmdir 'output'; }
+END {
+	$dbh->do("DROP TABLE $table");
+	$dbh->disconnect;
+}

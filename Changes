@@ -15,6 +15,8 @@ Revision history for Perl extension DBD-SQLite.
       version-dependency conditional (ADAMK)
     - All tests run under the same Perl environment
       (autoflush on, and warnings enabled via $^W = 1) (ADAMK)
+    - Refactored away a ton of needless complexity from the
+      older-style tests inherited from the CSV driver (ADAMK)
 
 1.19_05 Thu  2 Apr 2009
     - DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19

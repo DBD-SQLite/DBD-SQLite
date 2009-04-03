@@ -1,72 +1,91 @@
-#   Hej, Emacs, give us -*- perl mode here!
-#
-#   $Id: lib.pl,v 1.3 2002/12/19 18:35:43 matt Exp $
-#
 #   lib.pl is the file where database specific things should live,
 #   whereever possible. For example, you define certain constants
 #   here and the like.
-#
 
-require 5.003;
 use strict;
-use vars qw($mdriver $dbdriver $childPid $test_dsn $test_user $test_password
-            $haveFileSpec);
+use File::Spec ();
 
-$| = 1; # flush stdout asap to keep in sync with stderr
-
-
-#
-#   Driver names; EDIT THIS!
-#
-$mdriver = 'SQLite';
-$dbdriver = $mdriver; # $dbdriver is usually just the same as $mdriver.
-                      # The exception is DBD::pNET where we have to
-                      # to separate between local driver (pNET) and
-                      # the remote driver ($dbdriver)
-
-
-#
-#   DSN being used; do not edit this, edit "$dbdriver.dbtest" instead
-#
-mkdir 'output';
-
-$haveFileSpec = eval { require File::Spec };
-my $table_dir = $haveFileSpec ?
-    File::Spec->catdir(File::Spec->curdir(), 'output', 'foo') : 'output/foo';
-$test_dsn      = $ENV{'DBI_DSN'}
-    ||  "DBI:$dbdriver:dbname=$table_dir";
-$test_user     = $ENV{'DBI_USER'}  ||  "";
-$test_password = $ENV{'DBI_PASS'}  ||  "";
-
+use vars qw($childPid);
 
 $::COL_NULLABLE = 1;
 $::COL_KEY = 2;
 
+#   This function generates a mapping of ANSI type names to
+#   database specific type names; it is called by TableDefinition().
+#
+sub AnsiTypeToDb ($;$) {
+    my ($type, $size) = @_;
+    my ($ret);
 
-my $file;
-if (-f ($file = "t/$dbdriver.dbtest")  ||
-    -f ($file = "$dbdriver.dbtest")    ||
-    -f ($file = "../tests/$dbdriver.dbtest")  ||
-    -f ($file = "tests/$dbdriver.dbtest")) {
-    eval { require $file; };
-    if ($@) {
-	print STDERR "Cannot execute $file: $@.\n";
-	print "1..0\n";
-	exit 0;
+    if ((lc $type) eq 'char'  ||  (lc $type) eq 'varchar') {
+	$size ||= 1;
+	return (uc $type) . " ($size)";
+    } elsif ((lc $type) eq 'blob'  ||  (lc $type) eq 'real'  ||
+	       (lc $type) eq 'integer') {
+	return uc $type;
+    } elsif ((lc $type) eq 'int') {
+	return 'INTEGER';
+    } else {
+	warn "Unknown type $type\n";
+	$ret = $type;
     }
-}
-if (-f ($file = "t/$mdriver.mtest")  ||
-    -f ($file = "$mdriver.mtest")    ||
-    -f ($file = "../tests/$mdriver.mtest")  ||
-    -f ($file = "tests/$mdriver.mtest")) {
-    eval { require $file; };
-    if ($@) {
-	print STDERR "Cannot execute $file: $@.\n";
-	print "1..0\n";
-	exit 0;
-    }
+    $ret;
 }
 
+
+#
+#   This function generates a table definition based on an
+#   input list. The input list consists of references, each
+#   reference referring to a single column. The column
+#   reference consists of column name, type, size and a bitmask of
+#   certain flags, namely
+#
+#       $COL_NULLABLE - true, if this column may contain NULL's
+#       $COL_KEY - true, if this column is part of the table's
+#           primary key
+#
+#   Hopefully there's no big need for you to modify this function,
+#   if your database conforms to ANSI specifications.
+#
+
+sub TableDefinition ($@) {
+    my($tablename, @cols) = @_;
+    my($def);
+
+    #
+    #   Should be acceptable for most ANSI conformant databases;
+    #
+    #   msql 1 uses a non-ANSI definition of the primary key: A
+    #   column definition has the attribute "PRIMARY KEY". On
+    #   the other hand, msql 2 uses the ANSI fashion ...
+    #
+    my($col, @keys, @colDefs, $keyDef);
+
+    #
+    #   Count number of keys
+    #
+    @keys = ();
+    foreach $col (@cols) {
+	if ($$col[2] & $::COL_KEY) {
+	    push(@keys, $$col[0]);
+	}
+    }
+
+    foreach $col (@cols) {
+	my $colDef = $$col[0] . " " . AnsiTypeToDb($$col[1], $$col[2]);
+	if (!($$col[3] & $::COL_NULLABLE)) {
+	    $colDef .= " NOT NULL";
+	}
+	push(@colDefs, $colDef);
+    }
+    if (@keys) {
+	$keyDef = ", PRIMARY KEY (" . join(", ", @keys) . ")";
+    } else {
+	$keyDef = "";
+    }
+    $def = sprintf("CREATE TABLE %s (%s%s)", $tablename,
+		   join(", ", @colDefs), $keyDef);
+}
 
 open (STDERR, ">&STDOUT") || die "Cannot redirect stderr" ;  
 select (STDERR) ; $| = 1 ;
@@ -201,18 +220,7 @@ sub DbiError ($$) {
 #   This functions generates a list of possible DSN's aka
 #   databases and returns a possible table name for a new
 #   table being created.
-#
-#   Problem is, we have two different situations here: Test scripts
-#   call us by pasing a dbh, which is fine for most situations.
-#   From within DBD::pNET, however, the dbh isn't that meaningful.
-#   Thus we are working with the global variable $listTablesHook:
-#   Once defined, we call &$listTablesHook instead of ListTables.
-#
-#   See DBD::pNET/t/pNET.mtest for details.
-#
-{
-    use vars qw($listTablesHook);
-
+SCOPE: {
     my(@tables, $testtable, $listed);
 
     $testtable = "testaa";
@@ -222,13 +230,10 @@ sub DbiError ($$) {
 	my($dbh) = @_;
 
 	if (!$listed) {
-	    if (defined($listTablesHook)) {
-		@tables = &$listTablesHook($dbh);
-	    } elsif (defined(&ListTables)) {
-		@tables = &ListTables($dbh);
-	    } else {
-		die "Fatal: ListTables not implemented.\n";
-	    }
+            @tables = $dbh->func('list_tables');
+            if ($dbh->errstr) {
+                die "Cannot create table list: " . $dbh->errstr;
+            }
 	    $listed = 1;
 	}
 

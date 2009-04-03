@@ -19,8 +19,7 @@ sub progress_handler {
 }
 
 # connect and register the progress handler
-my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { RaiseError => 1 } );
-ok($dbh);
+my $dbh = connect_ok( RaiseError => 1 );
 $dbh->func( $N_OPCODES, \&progress_handler, "progress_handler" );
 
 # populate a temporary table with random numbers

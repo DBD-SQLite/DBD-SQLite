@@ -67,10 +67,8 @@ SCOPE: {
 	}
 }
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { PrintError => 0 } );
-ok($dbh);
+my $dbh = connect_ok( PrintError => 0 );
 
-$dbh->do( "DROP TABLE aggr_test;" );
 $dbh->do( "CREATE TABLE aggr_test ( field )" );
 foreach my $val ( qw/NULL 1 'test'/ ) {
     $dbh->do( "INSERT INTO aggr_test VALUES ( $val )" );

@@ -9,14 +9,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state);
+use t::lib::Test;
 
-#
-#   Make -w happy
-#
-$test_dsn = '';
-$test_user = '';
-$test_password = '';
+use vars qw($state);
 
 
 #
@@ -25,25 +20,17 @@ $test_password = '';
 
 use DBI qw(:sql_types);
 
-$mdriver = "";
-foreach my $file ("lib.pl", "t/lib.pl") {
-    do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
-			   exit 10;
-		      }
-    if ($mdriver ne '') {
-	last;
-    }
-}
-if ($dbdriver eq 'mSQL'  ||  $dbdriver eq 'mSQL1') {
-    print "1..0\n";
-    exit 0;
+do 't/lib.pl';
+if ($@) {
+	print STDERR "Error while executing lib.pl: $@\n";
+	exit 10;
 }
 
 sub ServerError() {
     my $err = $DBI::errstr; # Hate -w ...
     print STDERR ("Cannot connect: ", $DBI::errstr, "\n",
 	"\tEither your server is not up and running or you have no\n",
-	"\tpermissions for acessing the DSN $test_dsn.\n",
+	"\tpermissions for acessing the DSN 'DBI:SQLite:dbname=foo'.\n",
 	"\tThis test requires a running server and write permissions.\n",
 	"\tPlease make sure your server is running and you have\n",
 	"\tpermissions, then retry.\n");
@@ -80,7 +67,7 @@ my ($dbh, $table, $cursor, $row);
 while (Testing()) {
     #
     #   Connect to the database
-    Test($state or $dbh = DBI->connect($test_dsn, $test_user, $test_password))
+    Test($state or $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', ''))
 	or ServerError();
 
 
@@ -119,12 +106,7 @@ while (Testing()) {
 	    for (my $i = 0;  $i < $size;  $i++) {
 		$blob .= $b;
 	    }
-	    if ($mdriver eq 'pNET') {
-		# Quote manually, no remote quote
-		$qblob = eval "DBD::" . $dbdriver . "::db->quote(\$blob)";
-	    } else {
-		$qblob = $dbh->quote($blob);
-	    }
+            $qblob = $dbh->quote($blob);
 	}
 
 	#
@@ -175,5 +157,3 @@ while (Testing()) {
 	    or DbiError($dbh->err, $dbh->errstr);
     }
 }
-
-END { unlink 'output/foo'; rmdir 'output' }

@@ -11,8 +11,7 @@ BEGIN {
 use Test::More tests => 5;
 use t::lib::Test;
 
-my $dbh = sqlite_connect();
-$dbh->{AutoCommit} = 1;
+my $dbh = connect_ok();
 $dbh->do("CREATE TABLE f (f1, f2, f3)");
 
 SCOPE: {

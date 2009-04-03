@@ -8,37 +8,27 @@ BEGIN {
 	$^W = 1;
 }
 
+use t::lib::Test;
+
 #
 #   Make -w happy
 #
-use vars qw($test_dsn $test_user $test_password $mdriver $verbose $state
-	    $dbdriver);
+use vars qw($state);
 use vars qw($COL_NULLABLE $COL_KEY);
-$test_dsn = '';
-$test_user = '';
-$test_password = '';
 
 #
 #   Include lib.pl
 #
-use DBI;
-$mdriver = "";
-{
-    my $file;
-    foreach $file ("lib.pl", "t/lib.pl") {
-	do $file; if ($@) { print STDERR "Error while executing lib.pl: $@\n";
-			    exit 10;
-			}
-	if ($mdriver ne '') {
-	    last;
-	}
-    }
+do 't/lib.pl';
+if ($@) {
+	print STDERR "Error while executing lib.pl: $@\n";
+	exit 10;
 }
 
 sub ServerError() {
     print STDERR ("Cannot connect: ", $DBI::errstr, "\n",
 	"\tEither your server is not up and running or you have no\n",
-	"\tpermissions for acessing the DSN $test_dsn.\n",
+	"\tpermissions for acessing the DSN DBI:SQLite:dbname=foo.\n",
 	"\tThis test requires a running server and write permissions.\n",
 	"\tPlease make sure your server is running and you have\n",
 	"\tpermissions, then retry.\n");
@@ -54,8 +44,8 @@ while (Testing()) {
 
     #
     #   Connect to the database
-    Test($state or ($dbh = DBI->connect($test_dsn, $test_user,
-					$test_password)))
+    Test($state or ($dbh = DBI->connect("DBI:SQLite:dbname=foo", '',
+					'')))
 	   or ServerError();
 
     #
@@ -107,9 +97,7 @@ while (Testing()) {
 	Test($state or defined($ref = $sth->fetchrow_arrayref))
 	    or ErrMsgF("fetch failed: query $query, error %s.\n",
 		       $sth->errstr);
-	Test($state or ($$ref[1] eq $name)
-	            or ($name =~ /^$$ref[1]\s+$/  &&
-			($dbdriver eq 'mysql'  ||  $dbdriver eq 'ODBC')))
+	Test($state or ($$ref[1] eq $name))
 	    or ErrMsgF("problems with ChopBlanks = 0:"
 		       . " expected '%s', got '%s'.\n",
 		       $name, $$ref[1]);
@@ -146,4 +134,3 @@ while (Testing()) {
 	or ErrMsgF("Cannot disconnect: %s.\n", $dbh->errmsg);
 }
 
-END { unlink 'output/foo'; rmdir 'output' }

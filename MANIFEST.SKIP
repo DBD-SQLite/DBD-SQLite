@@ -7,11 +7,9 @@ CVS/.*
 \.o$
 \.xsi$
 \.bs$
-output/.*
 ^.#
 ^mess/
 ^sqlite/
-^output/
 ^tmp/
 ^blib/
 ^Makefile$

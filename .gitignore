@@ -4,6 +4,5 @@ blib/
 SQLite.c
 *.xsi
 pm_to_blib
-output/
 Makefile
 Makefile.old
