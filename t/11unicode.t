@@ -47,7 +47,10 @@ sub is_utf8 {
 
 ### Test code starts here
 
-Testing(); our $numTests; $numTests = 14; Testing();
+Testing();
+use vars qw{$numTests};
+$numTests = 14;
+Testing();
 
 # First, some UTF-8 framework self-test:
 
