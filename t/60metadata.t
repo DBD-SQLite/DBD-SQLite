@@ -1,7 +1,14 @@
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 27 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 27;
 use DBI;
+
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { });
 ok($dbh);
 $dbh->{PrintError} = 0;

@@ -1,11 +1,12 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 50chopblanks.t,v 1.1 2002/02/19 17:19:57 matt Exp $
-#
-#   This driver should check whether 'ChopBlanks' works.
-#
+#!/usr/bin/perl
+
+# Check whether 'ChopBlanks' works.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 #
 #   Make -w happy
@@ -21,7 +22,6 @@ $test_password = '';
 #   Include lib.pl
 #
 use DBI;
-use strict;
 $mdriver = "";
 {
     my $file;

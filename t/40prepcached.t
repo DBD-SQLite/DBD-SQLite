@@ -1,17 +1,16 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 40numrows.t,v 1.2 2003/08/11 21:51:14 matt Exp $
-#
-#   This is a regression test for bug #15186:
-#   http://rt.cpan.org/Public/Bug/Display.html?id=15186
-#   About re-using statements with prepare_cached().
+#!/usr/bin/perl
+
+# This is a regression test for bug #15186:
+# http://rt.cpan.org/Public/Bug/Display.html?id=15186
+# About re-using statements with prepare_cached().
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $state);
-
-$^W = 1;
-$| = 1;
-
 
 #
 #   Make -w happy

@@ -1,6 +1,12 @@
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 2 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 2;
 use DBI;
 
 unlink('foo');

@@ -1,15 +1,15 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 40blobs.t,v 1.4 2003/07/31 14:09:16 matt Exp $
-#
-#   This is a test for correct handling of BLOBS; namely $dbh->quote
-#   is expected to work correctly.
-#
+#!/usr/bin/perl
+
+# This is a test for correct handling of BLOBS; namely $dbh->quote
+# is expected to work correctly.
 
 use strict;
-use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state);
-$^W = 1;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
+use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state);
 
 #
 #   Make -w happy

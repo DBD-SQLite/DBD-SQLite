@@ -1,13 +1,13 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 40blobs.t,v 1.5 2004/07/21 20:50:45 matt Exp $
-#
-#   This is a test for correct handling of the "unicode" database
-#   handle parameter.
-#
+#!/usr/bin/perl
 
-$^W = 1;
+# This is a test for correct handling of the "unicode" database
+# handle parameter.
+
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 #
 #   Include std stuff

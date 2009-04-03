@@ -1,11 +1,13 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 40listfields.t,v 1.1.1.1 1999/06/13 12:59:35 joe Exp $
-#
-#   This is a test for statement attributes being present appropriately.
-#
+#!/usr/bin/perl
+
+# This is a test for statement attributes being present appropriately.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state $COL_KEY $COL_NULLABLE);
 
 #

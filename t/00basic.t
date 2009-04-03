@@ -1,4 +1,11 @@
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 1 }
-BEGIN { use_ok('DBD::SQLite') }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 1;
+
+use_ok('DBD::SQLite');

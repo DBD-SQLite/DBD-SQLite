@@ -3,6 +3,20 @@ use strict;
 use ExtUtils::MakeMaker;
 use Config;
 
+# Some dependencies need to be more aggressive on Windows
+sub WINLIKE () {
+	return 1 if $^O eq 'MSWin32';
+	return 1 if $^O eq 'cygwin';
+	return '';
+}
+
+# Make setting optional MakeMaker parameters more readable
+sub OPTIONAL {
+	return () unless $ExtUtils::MakeMaker::VERSION ge shift;
+	return @_;
+}
+
+# Are we upgrading from a critically out of date version?
 eval {
 	require DBD::SQLite;
 	if ( $DBD::SQLite::VERSION < 1.0 ) {
@@ -46,47 +60,38 @@ EOT
 # 2009/04/02
 # But why do we need to use an older, system-installed library?
 # Let's always use the bundled one. -- ISHIGAKI
-
-require File::Spec;
+# 2009/04/03
+# For the moment, while we're fixing things, this is reasonable.
+# However, logic in the form "I lack knowledge, thereforce lets do
+# it this way" is not a sufficiently robust decision making process. 
+# Let's find out the full story first, so we can make an informed
+# decision to whether to do this. -- ADAMK
 my ($force_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
-
-=begin dont_try_looking_for_a_buggy_library
-if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
-	$sqlite_base =~ /=(.*)/;
-	$sqlite_base = $1;
-	$sqlite_lib = File::Spec->catdir( $sqlite_base, 'lib'     );
-	$sqlite_inc = File::Spec->catdir( $sqlite_base, 'include' );
-}
-if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
-	$force_local =~ /=(.*)/;
-	$force_local = "$1" ? 1 : 0;
-	if ( $force_local ) {
-		# Keep these from making into CFLAGS/LDFLAGS
-		undef $sqlite_lib;
-		undef $sqlite_inc;
+if ( 0 ) {
+	require File::Spec;
+	if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
+		$sqlite_base =~ /=(.*)/;
+		$sqlite_base = $1;
+		$sqlite_lib = File::Spec->catdir( $sqlite_base, 'lib'     );
+		$sqlite_inc = File::Spec->catdir( $sqlite_base, 'include' );
 	}
-}
-
-# Now check for a compatible sqlite3
-unless ( $force_local ) {
-	my ($dir, $file, $fh, $version);
-	print "Checking installed SQLite version...\n" if $ENV{AUTOMATED_TESTING};
-	if ( $sqlite_inc ) {
-		open($fh, '< ' . File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
-			or die "Error opening sqlite3.h in $sqlite_inc: $!";
-		while ( defined($_ = <$fh>) ) {
-			if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
-				$version = $1;
-				last;
-			}
+	if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
+		$force_local =~ /=(.*)/;
+		$force_local = "$1" ? 1 : 0;
+		if ( $force_local ) {
+			# Keep these from making into CFLAGS/LDFLAGS
+			undef $sqlite_lib;
+			undef $sqlite_inc;
 		}
-		close($fh);
-	} else {
-		# Go hunting for the file (Matt: Add more dirs here as you see fit)
-		foreach $dir ( [ qw(usr include) ], [ qw(usr local include) ] ) {
-			$file = File::Spec->catfile('', @$dir, 'sqlite3.h');
-			next unless (-f $file);
-			open($fh, "< $file") or die "Error opening $file: $!";
+	}
+
+	# Now check for a compatible sqlite3
+	unless ( $force_local ) {
+		my ($dir, $file, $fh, $version);
+		print "Checking installed SQLite version...\n" if $ENV{AUTOMATED_TESTING};
+		if ( $sqlite_inc ) {
+			open($fh, '< ' . File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
+				or die "Error opening sqlite3.h in $sqlite_inc: $!";
 			while ( defined($_ = <$fh>) ) {
 				if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
 					$version = $1;
@@ -94,27 +99,39 @@ unless ( $force_local ) {
 				}
 			}
 			close($fh);
-			last if $version;
+		} else {
+			# Go hunting for the file (Matt: Add more dirs here as you see fit)
+			foreach $dir ( [ qw(usr include) ], [ qw(usr local include) ] ) {
+				$file = File::Spec->catfile('', @$dir, 'sqlite3.h');
+				next unless (-f $file);
+				open($fh, "< $file") or die "Error opening $file: $!";
+				while ( defined($_ = <$fh>) ) {
+					if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
+						$version = $1;
+						last;
+					}
+				}
+				close($fh);
+				last if $version;
+			}
+		}
+		unless ( $version && ($version >= 3006000) ) {
+			warn "SQLite version must be at least 3.6.0. No header file at that\n";
+			warn "version or higher was found. Using the local version instead.\n";
+			$force_local = 1;
+			undef $sqlite_lib;
+			undef $sqlite_inc;
+		} else {
+			print "Looks good\n" if $ENV{AUTOMATED_TESTING};
 		}
 	}
-	unless ( $version && ($version >= 3006000) ) {
-		warn "SQLite version must be at least 3.6.0. No header file at that\n";
-		warn "version or higher was found. Using the local version instead.\n";
-		$force_local = 1;
-		undef $sqlite_lib;
-		undef $sqlite_inc;
-	} else {
-		print "Looks good\n" if $ENV{AUTOMATED_TESTING};
-	}
 }
-=cut
 
 # Use always the bundled one.
 # XXX: ... and this message should be more informative.
 
 $force_local = 1;
 print "We're using the bundled sqlite library.\n" if $ENV{AUTOMATED_TESTING};
-
 
 @ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
@@ -157,34 +174,53 @@ unless ( $Config{usethreads} ) {
 	push @CC_DEFINE, '-DTHREADSAFE=0';
 }
 
-WriteMakefile(
-	NAME         => 'DBD::SQLite',
-	ABSTRACT     => 'Self Contained SQLite RDBMS in a DBI Driver',
-	VERSION_FROM => 'lib/DBD/SQLite.pm',
-	PREREQ_PM    => {
-		'DBI'        => '1.21',
-		'Test::More' => '0.42',
-	},
-	( $ExtUtils::MakeMaker::VERSION ge '6.46'? (
-		'LICENSE'    => 'perl',
-		'META_MERGE' => {
-			'configure_requires' => {
-				DBI => '1.21',
-			},
-		},
-	) : () ),
-	OBJECT       => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
-	OPTIMIZE     => '-O2',
-	clean        => {
-		FILES => 'SQLite.xsi config.h tv.log output',
-	},
-	PL_FILES     => {},
-	EXE_FILES    => [],
+my @CC_OPTIONS = (
 	INC          => join( ' ', @CC_INC    ),
 	DEFINE       => join( ' ', @CC_DEFINE ),
 	( @CC_LIBS ? (
 		LIBS => join( ' ', @CC_LIBS )
 	) : () ),
+);
+
+
+
+
+
+#####################################################################
+# Hand off to ExtUtils::MakeMaker
+
+WriteMakefile(
+	NAME             => 'DBD::SQLite',
+	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
+	VERSION_FROM     => 'lib/DBD/SQLite.pm',
+	PREREQ_PM        => {
+		'DBI'        => '1.21',
+		'Test::More' => '0.42',
+	},
+	OPTIONAL( '6.48',
+		MIN_PERL_VERSION => '5.005',
+	),
+	OPTIONAL( '6.31',
+		LICENSE    => 'perl',	
+	),
+	OPTIONAL( '6.46',
+		META_MERGE => {
+			configure_requires => {
+				'ExtUtils::MakeMaker' => '6.48',
+				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
+				'DBI'                 => '1.21',
+			},
+		},
+	),
+	OBJECT           => ( $force_local ? '$(O_FILES)' : 'SQLite.o dbdimp.o' ),
+	OPTIMIZE         => '-O2',
+	clean            => {
+		FILES => 'SQLite.xsi config.h tv.log output',
+	},
+	PL_FILES         => {},
+	EXE_FILES        => [],
+
+	@CC_OPTIONS,
 );
 
 package MY;

@@ -1,18 +1,23 @@
 Revision history for Perl extension DBD-SQLite.
 
 1.19_06 not yet released
-    - fixed a segv with an error function under x86 linux
+    - Fixed a segv with an error function under x86 linux
       (and hopefully Mac OSX). (TOKUHIROM)
-    - fixed yet another segv while testing DBIC reconnection (DMAKI)
-    - minor test improvement (ISHIGAKI)
-      - switched from Test.pm to Test::More (though there're still
-        some tests that don't use Test::More)
-      - added "use strict" to some.
-      - added a cleanup block to each test to allow it run clean and
-        separately.
+    - Fixed yet another segv while testing DBIC reconnection (DMAKI)
+    - Switched from Test.pm to Test::More (though there're still
+      some tests that don't use Test::More) (ISHIGAKI)
+    - Added "use strict" to some. (ISHIGAKI)
+    - Added a cleanup block to each test to allow it run clean and
+      separately. (ISHIGAKI)
+    - Adding an explicit minimum Perl version to the Makefile.PL (ADAMK)
+    - Setting configure_requires dependencies for File::Spec
+    - Splitting the LICENSE key into it's own MakeMaker
+      version-dependency conditional (ADAMK)
+    - All tests run under the same Perl environment
+      (autoflush on, and warnings enabled via $^W = 1) (ADAMK)
 
 1.19_05 Thu  2 Apr 2009
-    - DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19_04
+    - DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19
       should be feature identical now.
     - Added collations from DBD::SQLite::Amalgamation (CORION)
     - Removed statement handle activation after "execute" if

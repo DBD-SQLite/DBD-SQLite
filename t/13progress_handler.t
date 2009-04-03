@@ -1,6 +1,12 @@
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 3; }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 3;
 use DBI;
 
 my $N_OPCODES = 50; # how many opcodes before calling the progress handler

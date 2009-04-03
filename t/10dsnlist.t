@@ -1,12 +1,14 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 10dsnlist.t,v 1.1.1.1 1999/06/13 12:59:35 joe Exp $
-#
-#   This test creates a database and drops it. Should be executed
-#   after listdsn.
-#
+#!/usr/bin/perl
+
+# This test creates a database and drops it. Should be executed
+# after listdsn.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $state);
 
 #

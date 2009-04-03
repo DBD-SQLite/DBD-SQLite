@@ -1,22 +1,12 @@
-#!/usr/bin/perl -w
-BEGIN { 
-    local $@;
-    unless (eval { require Test::More; 1 }) {
-        print "1..0 # Skip need Test::More\n";
-        exit;
-    }
-}
-use strict;
-use Test::More tests => 7;
+#!/usr/bin/perl
 
+use strict;
 BEGIN {
-    use_ok 'DBD::SQLite'
-        or BAIL_OUT 'DBD::SQLite(::Amalgamation) failed to load. No sense in continuing.';
-    no warnings 'once';
-    #diag "Testing DBD::SQLite version '$DBD::SQLite::VERSION' on DBI '$DBI::VERSION'";
-    
-    #*DBD::SQLite::db::column_info = \&DBD::SQLite::db::_sqlite_column_info;
-};
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 6;
 use DBI;
 
 my $dbh = DBI->connect('dbi:SQLite:dbname=:memory:',undef,undef,{RaiseError => 1});

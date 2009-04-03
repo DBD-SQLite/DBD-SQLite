@@ -1,6 +1,11 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver);
 
 if ($^O eq 'MSWin32') {

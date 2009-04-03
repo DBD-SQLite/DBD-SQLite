@@ -1,9 +1,12 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 40nulls.t,v 1.1.1.1 1999/06/13 12:59:35 joe Exp $
-#
-#   This is a test for correctly handling NULL values.
-#
+#!/usr/bin/perl
+
+# This is a test for correctly handling NULL values.
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 use strict;
 use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state);

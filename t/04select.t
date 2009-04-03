@@ -1,7 +1,14 @@
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 21 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 21;
 use DBI;
+
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { RaiseError => 1, AutoCommit => 1 });
 ok($dbh);
 $dbh->do("CREATE TABLE f (f1, f2, f3)");

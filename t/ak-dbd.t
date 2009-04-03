@@ -1,16 +1,10 @@
-#!/usr/local/bin/perl
-#
-#   $Id: ak-dbd.t,v 1.2 2002/02/19 18:51:01 matt Exp $
-#
-#   This is a skeleton test. For writing new tests, take this file
-#   and modify/extend it.
-#
+#!/usr/bin/perl
 
 use strict;
-
-$^W = 1;
-$| = 1;
-
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
 
 #
 #   Make -w happy

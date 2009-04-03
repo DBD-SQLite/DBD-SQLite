@@ -1,13 +1,14 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 30insertfetch.t,v 1.1 2002/02/19 17:19:57 matt Exp $
-#
-#   This is a simple insert/fetch test.
-#
+#!/usr/bin/perl
+
+# This is a simple insert/fetch test.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $state);
-$^W = 1;
 
 #
 #   Make -w happy

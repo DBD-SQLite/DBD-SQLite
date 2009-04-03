@@ -1,12 +1,14 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 20createdrop.t,v 1.1.1.1 1999/06/13 12:59:35 joe Exp $
-#
-#   This is a skeleton test. For writing new tests, take this file
-#   and modify/extend it.
-#
+#!/usr/bin/perl
+
+# This is a skeleton test. For writing new tests, take this file
+# and modify/extend it.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver);
 $DBI::errstr = '';  # Make -w happy
 require DBI;

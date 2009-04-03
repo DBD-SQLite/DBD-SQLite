@@ -1,15 +1,14 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 50commit.t,v 1.1.1.1 1999/06/13 12:59:35 joe Exp $
-#
-#   This is testing the transaction support.
-#
+#!/usr/bin/perl
+
+# This is testing the transaction support.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $state);
-
-$^W = 1;
-
 
 #
 #   Include lib.pl

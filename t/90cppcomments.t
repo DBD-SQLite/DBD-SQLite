@@ -1,7 +1,15 @@
+#!/usr/bin/perl
+
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use Test::More;
-use DBI;
 use Fatal qw(open);
+use DBI;
+
 my @c_files = <*.c>, <*.xs>;
 plan tests => scalar(@c_files);
 

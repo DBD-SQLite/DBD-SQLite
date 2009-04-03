@@ -1,8 +1,12 @@
-#!perl
+#!/usr/bin/perl
 
 use strict;
-use Test::More;
-BEGIN { plan tests => 8 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 8;
 use DBI;
 
 my $db = DBI->connect('dbi:SQLite:foo', '', '', 

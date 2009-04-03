@@ -1,7 +1,14 @@
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 5 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 5;
 use DBI;
+
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");
 ok($dbh);
 ok($dbh->{sqlite_version});

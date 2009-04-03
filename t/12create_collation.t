@@ -1,3 +1,11 @@
+#!/usr/bin/perl
+
+use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 BEGIN { 
     local $@;
     unless (eval { require Test::More; require Encode; 1 }) {
@@ -6,7 +14,6 @@ BEGIN {
     }
 }
 
-use strict;
 use Test::More tests => 8;
 use DBI;
 use Encode qw/decode/;

@@ -1,16 +1,14 @@
-#!/usr/local/bin/perl
-#
-#   $Id: 40numrows.t,v 1.1 2002/02/19 17:19:57 matt Exp $
-#
-#   This tests, whether the number of rows can be retrieved.
-#
+#!/usr/bin/perl
+
+# This tests, whether the number of rows can be retrieved.
 
 use strict;
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
 use vars qw($test_dsn $test_user $test_password $mdriver $state);
-
-$^W = 1;
-$| = 1;
-
 
 #
 #   Make -w happy

@@ -1,8 +1,14 @@
-$|++;
+#!/usr/bin/perl
+
 use strict;
-use Test::More;
-BEGIN { plan tests => 4 }
+BEGIN {
+	$|  = 1;
+	$^W = 1;
+}
+
+use Test::More tests => 4;
 use DBI;
+
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");
 ok($dbh);
 $dbh->{AutoCommit} = 1;
