@@ -4,7 +4,7 @@
 #define _DBDIMP_H   1
 
 #include "SQLiteXS.h"
-#include "sqliteInt.h"
+#include "sqlite3.h"
 
 /* 30 second timeout by default */
 #define SQL_TIMEOUT 30000
