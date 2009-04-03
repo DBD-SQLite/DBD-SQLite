@@ -3,6 +3,7 @@ Revision history for Perl extension DBD-SQLite.
 1.19_06 not yet released
     - fixed a segv with an error function under x86 linux
       (and hopefully Mac OSX). (TOKUHIROM)
+    - fixed yet another segv while testing DBIC reconnection (DMAKI)
     - minor test improvement (ISHIGAKI)
       - switched from Test.pm to Test::More (though there're still
         some tests that don't use Test::More)
