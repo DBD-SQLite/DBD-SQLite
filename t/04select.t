@@ -9,7 +9,7 @@ my $sth = $dbh->prepare("INSERT INTO f VALUES (?, ?, ?)", { go_last_insert_id_ar
 $sth->execute("Fred", "Bloggs", "fred\@bloggs.com");
 
 # $dbh->trace(4);
-my $sth = $dbh->prepare("SELECT * FROM f");
+$sth = $dbh->prepare("SELECT * FROM f");
 ok($sth);
 ok($sth->execute);
 my $row = $sth->fetch;
