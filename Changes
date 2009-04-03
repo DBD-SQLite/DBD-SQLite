@@ -1,6 +1,6 @@
 Revision history for Perl extension DBD-SQLite.
 
-1.19_06 not yet released
+1.19_06 Sat  4 Apr 2009
     - Fixed a segv with an error function under x86 linux
       (and hopefully Mac OSX). (TOKUHIROM)
     - Fixed yet another segv while testing DBIC reconnection (DMAKI)
