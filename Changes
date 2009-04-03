@@ -2,6 +2,7 @@ Revision history for Perl extension DBD-SQLite.
 
 1.19_07 not released yet
     - re-enable and fix t/70schemachange.t, as per RT #43448 (CORION)
+    - added a canary test to probe for RT #36863 (segfault on OSX 10.5.2)
 
 1.19_06 Sat  4 Apr 2009
     - Fixed a segv with an error function under x86 linux
