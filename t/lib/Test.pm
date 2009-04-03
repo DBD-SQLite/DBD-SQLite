@@ -9,7 +9,7 @@ use Test::More ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.19_06';
+	$VERSION = '1.19_07';
 	@ISA     = qw{ Exporter };
 	@EXPORT  = qw{ connect_ok };
 }
@@ -19,7 +19,7 @@ use DBI ();
 
 # Delete temporary files
 sub clean {
-	unlink( 'foo' );
+	unlink( 'foo'         );
 	unlink( 'foo-journal' );
 }
 
