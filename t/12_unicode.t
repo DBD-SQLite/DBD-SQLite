@@ -100,8 +100,7 @@ sub database_roundtrip {
     @row;
 }
 
-my ($textback, $bytesback) =
-    database_roundtrip($bytestring, $bytestring);
+my ($textback, $bytesback) = database_roundtrip($bytestring, $bytestring);
 
 Test(! is_utf8($bytesback), "Reading blob gives binary");
 Test(! is_utf8($textback), "Reading text gives binary too (for now)");
@@ -109,35 +108,22 @@ Test($bytesback eq $bytestring, "No blob corruption");
 Test($textback eq $bytestring, "Same text, different encoding");
 
 # Start over but now activate Unicode support.
+$dbh->{unicode} = 1;
 
-if ( $ENV{DBI_AUTOPROXY} ) {
-    # for testing DBD::Gofer we have to create a new dbh with unicode enabled
-    # because we can't change the attribute for an existing dbh
-    $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', '', {
-        RaiseError => 1,
-        unicode    => 1,
-    })
-}
-else {
-    $dbh->{unicode} = 1;
-}
-
-($textback, $bytesback) =
-    database_roundtrip($utfstring, $bytestring);
+($textback, $bytesback) = database_roundtrip($utfstring, $bytestring);
 
 Test(! is_utf8($bytesback), "Reading blob still gives binary");
 Test(is_utf8($textback), "Reading text returns UTF-8");
 Test($bytesback eq $bytestring, "Still no blob corruption");
 Test($textback eq $utfstring, "Same text");
 
-my $lengths = $dbh->selectall_arrayref
-    ("SELECT length(a), length(b) FROM $table");
+my $lengths = $dbh->selectall_arrayref(
+	"SELECT length(a), length(b) FROM $table"
+);
 
 Test($lengths->[0]->[0] == $lengths->[0]->[1],
      "Database actually understands char set") or
     warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
 
-END {
-	$dbh->do("DROP TABLE $table");
-	$dbh->disconnect;
-}
+$dbh->do("DROP TABLE $table");
+$dbh->disconnect;
