@@ -1,4 +1,4 @@
-use 5.005;
+use 5.00503;
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
@@ -198,10 +198,10 @@ WriteMakefile(
 		'Test::More' => '0.42',
 	},
 	OPTIONAL( '6.48',
-		MIN_PERL_VERSION => '5.005',
+		MIN_PERL_VERSION => '5.00503',
 	),
 	OPTIONAL( '6.31',
-		LICENSE    => 'perl',	
+		LICENSE => 'perl',	
 	),
 	OPTIONAL( '6.46',
 		META_MERGE => {

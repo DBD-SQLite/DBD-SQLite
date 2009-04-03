@@ -11,7 +11,7 @@ BEGIN {
 
 use Test::More tests => 4;
 
-ok( $] >= 5.005, 'Perl version is new enough' );
+ok( $] >= 5.00503, 'Perl version is new enough' );
 
 use_ok('DBI');
 use_ok('DBD::SQLite');

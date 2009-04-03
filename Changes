@@ -49,7 +49,7 @@ Revision history for Perl extension DBD-SQLite.
     - Added TODO to show which issues are to be fixed. (ISHIGAKI)
     - License and configure_requires in Makefile.PL and META.yml (Alexandr Ciornii)
     - Spelling check for SQLite.pm (Alexandr Ciornii)
-    - Adding arbitrary Perl 5.005 minimum
+    - Adding arbitrary Perl 5.00503 minimum
 
 1.16 abandoned
 
