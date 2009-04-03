@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 8;
-use DBI;
+use t::lib::Test;
 
 my $db = DBI->connect('dbi:SQLite:foo', '', '', 
 {
@@ -77,5 +77,3 @@ if (!defined($pid)) {
     $db->commit;
     wait;
 }
-
-END { unlink('foo', 'foo-journal') }

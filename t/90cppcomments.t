@@ -7,8 +7,8 @@ BEGIN {
 }
 
 use Test::More;
+use t::lib::Test;
 use Fatal qw(open);
-use DBI;
 
 my @c_files = <*.c>, <*.xs>;
 plan tests => scalar(@c_files);

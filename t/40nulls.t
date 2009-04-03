@@ -8,7 +8,6 @@ BEGIN {
 	$^W = 1;
 }
 
-use strict;
 use vars qw($test_dsn $test_user $test_password $mdriver $dbdriver $state);
 
 #

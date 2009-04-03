@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 4;
-use DBI;
+use t::lib::Test;
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");
 ok($dbh);
@@ -21,5 +21,3 @@ print("# ", join(', ', @$names), "\n");
 ok($names->[0] eq "f1");	# make sure the "f." is removed
 undef $sth;
 $dbh->disconnect;
-
-END { unlink 'foo' }

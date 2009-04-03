@@ -7,9 +7,8 @@ BEGIN {
 }
 
 use Test::More tests => 2;
-use DBI;
+use t::lib::Test;
 
-unlink('foo');
 my $db = DBI->connect('dbi:SQLite:foo', '', '', { RaiseError => 1, PrintError => 0 });
 eval {
   $db->do('ssdfsdf sdf sd sdfsdfdsf sdfsdf');
@@ -25,5 +24,3 @@ eval {
   $db->do('insert into testerror values (1, 5)');
 };
 ok($@);
-
-END { unlink 'foo' }

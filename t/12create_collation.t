@@ -15,7 +15,7 @@ BEGIN {
 }
 
 use Test::More tests => 8;
-use DBI;
+use t::lib::Test;
 use Encode qw/decode/;
 
 BEGIN {
@@ -100,8 +100,4 @@ is_deeply(\@sorted, $db_sorted, "collate perllocale (@sorted // @$db_sorted)");
 $db_sorted = $dbh->selectcol_arrayref("$sql COLLATE no_accents");
 is_deeply(\@sorted, $db_sorted, "collate no_accents (@sorted // @$db_sorted)");
 
-
-
 $dbh->disconnect;
-
-END { unlink 'foo' }

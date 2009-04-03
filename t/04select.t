@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 21;
-use DBI;
+use t::lib::Test;
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { RaiseError => 1, AutoCommit => 1 });
 ok($dbh);
@@ -64,5 +64,3 @@ $sth->finish;
 undef $sth;
 $dbh->do("delete from f where f1='test'");
 $dbh->disconnect;
-
-END { unlink 'foo' }

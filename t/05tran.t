@@ -7,9 +7,8 @@ BEGIN {
 }
 
 use Test::More tests => 2;
+use t::lib::Test;
 
-use DBI;
-unlink("foo");
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "",
   {AutoCommit => 0, RaiseError => 1});
 
@@ -29,19 +28,19 @@ $dbh->do("INSERT INTO TRN VALUES('C', 1, 4)");
 $dbh->do("INSERT INTO TRN VALUES('D', 3, 3)");
 $dbh->rollback; #not work?
 
-my $sth = $dbh->prepare(
-"SELECT TRN.id AS ID, MST.LBL AS TITLE,
-        SUM(qty) AS TOTAL FROM TRN,MST
-WHERE TRN.ID = MST.ID
-GROUP BY TRN.ID ORDER BY TRN.ID DESC");
-my $rows = $sth->execute();
-ok($rows, "0E0");
-my $names = $sth->{NAME};
-print(join(', ', @$names), "\n");
-while(my $raD = $sth->fetchrow_arrayref()) {
-    print join(":", @$raD), "\n";
+SCOPE: {
+	my $sth = $dbh->prepare(
+	"SELECT TRN.id AS ID, MST.LBL AS TITLE,
+	        SUM(qty) AS TOTAL FROM TRN,MST
+	WHERE TRN.ID = MST.ID
+	GROUP BY TRN.ID ORDER BY TRN.ID DESC");
+	my $rows = $sth->execute();
+	ok($rows, "0E0");
+	my $names = $sth->{NAME};
+	print(join(', ', @$names), "\n");
+	while(my $raD = $sth->fetchrow_arrayref()) {
+		print join(":", @$raD), "\n";
+	}
 }
-undef $sth;
-$dbh->disconnect;
 
-END { unlink 'foo' }
+$dbh->disconnect;

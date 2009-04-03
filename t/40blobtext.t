@@ -7,9 +7,8 @@ BEGIN {
 }
 
 use Test::More tests => 26;
-use DBI;
+use t::lib::Test;
 
-unlink('foo', 'foo-journal');
 my $db = DBI->connect('dbi:SQLite:foo', '', '', 
 {
     RaiseError => 1,
@@ -65,9 +64,6 @@ $sel->finish;
 undef $sel;
 
 $db->disconnect;
-
-END { unlink('foo', 'foo-journal'); }
-
 
 sub dumpblob {
     my $blob = shift;

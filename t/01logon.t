@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 5;
-use DBI;
+use t::lib::Test;
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "");
 ok($dbh);
@@ -19,5 +19,3 @@ ok($dbh->func(5000, 'busy_timeout'));
 is($dbh->func('busy_timeout'), 5000);
 print "# sqlite_busy_timeout=", $dbh->func('busy_timeout'), "\n";
 $dbh->disconnect;
-
-END { unlink 'foo' }

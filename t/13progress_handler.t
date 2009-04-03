@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 3;
-use DBI;
+use t::lib::Test;
 
 my $N_OPCODES = 50; # how many opcodes before calling the progress handler
 
@@ -48,5 +48,3 @@ $result = $dbh->do( "SELECT * from progress_test ORDER BY foo DESC " );
 ok(!$n_callback);
 
 $dbh->disconnect;
-
-END { unlink 'foo' }

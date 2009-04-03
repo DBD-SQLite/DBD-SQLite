@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use Test::More tests => 27;
-use DBI;
+use t::lib::Test;
 
 my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", { });
 ok($dbh);
@@ -58,5 +58,3 @@ ok($types->[1] eq 'char(1)');
 ok $dbh->do("create table meta5 ( f1 integer PRIMARY KEY )");
 @pk = $dbh->primary_key(undef, undef, 'meta5');
 ok($pk[0] eq 'f1');
-
-END { unlink 'foo' }
