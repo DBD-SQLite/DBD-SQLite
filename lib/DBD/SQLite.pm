@@ -77,8 +77,7 @@ sub prepare {
         Statement => $statement,
     });
 
-    DBD::SQLite::st::_prepare($sth, $statement, @attribs)
-        or return undef;
+    DBD::SQLite::st::_prepare($sth, $statement, @attribs) or return undef;
 
     return $sth;
 }
@@ -88,9 +87,9 @@ sub _get_version {
 }
 
 my %info = (
-    17 => 'SQLite',         # SQL_DBMS_NAME
-    18 => \&_get_version,   # SQL_DBMS_VER
-    29 => '"',              # SQL_IDENTIFIER_QUOTE_CHAR
+    17 => 'SQLite',       # SQL_DBMS_NAME
+    18 => \&_get_version, # SQL_DBMS_VER
+    29 => '"',            # SQL_IDENTIFIER_QUOTE_CHAR
 );
 
 sub get_info {
