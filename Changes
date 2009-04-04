@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite.
 
-1.19_08 to be released
+1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
       in DBI (ADAMK)
     - Resolved #30558: INSERT After PK Failure Also Fails Using
