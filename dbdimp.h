@@ -70,7 +70,7 @@ struct imp_sth_st {
 #define dbd_st_STORE_attrib_k   sqlite_st_STORE_attrib_k
 #define dbd_st_FETCH_attrib_k   sqlite_st_FETCH_attrib_k
 #define dbd_bind_ph             sqlite_bind_ph
-#define dbd_st_bind_col			sqlite_bind_col
+#define dbd_st_bind_col         sqlite_bind_col
 
 void sqlite3_db_create_function(SV *dbh, const char *name, int argc, SV *func);
 void sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr );
@@ -90,7 +90,7 @@ newUTF8SVpv(char *s, STRLEN len) {
   sv = newSVpv(s, len);
   SvUTF8_on(sv);
   return sv;
-}  /* End new UTF8SVpv */
+}
 
 static SV *
 newUTF8SVpvn(char *s, STRLEN len) {
@@ -103,7 +103,7 @@ newUTF8SVpvn(char *s, STRLEN len) {
   return sv;
 }
 
-#else  /* SvUTF8_on not defined */
+#else  /* #ifdef SvUTF8_on */
 
 #define newUTF8SVpv newSVpv
 #define newUTF8SVpvn newSVpvn
@@ -111,6 +111,6 @@ newUTF8SVpvn(char *s, STRLEN len) {
 #define SvUTF8_off(a) (a)
 #define sv_utf8_upgrade(a) (a)
 
-#endif
+#endif /* #ifdef SvUTF8_on */
 
-#endif /* _DBDIMP_H */
+#endif /* #ifndef _DBDIMP_H */
