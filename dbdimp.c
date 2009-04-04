@@ -40,9 +40,10 @@ _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *wha
     SV *errstr = DBIc_ERRSTR(imp_xxh);
     sv_setiv(DBIc_ERR(imp_xxh), (IV)rc);
     sv_setpv(errstr, what);
+
     /* #7753: DBD::SQLite error shouldn't include extraneous info */
     /* sv_catpvf(errstr, "(%d) at %s line %d", rc, file, line); */
-    
+
     if ( DBIS->debug >= 3 ) {
         PerlIO_printf(DBILOGFP, "sqlite error %d recorded: %s at %s line %d\n",
             rc, what, file, line);
@@ -91,18 +92,17 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
             dbname, sqlite3_version);
     }
 
-    if (sqlite3_open(dbname, &(imp_dbh->db)) != SQLITE_OK) {
+    if ( sqlite3_open(dbname, &(imp_dbh->db)) != SQLITE_OK ) {
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 1, (char*)sqlite3_errmsg(imp_dbh->db));
         return FALSE;
     }
     DBIc_IMPSET_on(imp_dbh);
 
-    imp_dbh->in_tran = FALSE;
-    imp_dbh->unicode = FALSE;
-    imp_dbh->functions = newAV();
-    imp_dbh->aggregates = newAV();
-    imp_dbh->timeout = SQL_TIMEOUT;
-    
+    imp_dbh->in_tran             = FALSE;
+    imp_dbh->unicode             = FALSE;
+    imp_dbh->functions           = newAV();
+    imp_dbh->aggregates          = newAV();
+    imp_dbh->timeout             = SQL_TIMEOUT;
     imp_dbh->handle_binary_nulls = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
