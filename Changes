@@ -1,17 +1,39 @@
 Changes for Perl extension DBD-SQLite.
 
 1.19_08 to be released
-    - Resolved #30558: INSERT After PK Failure Also Fails Using Prepared (ADAMK)
-    - Resolved #42567: Core dump in t/07busy.t after test 4 (mutex and/or memory corruption) (ADAMK)
+    - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
+      in DBI (ADAMK)
+    - Resolved #30558: INSERT After PK Failure Also Fails Using
+      Prepared (ADAMK)
+    - Resolved #42567: Core dump in t/07busy.t after test 4 (mutex and/or
+      memory corruption) (ADAMK)
+    - Resolved #32100: t/06error.t fails using SQLite 3.5.4 (ADAMK)
+    - Resolved #35904: Test failure: Bus error t/08create_function
+      test (ADAMK)
+    - Resolved #9792: Crashes upon re-executing a statement (ADAMK)
+    - Resolved #21472: Spurious "not an error" and "bind or column index
+      out of range" errirs (MSERGEANT)
+    - Resolved #32723: last_insert_rowid should handle sqlite_int64,
+      not int (ADAMK)
+    - Resolved #37215: memory leaks in sqlite_db_disconnect (ADAMK)
+    - Resolved #33441: unlimited memory accumulation (ADAMK)
+    - Resolved #31324: Incorrect Implementation of column names within
+      sqlite_st_FETCH_attrib (ADAMK)
+    - Resolved #32570: segmentation fault during tests 07 & 08 (ADAMK)
+    - Resolved #41631: Dot doesn't work in quoted column aliases (ADAMK)
+    - Resolved #403: test failure on "Testing select speed (large table) (ADAMK)
 
 1.19_07 Sat  4 Apr 2009
     - Starting to work the RT queue now the basics are settled.
     - Re-enable and fix t/70schemachange.t, as per RT #43448 (CORION)
-    - Added a canary test to probe for RT #36863 (segfault on OSX 10.5.2) (CORION)
+    - Added a canary test to probe for RT #36863
+      (segfault on OSX 10.5.2) (CORION)
     - Added resources links to META.yml (ADAMK)
     - Resolved #30502: t\70schemachange.t fails on Windows (ADAMK)
-    - Resolved #30167: Specify configuration depenencies with "configure_requires" (ADAMK)
-    - Resolved #17623: make test fails when DBI_DSN is not DBD::SQLite (ADAMK)
+    - Resolved #30167: Specify configuration depenencies with
+      "configure_requires" (ADAMK)
+    - Resolved #17623: make test fails when DBI_DSN is not
+      DBD::SQLite (ADAMK)
     - Resolved #13631: wish: column_info support() (CORION)
     - Resolved #39938: Read-access to development repository (ADAMK)
     - Resolved #18617: Build error under win32 (ADAMK)
@@ -22,9 +44,12 @@ Changes for Perl extension DBD-SQLite.
     - Resolved #29519: t/70schemachange.t failure (ADAMK)
     - Resolved #20286: DBD::SQLite leaks file descriptors (ADAMK)
     - Resolved #21406: DBD-SQLite 1.13 broke Class-DBI (ADAMK)
-    - Resolved #4591: Test suite (t/t50*.t) is order dependent / bug in t/lib.pl? (ADAMK)
-    - Resolved #36467: Name "DBD::SQLite::sqlite_version" used only once (ADAMK)
-    - Resolved #7753: DBD::SQLite error shouldn't include extraneous info (ADAMK)
+    - Resolved #4591: Test suite (t/t50*.t) is order dependent / bug in
+      t/lib.pl? (ADAMK)
+    - Resolved #36467: Name "DBD::SQLite::sqlite_version" used
+      only once (ADAMK)
+    - Resolved #7753: DBD::SQLite error shouldn't include extraneous
+      info (ADAMK)
 
 1.19_06 Sat  4 Apr 2009
     - Fixed a segv with an error function under x86 linux

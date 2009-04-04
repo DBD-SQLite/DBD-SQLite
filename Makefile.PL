@@ -194,7 +194,7 @@ WriteMakefile(
 	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM     => 'lib/DBD/SQLite.pm',
 	PREREQ_PM        => {
-		'DBI'        => '1.21',
+		'DBI'        => '1.43',
 		'Test::More' => '0.42',
 	},
 	OPTIONAL( '6.48',
@@ -211,7 +211,7 @@ WriteMakefile(
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
 				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
-				'DBI'                 => '1.21',
+				'DBI'                 => '1.43',
 			},
 			resources => {
 				license    => 'http://dev.perl.org/licenses/',

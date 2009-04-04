@@ -6,15 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More;
+use Test::More tests => 10;
 use t::lib::Test;
-BEGIN {
-	if ( $DBI::VERSION >= 1.40 ) {
-		plan( tests => 10 );
-	} else {
-		plan( skip_all => 'DBI 1.40+ only' );
-	}
-}
 
 my $dbh = connect_ok( RaiseError => 1 );
 $dbh->do("CREATE TABLE f (f1, f2, f3)");
