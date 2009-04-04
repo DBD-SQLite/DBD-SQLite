@@ -18,10 +18,12 @@ my $drop1   = 'DROP TABLE table1';
 my $drop2   = 'DROP TABLE table2';
 
 # diag("Parent connecting... ($$)\n");
-my $dbh = connect_ok();
-ok( $dbh->do($create1), $create1 );
-ok( $dbh->do($create2), $create2 );
-ok( $dbh->disconnect, '->disconnect ok' );
+SCOPE: {
+	my $dbh = connect_ok();
+	ok( $dbh->do($create1), $create1 );
+	ok( $dbh->do($create2), $create2 );
+	ok( $dbh->disconnect, '->disconnect ok' );
+}
 
 my $pid;
 # diag("Forking... ($$)");
