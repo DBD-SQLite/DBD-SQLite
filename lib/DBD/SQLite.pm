@@ -6,10 +6,12 @@ use DBI   1.43 ();
 use DynaLoader ();
 
 use vars qw($VERSION @ISA);
-use vars qw{$err $errstr $state $drh $sqlite_version};
+use vars qw{$err $errstr $drh $sqlite_version};
 BEGIN {
     $VERSION = '1.19_08';
     @ISA     = ('DynaLoader');
+
+    # Driver singleton
     $drh     = undef;
 }
 
@@ -43,19 +45,19 @@ sub connect {
         Name => $dbname,
     } );
 
-    my $real_dbname = $dbname;
+    my $real = $dbname;
     if ( $dbname =~ /=/ ) {
         foreach my $attrib ( split(/;/, $dbname ) ) {
             my ($k, $v) = split(/=/, $attrib, 2);
             if ($k eq 'dbname') {
-                $real_dbname = $v;
+                $real = $v;
             } else {
                 # TODO: add to attribs
             }
         }
     }
-    DBD::SQLite::db::_login($dbh, $real_dbname, $user, $auth)
-        or return undef;
+
+    DBD::SQLite::db::_login($dbh, $real, $user, $auth) or return undef;
 
     # install perl collations
     my $perl_collation        = sub {$_[0] cmp $_[1]};
@@ -442,6 +444,7 @@ updates:
   use DBI qw(:sql_types);
   $dbh->{unicode} = 1;
   my $sth = $dbh->prepare("INSERT INTO mytable (blobcolumn) VALUES (?)");
+  
   # Binary_data will be stored as is.
   $sth->bind_param(1, $binary_data, SQL_BLOB);
 
@@ -649,7 +652,7 @@ but what surprised me most of all was:
   ORDER BY count desc
   LIMIT 20
 
-To discover the top 20 hit URLs on the site (http://axkit.org), and it
+To discover the top 20 hit URLs on the site (L<http://axkit.org>), and it
 returned within 2 seconds. I'm seriously considering switching my log
 analysis code to use this little speed demon!
 
