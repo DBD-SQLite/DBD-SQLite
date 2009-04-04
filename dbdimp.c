@@ -40,9 +40,10 @@ _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *wha
     SV *errstr = DBIc_ERRSTR(imp_xxh);
     sv_setiv(DBIc_ERR(imp_xxh), (IV)rc);
     sv_setpv(errstr, what);
-    sv_catpvf(errstr, "(%d) at %s line %d", rc, file, line);
+    /* #7753: DBD::SQLite error shouldn't include extraneous info */
+    /* sv_catpvf(errstr, "(%d) at %s line %d", rc, file, line); */
     
-    if (DBIS->debug >= 3) {
+    if ( DBIS->debug >= 3 ) {
         PerlIO_printf(DBILOGFP, "sqlite error %d recorded: %s at %s line %d\n",
             rc, what, file, line);
     }

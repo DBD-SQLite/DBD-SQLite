@@ -203,12 +203,20 @@ WriteMakefile(
 	OPTIONAL( '6.31',
 		LICENSE => 'perl',	
 	),
+	OPTIONAL( '6.11',
+		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>', # Maintainer
+	),
 	OPTIONAL( '6.46',
 		META_MERGE => {
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
 				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
 				'DBI'                 => '1.21',
+			},
+			resources => {
+				license    => 'http://dev.perl.org/licenses/',
+				bugtracker => 'http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite',
+				repository => 'http://svn.ali.as/cpan/trunk/DBD-SQLite',
 			},
 		},
 	),
