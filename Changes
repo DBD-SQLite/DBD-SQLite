@@ -1,5 +1,7 @@
 Changes for Perl extension DBD-SQLite.
 
+    - require perl 5.6 because dependencies require it
+
 1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
       in DBI (ADAMK)
@@ -12,7 +14,7 @@ Changes for Perl extension DBD-SQLite.
       test (ADAMK)
     - Resolved #9792: Crashes upon re-executing a statement (ADAMK)
     - Resolved #21472: Spurious "not an error" and "bind or column index
-      out of range" errirs (MSERGEANT)
+      out of range" errors (MSERGEANT)
     - Resolved #32723: last_insert_rowid should handle sqlite_int64,
       not int (ADAMK)
     - Resolved #37215: memory leaks in sqlite_db_disconnect (ADAMK)

@@ -1,4 +1,4 @@
-use 5.00503;
+use 5.006; #from ExtUtils::MakeMaker 6.48 and DBI 1.43
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
@@ -198,7 +198,7 @@ WriteMakefile(
 		'Test::More' => '0.42',
 	},
 	OPTIONAL( '6.48',
-		MIN_PERL_VERSION => '5.00503',
+		MIN_PERL_VERSION => '5.006',
 	),
 	OPTIONAL( '6.31',
 		LICENSE => 'perl',	
