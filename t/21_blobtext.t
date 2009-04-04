@@ -59,12 +59,6 @@ for (1..5) {
     ok(!$sel->fetch);
 }
 
-$sel->finish;
-
-undef $sel;
-
-$db->disconnect;
-
 sub dumpblob {
     my $blob = shift;
     print("# showblob length: ", length($blob), "\n");

@@ -25,12 +25,10 @@ SCOPE: {
 	is( $sth->execute("test", "test", "3"), 1 );
 
 	SKIP: {
-    	skip( 'last_insert_id requires DBI v1.43', 2 ) if $DBI::VERSION < 1.43;
-    	is( $dbh->last_insert_id(undef, undef, undef, undef), 4 );
-    	is( $dbh->func('last_insert_rowid'), 4, 'last_insert_rowid should be 4' );
+    		skip( 'last_insert_id requires DBI v1.43', 2 ) if $DBI::VERSION < 1.43;
+    		is( $dbh->last_insert_id(undef, undef, undef, undef), 4 );
+    		is( $dbh->func('last_insert_rowid'), 4, 'last_insert_rowid should be 4' );
 	}
 }
 
 is( $dbh->do("delete from f where f1='test'"), 3 );
-
-$dbh->disconnect;

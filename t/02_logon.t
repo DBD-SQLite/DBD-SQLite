@@ -18,5 +18,3 @@ diag("sqlite_version=$dbh->{sqlite_version}");
 ok( $dbh->func('busy_timeout'), 'Found initial busy_timeout' );
 ok( $dbh->func(5000, 'busy_timeout') );
 is( $dbh->func('busy_timeout'), 5000, 'Set busy_timeout to new value' );
-
-$dbh->disconnect;

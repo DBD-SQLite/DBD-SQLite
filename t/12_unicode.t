@@ -126,4 +126,3 @@ Test($lengths->[0]->[0] == $lengths->[0]->[1],
     warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
 
 $dbh->do("DROP TABLE $table");
-$dbh->disconnect;

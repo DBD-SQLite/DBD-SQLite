@@ -45,5 +45,3 @@ $result = $dbh->do( "SELECT * from progress_test ORDER BY foo DESC " );
 
 # now the progress handler should have been called zero times
 ok(!$n_callback);
-
-$dbh->disconnect;

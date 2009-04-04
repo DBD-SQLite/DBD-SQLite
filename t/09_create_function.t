@@ -115,5 +115,3 @@ is_deeply( $result, [ '' ], "SELECT noop('')" );
 
 $result = $dbh->selectrow_arrayref( "SELECT noop(1.0625)" );
 is_deeply( $result, [ 1.0625 ], "SELECT noop(1.0625)" );
-
-$dbh->disconnect;

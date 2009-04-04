@@ -27,19 +27,15 @@ $dbh->do("INSERT INTO TRN VALUES('C', 1, 4)");
 $dbh->do("INSERT INTO TRN VALUES('D', 3, 3)");
 $dbh->rollback; #not work?
 
-SCOPE: {
-	my $sth = $dbh->prepare(
-	"SELECT TRN.id AS ID, MST.LBL AS TITLE,
-	        SUM(qty) AS TOTAL FROM TRN,MST
-	WHERE TRN.ID = MST.ID
-	GROUP BY TRN.ID ORDER BY TRN.ID DESC");
-	my $rows = $sth->execute();
-	ok($rows, "0E0");
-	my $names = $sth->{NAME};
-	print(join(', ', @$names), "\n");
-	while(my $raD = $sth->fetchrow_arrayref()) {
-		print join(":", @$raD), "\n";
-	}
+my $sth = $dbh->prepare(
+"SELECT TRN.id AS ID, MST.LBL AS TITLE,
+        SUM(qty) AS TOTAL FROM TRN,MST
+WHERE TRN.ID = MST.ID
+GROUP BY TRN.ID ORDER BY TRN.ID DESC");
+my $rows = $sth->execute();
+ok($rows, "0E0");
+my $names = $sth->{NAME};
+print(join(', ', @$names), "\n");
+while(my $raD = $sth->fetchrow_arrayref()) {
+	print join(":", @$raD), "\n";
 }
-
-$dbh->disconnect;

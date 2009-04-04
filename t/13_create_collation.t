@@ -98,5 +98,3 @@ is_deeply(\@sorted, $db_sorted, "collate perllocale (@sorted // @$db_sorted)");
 @sorted    = sort no_accents @words_utf8;
 $db_sorted = $dbh->selectcol_arrayref("$sql COLLATE no_accents");
 is_deeply(\@sorted, $db_sorted, "collate no_accents (@sorted // @$db_sorted)");
-
-$dbh->disconnect;
