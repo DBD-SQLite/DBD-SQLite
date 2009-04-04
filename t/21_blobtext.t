@@ -9,17 +9,17 @@ BEGIN {
 use Test::More tests => 26;
 use t::lib::Test;
 
-my $db = DBI->connect('dbi:SQLite:foo', '', '', 
+my $dbh = DBI->connect('dbi:SQLite:foo', '', '', 
 {
     RaiseError => 1,
     PrintError => 0,
     AutoCommit => 0,
 });
 
-ok($db);
+ok($dbh);
 
-ok($db->do("CREATE TABLE Blah ( id INTEGER, val VARCHAR )"));
-ok($db->commit);
+ok($dbh->do("CREATE TABLE Blah ( id INTEGER, val VARCHAR )"));
+ok($dbh->commit);
 
 my $blob = "";
 
@@ -34,7 +34,7 @@ for my $i (0..127) {
 ok($blob);
 dumpblob($blob);
 
-my $sth = $db->prepare("INSERT INTO Blah VALUES (?, ?)");
+my $sth = $dbh->prepare("INSERT INTO Blah VALUES (?, ?)");
 
 ok($sth);
 
@@ -46,7 +46,7 @@ $sth->finish;
 
 undef $sth;
 
-my $sel = $db->prepare("SELECT * FROM Blah WHERE id = ?");
+my $sel = $dbh->prepare("SELECT * FROM Blah WHERE id = ?");
 
 ok($sel);
 
@@ -58,6 +58,8 @@ for (1..5) {
     ok($row->[1] eq $blob);
     ok(!$sel->fetch);
 }
+
+$dbh->rollback;
 
 sub dumpblob {
     my $blob = shift;
