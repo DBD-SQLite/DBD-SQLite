@@ -167,9 +167,6 @@ my @CC_DEFINE = (
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 	push @CC_DEFINE, '-DHAVE_USLEEP=1';
 }
-if ( $DBI::VERSION <= 1.42 ) {
-	push @CC_DEFINE, '-Dno_last_insert_id';
-}
 unless ( $Config{usethreads} ) {
 	push @CC_DEFINE, '-DTHREADSAFE=0';
 }
