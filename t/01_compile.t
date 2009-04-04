@@ -16,3 +16,5 @@ ok( $] >= 5.00503, 'Perl version is new enough' );
 use_ok('DBI');
 use_ok('DBD::SQLite');
 use_ok('t::lib::Test');
+
+diag("\$DBI::VERSION=$DBI::VERSION");

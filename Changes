@@ -1,6 +1,11 @@
 Changes for Perl extension DBD-SQLite.
 
+1.19_09 Sun  5 Apr 2009
     - Require perl 5.6 because dependencies require it
+    - Adding $DBI::VERSION diag to help diagnose FAIL reports (ADAMK)
+    - #29519 was only resolved on Win32. Applied a more comprehensive
+      patch (JHEDDEN)
+    - Rewrote 28_schemachange.t in Test::More style (ADAMK)
 
 1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported

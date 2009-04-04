@@ -1,100 +1,57 @@
 #!/usr/bin/perl
 
+# This test works, but as far as I can tell this doesn't actually test
+# the thing that the test was originally meant to test.
+
 use strict;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
 
+use Test::More tests => 5;
 use t::lib::Test;
 
-#if ($^O eq 'MSWin32') {
-#    print "1..0 # Skip changing active database's schema doesn't work under Windows\n";
-#    exit 0;
-#}
+my $create1 = 'CREATE TABLE table1 (id INTEGER NOT NULL, name CHAR (64) NOT NULL)';
+my $create2 = 'CREATE TABLE table2 (id INTEGER NOT NULL, name CHAR (64) NOT NULL)';
+my $drop1   = 'DROP TABLE table1';
+my $drop2   = 'DROP TABLE table2';
 
-do 't/lib.pl';
-if ($@) {
-	print STDERR "Error while executing lib.pl: $@\n";
-	exit 10;
+# diag("Parent starting... ($$)");
+
+# Create the tables
+SCOPE: {
+	my $dbh = DBI->connect('dbi:SQLite:dbname=foo', '', '') or die 'connect failed';
+	$dbh->do($create1) or die '$create1 failed';
+	$dbh->do($create2) or die '$create2 failed';
+	$dbh->disconnect   or die 'disconnect failed';
 }
 
-sub ServerError() {
-  print STDERR ("Cannot connect: ", $DBI::errstr, "\n");
-  exit 10;
+my $pid;
+# diag("Forking... ($$)");
+if ( not defined( $pid = fork() ) ) {
+	die("fork: $!");
+
+} elsif ( $pid == 0 ) {
+	# Child process
+	# diag("Child starting... ($$)");
+	my $dbh = connect_ok();
+	ok( $dbh->do($drop2), $drop2 );
+	ok( $dbh->disconnect, '->disconnect ok' );
+	# diag("Child exiting... ($$)");
+	exit(0);
+
+} else {
+	# Parent process
+	# diag("Waiting for child... ($$)");
+	ok( waitpid($pid, 0) != -1, "waitpid" );
+
 }
 
-# Main loop; leave this untouched, put tests into the loop
-use vars qw($state);
-while (Testing()) {
-  # Connect to the database
-  my $dbh;
-  Test($state or $dbh = DBI->connect("DBI:SQLite:dbname=foo", '', ''))
-      or ServerError();
-
-  # Create some tables
-  my $table1;
-  Test($state or $table1 = FindNewTable($dbh))
-      or DbiError($dbh->err, $dbh->errstr);
-  my $create1;
-  if (!$state) {
-    ($create1 = TableDefinition($table1,
-                                ["id",   "INTEGER",  4, 0],
-                                ["name", "CHAR",    64, 0]));
-    print "Creating table:\n$create1\n";
-  }
-  Test($state or $dbh->do($create1))
-      or DbiError($dbh->err, $dbh->errstr);
-
-  my $table2;
-  Test($state or $table2 = FindNewTable($dbh))
-      or DbiError($dbh->err, $dbh->errstr);
-  my $create2;
-  if (!$state) {
-    ($create2 = TableDefinition($table2,
-                                ["id",   "INTEGER",  4, 0],
-                                ["name", "CHAR",    64, 0]));
-    print "Creating table:\n$create2\n";
-  }
-  Test($state or $dbh->do($create2))
-      or DbiError($dbh->err, $dbh->errstr);
-
-  my $pid;
-  if ( not defined($pid = fork()) ) {
-    die("fork: $!");
-  } elsif ( $pid == 0 ) {
-    # Child: drop the second table
-    if ( $^O =~ /win32/i ) {
-      # sqlite prohibits thread sharing parent connection
-      $dbh = DBI->connect("DBI:SQLite:dbname=foo", '', '');
-    }
-    if ( not $state ) {
-      $dbh->do("DROP TABLE $table2")
-          or DbiError($dbh->err, $dbh->errstr);
-      $dbh->disconnect()
-          or DbiError($dbh->err, $dbh->errstr);
-    }
-    exit(0);
-  }
-
-  # Parent: wait for the child to finish, then attempt to use the database
-  Test(waitpid($pid, 0) != -1) or print("waitpid: $!\n");
-
-  if ( $^O =~ /win32/i ) {
-    # schema changed, need to reconnect
-    $dbh = DBI->connect("DBI:SQLite:dbname=foo", '', '');
-  }
-
-  Test($state or $dbh->do("DROP TABLE $table1"))
-      or DbiError($dbh->err, $dbh->errstr);
-
-  # Make sure the child actually deleted table2.  This will fail if
-  # table2 still exists.
-  Test($state or $dbh->do($create2))
-      or DbiError($dbh->err, $dbh->errstr);
-
-  # Disconnect
-  Test($state or $dbh->disconnect())
-      or DbiError($dbh->err, $dbh->errstr);
+# Make sure the child actually deleted table2
+SCOPE: {
+	my $dbh = connect_ok();
+	ok( $dbh->do($drop1),   $drop1   );
+	ok( $dbh->do($create2), $create2 );
+	ok( $dbh->disconnect, '->disconnect ok' );
 }
-
