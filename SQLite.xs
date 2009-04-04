@@ -1,4 +1,3 @@
-/* $Id: SQLite.xs,v 1.8 2005/06/20 13:53:00 matt Exp $ */
 
 #include "SQLiteXS.h"
 
@@ -10,7 +9,7 @@ PROTOTYPES: DISABLE
 
 BOOT:
     sv_setpv(get_sv("DBD::SQLite::sqlite_version", TRUE|GV_ADDMULTI), SQLITE_VERSION);
-      
+
 AV *
 list_tables(dbh)
     SV *dbh

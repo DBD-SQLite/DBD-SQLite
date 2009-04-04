@@ -1,4 +1,3 @@
-/* $Id: dbdimp.c,v 1.64 2006/09/18 18:54:05 matt Exp $ */
 
 #include "SQLiteXS.h"
 

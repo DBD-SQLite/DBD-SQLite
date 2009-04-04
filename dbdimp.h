@@ -1,4 +1,3 @@
-/* $Id: dbdimp.h,v 1.19 2006/09/07 23:24:27 matt Exp $ */
 
 #ifndef _DBDIMP_H
 #define _DBDIMP_H   1
