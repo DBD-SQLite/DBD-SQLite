@@ -17,7 +17,7 @@ my $dbh = connect_ok(
 $dbh->do("CREATE TABLE MST (id, lbl)");
 $dbh->do("CREATE TABLE TRN (no, id, qty)");
 
-$dbh->commit; #not work?
+$dbh->commit;
 $dbh->do("INSERT INTO MST VALUES(1, 'ITEM1')");
 $dbh->do("INSERT INTO MST VALUES(2, 'ITEM2')");
 $dbh->do("INSERT INTO MST VALUES(3, 'ITEM3')");
@@ -25,7 +25,7 @@ $dbh->do("INSERT INTO TRN VALUES('A', 1, 5)");
 $dbh->do("INSERT INTO TRN VALUES('B', 2, 2)");
 $dbh->do("INSERT INTO TRN VALUES('C', 1, 4)");
 $dbh->do("INSERT INTO TRN VALUES('D', 3, 3)");
-$dbh->rollback; #not work?
+$dbh->rollback;
 
 my $sth = $dbh->prepare(
 "SELECT TRN.id AS ID, MST.LBL AS TITLE,
@@ -39,3 +39,5 @@ print(join(', ', @$names), "\n");
 while(my $raD = $sth->fetchrow_arrayref()) {
 	print join(":", @$raD), "\n";
 }
+
+$dbh->rollback;

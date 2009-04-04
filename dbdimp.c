@@ -732,9 +732,9 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
             const char *fieldname = sqlite3_column_name(imp_sth->stmt, n);
             if (fieldname) {
                 /* warn("Name [%d]: %s\n", n, fieldname); */
-                // char *dot = instr(fieldname, ".");
-                // if (dot) /* drop table name from field name */
-                //    fieldname = ++dot;
+                /* char *dot = instr(fieldname, ".");     */
+                /* if (dot)  drop table name from field name */
+                /*    fieldname = ++dot;     */
                 av_store(av, n, newSVpv(fieldname, 0));
             }
         }

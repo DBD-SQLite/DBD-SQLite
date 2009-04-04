@@ -22,9 +22,24 @@ Changes for Perl extension DBD-SQLite.
     - Resolved #32570: segmentation fault during tests 07 & 08 (ADAMK)
     - Resolved #41631: Dot doesn't work in quoted column aliases (ADAMK)
     - Resolved #403: test failure on "Testing select speed (large table) (ADAMK)
+    - Resolved #35769: dbimp.c uses uninitialized variables. (ADAMK)
+    - Resolved #27701 and #27702: (unnamed) (ADAMK)
+    - Resolved #31239: prepare_cached...statement handle
+      DBIx::ContextualFetch::st=HASH still Active (ADAMK)
+    - Resolved #41047: Re: Bug#506157: libdbd-sqlite3-perl: unsufficient
+      error message while opening database for writing (ADAMK)
+    - Resolved #25196 (bug in prepare?) (ADAMK)\
+    - Resolved #36651: Bug involving "closing dbh with active
+      statement handles" (ADAMK)
+    - Resolved #34408: Primary key name wrong with newline in
+      CREATE TABLE (ADAMK)
+    - Resolved #34600: t/06_error.t stalling (ADAMK)
+    - Resolved #22688: DBD::SQLITE Error Report (ADAMK)
 
 1.19_07 Sat  4 Apr 2009
     - Starting to work the RT queue now the basics are settled.
+      Many of the items marked as resolved by my just indicate that I have
+      confirmed someone else applied the fix. (ADAMK)
     - Re-enable and fix t/70schemachange.t, as per RT #43448 (CORION)
     - Added a canary test to probe for RT #36863
       (segfault on OSX 10.5.2) (CORION)
