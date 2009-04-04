@@ -90,7 +90,7 @@ if ( 0 ) {
 		my ($dir, $file, $fh, $version);
 		print "Checking installed SQLite version...\n" if $ENV{AUTOMATED_TESTING};
 		if ( $sqlite_inc ) {
-			open($fh, '< ' . File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
+			open($fh, '< ' , File::Spec->catfile($sqlite_inc, 'sqlite3.h'))
 				or die "Error opening sqlite3.h in $sqlite_inc: $!";
 			while ( defined($_ = <$fh>) ) {
 				if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
@@ -104,7 +104,7 @@ if ( 0 ) {
 			foreach $dir ( [ qw(usr include) ], [ qw(usr local include) ] ) {
 				$file = File::Spec->catfile('', @$dir, 'sqlite3.h');
 				next unless (-f $file);
-				open($fh, "< $file") or die "Error opening $file: $!";
+				open($fh, "<", $file) or die "Error opening $file: $!";
 				while ( defined($_ = <$fh>) ) {
 					if (/\#define\s+SQLITE_VERSION_NUMBER\s+(\d+)/) {
 						$version = $1;
