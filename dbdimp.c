@@ -724,11 +724,11 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
 
     if (strEQ(key, "NAME")) {
         AV *av = newAV();
-/* warn("Fetch NAME fields: %d\n", i); */
+        /* warn("Fetch NAME fields: %d\n", i); */
         av_extend(av, i);
         retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
         for (n = 0; n < i; n++) {
-/* warn("Fetch col name %d\n", n); */
+            /* warn("Fetch col name %d\n", n); */
             const char *fieldname = sqlite3_column_name(imp_sth->stmt, n);
             if (fieldname) {
                 /* warn("Name [%d]: %s\n", n, fieldname); */
@@ -786,7 +786,7 @@ sqlite_db_set_result(sqlite3_context *context, SV *result, int is_error )
         return;
     }
 
-/* warn("result: %s\n", SvPV_nolen(result)); */
+    /* warn("result: %s\n", SvPV_nolen(result)); */
     if ( !SvOK(result) ) {
         sqlite3_result_null( context );
     } else if( SvIOK_UV(result) ) {
@@ -1250,7 +1250,5 @@ sqlite3_db_progress_handler( SV *dbh, int n_opcodes, SV *handler )
                                 handler_sv );
     }
 }
-
-
 
 /* end */
