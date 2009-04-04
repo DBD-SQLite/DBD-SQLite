@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite.
 
-    - require perl 5.6 because dependencies require it
+    - Require perl 5.6 because dependencies require it
 
 1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
