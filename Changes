@@ -1,6 +1,10 @@
-Revision history for Perl extension DBD-SQLite.
+Changes for Perl extension DBD-SQLite.
 
-1.19_07 not released yet
+1.19_08 to be released
+    - Resolved #30558: INSERT After PK Failure Also Fails Using Prepared (ADAMK)
+    - Resolved #42567: Core dump in t/07busy.t after test 4 (mutex and/or memory corruption) (ADAMK)
+
+1.19_07 Sat  4 Apr 2009
     - Starting to work the RT queue now the basics are settled.
     - Re-enable and fix t/70schemachange.t, as per RT #43448 (CORION)
     - Added a canary test to probe for RT #36863 (segfault on OSX 10.5.2) (CORION)
