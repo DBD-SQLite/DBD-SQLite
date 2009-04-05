@@ -161,6 +161,7 @@ if ( $sqlite_inc ) {
 my @CC_DEFINE = (
 	'-DSQLITE_CORE',
 	'-DSQLITE_ENABLE_FTS3',
+	'-DSQLITE_ENABLE_COLUMN_METADATA',
 	'-DNDEBUG=1',
 	"-DSQLITE_PTR_SZ=$Config{ptrsize}"
 );

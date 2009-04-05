@@ -740,6 +740,7 @@ type_to_odbc_type (int type)
 SV *
 sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
 {
+    D_imp_dbh_from_sth;
     char *key = SvPV_nolen(keysv);
     SV *retsv = NULL;
     int i,n;
@@ -791,7 +792,19 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
     }
     else if (strEQ(key, "NULLABLE")) {
         AV *av = newAV();
+        av_extend(av, i);
         retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
+#if defined(SQLITE_ENABLE_COLUMN_METADATA)
+        for (n = 0; n < i; n++) {
+            const char *database  = sqlite3_column_database_name(imp_sth->stmt, n);
+            const char *tablename = sqlite3_column_table_name(imp_sth->stmt, n);
+            const char *fieldname = sqlite3_column_name(imp_sth->stmt, n);
+            const char *datatype, *collseq;
+            int notnull, primary, autoinc;
+            sqlite3_table_column_metadata(imp_dbh->db, database, tablename, fieldname, &datatype, &collseq, &notnull, &primary, &autoinc);
+            av_store(av, n, newSViv(!notnull));
+        }
+#endif
     }
     else if (strEQ(key, "SCALE")) {
         AV *av = newAV();
