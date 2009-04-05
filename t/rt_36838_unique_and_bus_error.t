@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 3;
 use t::lib::Test;
 
-my $dbh = connect_ok( RaiseError => 1 );
+my $dbh = connect_ok( RaiseError => 1, PrintError => 0 );
 
 $dbh->do("CREATE TABLE nums (num INTEGER UNIQUE)");
 
