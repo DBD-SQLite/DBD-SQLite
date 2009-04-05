@@ -75,24 +75,21 @@ Cannot connect to database 'DBI:SQLite:dbname=foo', please check directory and
 permissions.
 MESSAGE
 
-Test( (my $table = FindNewTable($dbh)), "FindNewTable")
-	or DbiError($dbh->error, $dbh->errstr);
+eval { $dbh->do("DROP TABLE table1"); };
 
-eval { $dbh->do("DROP TABLE $table"); };
-
-$dbh->do("CREATE TABLE $table (a TEXT, b BLOB)");
+$dbh->do("CREATE TABLE table1 (a TEXT, b BLOB)");
 
 # Sends $ain and $bin into TEXT resp. BLOB columns the database, then
 # reads them again and returns the result as a list ($aout, $bout).
 sub database_roundtrip {
     my ($ain, $bin) = @_;
-    $dbh->do("DELETE FROM $table");
-    my $sth = $dbh->prepare("INSERT INTO $table (a, b) VALUES (?, ?)");
+    $dbh->do("DELETE FROM table1");
+    my $sth = $dbh->prepare("INSERT INTO table1 (a, b) VALUES (?, ?)");
     $sth->bind_param(1, $ain, SQL_VARCHAR);
     $sth->bind_param(2, $bin, SQL_BLOB);
     $sth->execute();
 
-    $sth = $dbh->prepare("SELECT a, b FROM $table");
+    $sth = $dbh->prepare("SELECT a, b FROM table1");
     $sth->execute();
     my @row = $sth->fetchrow_array;
     undef $sth;
@@ -118,11 +115,11 @@ Test($bytesback eq $bytestring, "Still no blob corruption");
 Test($textback eq $utfstring, "Same text");
 
 my $lengths = $dbh->selectall_arrayref(
-	"SELECT length(a), length(b) FROM $table"
+	"SELECT length(a), length(b) FROM table1"
 );
 
 Test($lengths->[0]->[0] == $lengths->[0]->[1],
      "Database actually understands char set") or
     warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
 
-$dbh->do("DROP TABLE $table");
+$dbh->do("DROP TABLE table1");

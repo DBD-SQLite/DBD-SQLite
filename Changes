@@ -5,6 +5,9 @@ Changes for Perl extension DBD-SQLite.
     - Resolved #29629: sqlite where length issue (actually this has
       been fixed before) (ISHIGAKI)
     - Applied an enable_load_extension patch from RT #32998 (ISHIGAKI)
+    - Resolved #42940: DBD-SQLite make test faild (ADAMK)
+    - Resolved #26460: Sorting numeric values in aggregate functions (ADAMK)
+    - Resolved #32889: prepare_cached does not work correctly (ADAMK)
 
 1.19_09 Sun  5 Apr 2009
     - Require perl 5.6 because dependencies require it
