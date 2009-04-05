@@ -7,6 +7,7 @@ Changes for Perl extension DBD-SQLite.
     - #29519 was only resolved on Win32. Applied a more comprehensive
       patch (JHEDDEN)
     - Rewrote 28_schemachange.t in Test::More style (ADAMK)
+    - Bug fix in 28_schemachange.t rewrite re fork/connect (DUNCAND)
     - Resolved #44779: [t/03insert.t] last_insert_id returns undef where 4
       is expected (DUNCAND, CHORNY; that is, DUNCAND debugged and solved
       the ticket based on _08, which was a flaw in the Makefile.PL
