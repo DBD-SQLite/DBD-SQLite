@@ -517,6 +517,31 @@ After this, it could be use from SQL as:
 
   INSERT INTO mytable ( now() );
 
+=head2 $dbh->func( $name, $code_ref, "create_collation" )
+
+This method will register a new function which will be useable in an SQL
+query as a COLLATE option for sorting. The method's parameters are:
+
+=over
+
+=item $name
+
+The name of the function. This is the name of the function as it will
+be used from SQL.
+
+=item $code_ref
+
+This should be a reference to the function's implementation.
+
+=back
+
+By default, the collations "perl" and "perllocale" are created for you.
+
+These allow sorting in Perl terms using "cmp", in both locale and non-locale
+forms. For example, the following does a locale-aware Perl cmp sort.
+
+  SELECT * FROM foo ORDER BY name COLLATE perllocale
+
 =head2 $dbh->func( $name, $argc, $pkg, 'create_aggregate' )
 
 This method will register a new aggregate function which can then be used
@@ -544,31 +569,6 @@ This is the package which implements the aggregator interface.
 The aggregator interface consists of defining three methods:
 
 =over
-
-=head2 $dbh->func( $name, $code_ref, "create_collation" )
-
-This method will register a new function which will be useable in an SQL
-query as a COLLATE option for sorting. The method's parameters are:
-
-=over
-
-=item $name
-
-The name of the function. This is the name of the function as it will
-be used from SQL.
-
-=item $code_ref
-
-This should be a reference to the function's implementation.
-
-=back
-
-By default, the collations "perl" and "perllocale" are created for you.
-
-These allow sorting in Perl terms using "cmp", in both locale and non-locale
-forms. For example, the following does a locale-aware Perl cmp sort.
-
-  SELECT * FROM foo ORDER BY name COLLATE perllocale
 
 =item new()
 
