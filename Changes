@@ -13,6 +13,7 @@ Changes for Perl extension DBD-SQLite.
     - Resolved #26460: Sorting numeric values in aggregate functions (ADAMK)
     - Resolved #32889: prepare_cached does not work correctly (ADAMK)
     - Resolved #34828: Please add support for user-defined collations (ADAMK)
+    - Made Test::NoWarnings an optional module (CORION)
 
 1.19_09 Sun  5 Apr 2009
     - Require perl 5.6 because dependencies require it

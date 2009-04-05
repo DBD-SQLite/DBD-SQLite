@@ -6,8 +6,10 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 11;
-use Test::NoWarnings;
+my $have_nowarnings;
+BEGIN{ eval 'use Test::NoWarnings; $have_nowarnings = 1;' };
+use Test::More tests => 10+($have_nowarnings || 0);
+
 use t::lib::Test;
 
 SCOPE: {
