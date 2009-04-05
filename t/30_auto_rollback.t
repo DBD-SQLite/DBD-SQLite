@@ -8,10 +8,9 @@ BEGIN {
 	$^W = 1;
 }
 
-my $have_nowarnings;
-BEGIN{ eval 'use Test::NoWarnings; $have_nowarnings = 1;' };
-use Test::More tests => 5+($have_nowarnings || 0);
 use t::lib::Test;
+use Test::More tests => 6;
+use Test::NoWarnings;
 
 SCOPE: {
 	my $dbh = connect_ok( RaiseError => 1, PrintWarn => 0 );

@@ -214,7 +214,7 @@ WriteMakefile(
 		LICENSE => 'perl',	
 	),
 	OPTIONAL( '6.11',
-		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>', # Maintainer
+		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>', # Release manager (can this be an array?)
 	),
 	OPTIONAL( '6.46',
 		META_MERGE => {
