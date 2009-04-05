@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite.
 
+1.19_10 not yet released
+    - Resolved #40594: $sth->{NULLABLE} implementation (ISHIGAKI)
+
 1.19_09 Sun  5 Apr 2009
     - Require perl 5.6 because dependencies require it
     - Updated ppport.h to the most recent release 3.17 (ADAMK)
