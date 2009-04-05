@@ -41,6 +41,11 @@ package DBD::SQLite::dr;
 sub connect {
     my ($drh, $dbname, $user, $auth, $attr) = @_;
 
+    # Default PrintWarn to the value of $^W
+    unless ( defined $attr->{PrintWarn} ) {
+        $attr->{PrintWarn} = $^W ? 1 : 0;
+    }
+
     my $dbh = DBI::_new_dbh( $drh, {
         Name => $dbname,
     } );
@@ -64,6 +69,12 @@ sub connect {
     my $perl_locale_collation = sub { use locale; $_[0] cmp $_[1] };
     $dbh->func( "perl",       $perl_collation,        "create_collation" );
     $dbh->func( "perllocale", $perl_locale_collation, "create_collation" );
+
+    # HACK: Since PrintWarn = 0 doesn't seem to actually prevent warnings
+    # in DBD::SQLite we set Warn to false if PrintWarn is false.
+    unless ( $attr->{PrintWarn} ) {
+        $attr->{Warn} = 0;
+    }
 
     return $dbh;
 }
