@@ -2,13 +2,6 @@ use 5.006; #from ExtUtils::MakeMaker 6.48 and DBI 1.43
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
-my $DBI_required=1.57;
-eval { require DBI; };
-if ($@ or DBI->VERSION < $DBI_required) {
-  print "Please install DBI $DBI_required manually or upgrade you CPAN/CPANPLUS shell\n";
-  exit 0;
-}
-
 
 # Some dependencies need to be more aggressive on Windows
 sub WINLIKE () {
@@ -52,6 +45,17 @@ EOT
 		}
 	}
 };
+
+# Because DBI generates a postamble at configure-time, we need
+# the required version of DBI very early.
+my $DBI_required = 1.57;
+eval {
+	require DBI;
+};
+if ( $@ or DBI->VERSION < $DBI_required ) {
+	print "DBI 1.57 is required to configure this module, please install it or upgrade your CPAN/CPANPLUS shell\n";
+	exit(0);
+}
 
 # 2005/6/19, by rjray@blackperl.com
 #
@@ -199,9 +203,9 @@ WriteMakefile(
 	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM     => 'lib/DBD/SQLite.pm',
 	PREREQ_PM        => {
+		'File::Spec'       => (WINLIKE ? '3.27' : '0.82'),
 		'DBI'              => $DBI_required,
 		'Test::More'       => '0.42',
-		'Test::NoWarnings' => '0.081',
 	},
 	OPTIONAL( '6.48',
 		MIN_PERL_VERSION => '5.006',
@@ -216,12 +220,13 @@ WriteMakefile(
 		META_MERGE => {
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
-				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
+				'File::Spec'          => '0.82', # This is not allowed to be computed
 				'DBI'                 => $DBI_required,
 			},
 			build_requires => {
+				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
 				'Test::More'          => '0.42',
-				'Test::NoWarnings'    => '0.081',
+				# 'Test::NoWarnings'    => '0.081', # Bundled in /inc
 			},
 			resources => {
 				license     => 'http://dev.perl.org/licenses/',
