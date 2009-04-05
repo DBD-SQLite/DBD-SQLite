@@ -126,6 +126,15 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     DBIc_ACTIVE_on(imp_dbh);
 
+    if ( DBIc_WARN(imp_dbh) ) {
+        warn("DBIc_WARN is on");
+    }
+/*
+    else {
+        warn("DBIc_WARN if off");
+    }
+*/
+
     return TRUE;
 }
 
