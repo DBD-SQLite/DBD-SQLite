@@ -17,6 +17,8 @@ Changes for Perl extension DBD-SQLite.
     - Added link to MailingList resource (ADAMK)
     - Squelch warnings inless PrintWarn is set in line with guidance from
       the DBI documentation (ADAMK)
+    - Resolved #29058: don't quote a bind param (as a text) if it
+      looks like a number (ISHIGAKI)
 
 1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
