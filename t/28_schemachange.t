@@ -48,11 +48,11 @@ if ( not defined( $pid = fork() ) ) {
 
 SCOPE: {
 	# Parent process
+	my $dbh = connect_ok();
 	# diag("Waiting for child... ($$)");
 	ok( waitpid($pid, 0) != -1, "waitpid" );
 
 	# Make sure the child actually deleted table2
-	my $dbh = connect_ok();
 	ok( $dbh->do($drop1),   $drop1   ) or diag("Error: '$DBI::errstr'");
 	ok( $dbh->do($create2), $create2 ) or diag("Error: '$DBI::errstr'");
 	ok( $dbh->disconnect, '->disconnect ok' );
