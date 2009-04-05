@@ -4,6 +4,7 @@ Changes for Perl extension DBD-SQLite.
     - Resolved #40594: $sth->{NULLABLE} implementation (ISHIGAKI)
     - Resolved #29629: sqlite where length issue (actually this has
       been fixed before) (ISHIGAKI)
+    - Applied an enable_load_extension patch from RT #32998 (ISHIGAKI)
 
 1.19_09 Sun  5 Apr 2009
     - Require perl 5.6 because dependencies require it
