@@ -9,6 +9,8 @@ BEGIN {
 	$^W = 1;
 }
 
+use Test::More tests => 16;
+use Test::NoWarnings;
 use t::lib::Test;
 
 #
@@ -18,20 +20,6 @@ use t::lib::Test;
 use Carp;
 use DBI qw(:sql_types);
 
-do 't/lib.pl';
-if ($@) {
-	print STDERR "Error while executing lib.pl: $@\n";
-	exit 10;
-}
-
-BEGIN {if ($] < 5.006) {
-    print <<"BAIL_OUT";
-1..0
-# SKIPPING - No UTF-8 support in this Perl release
-BAIL_OUT
-    exit 0;
-}}
-
 no bytes; # Unintuitively, still has the effect of loading bytes.pm :-)
 
 # Portable albeit kludgy: detects UTF-8 promotion of $hibyte from
@@ -39,45 +27,32 @@ no bytes; # Unintuitively, still has the effect of loading bytes.pm :-)
 sub is_utf8 {
     no bytes;
     my ($string) = @_;
-    my $hibyte = pack("C", 0xe9);
-
+    my $hibyte  = pack("C", 0xe9);
     my @lengths = map { bytes::length($_) } ($string, $string . $hibyte);
     return ($lengths[0] + 1 < $lengths[1]);
 }
 
-### Test code starts here
-
-Testing();
-use vars qw{$numTests};
-$numTests = 14;
-Testing();
-
 # First, some UTF-8 framework self-test:
 
-my @isochars = (ord("K"), 0xf6, ord("n"), ord("i"), ord("g"));
-
+my @isochars   = (ord("K"), 0xf6, ord("n"), ord("i"), ord("g"));
 my $bytestring = pack("C*", @isochars);
-my $utfstring = pack("U*", @isochars);
+my $utfstring  = pack("U*", @isochars);
 
-Test(length($bytestring) == @isochars, 'Correct length for $bytestring');
-Test(length($utfstring) == @isochars, 'Correct length for $utfstring');
-Test(is_utf8($utfstring),
+ok(length($bytestring) == @isochars, 'Correct length for $bytestring');
+ok(length($utfstring) == @isochars, 'Correct length for $utfstring');
+ok(is_utf8($utfstring),
      '$utfstring should be marked as UTF-8 by Perl');
-Test(! is_utf8($bytestring),
+ok(! is_utf8($bytestring),
      '$bytestring should *NOT* be marked as UTF-8 by Perl');
 
 ### Real DBD::SQLite testing starts here
 
-my $dbh = DBI->connect('DBI:SQLite:dbname=foo', '', '',
-                       {RaiseError => 1})
-	or die <<'MESSAGE';
-Cannot connect to database 'DBI:SQLite:dbname=foo', please check directory and
-permissions.
-MESSAGE
+my $dbh = connect_ok( RaiseError => 1 );
 
-eval { $dbh->do("DROP TABLE table1"); };
-
-$dbh->do("CREATE TABLE table1 (a TEXT, b BLOB)");
+ok(
+	$dbh->do("CREATE TABLE table1 (a TEXT, b BLOB)"),
+	'CREATE TABLE',
+);
 
 # Sends $ain and $bin into TEXT resp. BLOB columns the database, then
 # reads them again and returns the result as a list ($aout, $bout).
@@ -88,7 +63,6 @@ sub database_roundtrip {
     $sth->bind_param(1, $ain, SQL_VARCHAR);
     $sth->bind_param(2, $bin, SQL_BLOB);
     $sth->execute();
-
     $sth = $dbh->prepare("SELECT a, b FROM table1");
     $sth->execute();
     my @row = $sth->fetchrow_array;
@@ -99,27 +73,25 @@ sub database_roundtrip {
 
 my ($textback, $bytesback) = database_roundtrip($bytestring, $bytestring);
 
-Test(! is_utf8($bytesback), "Reading blob gives binary");
-Test(! is_utf8($textback), "Reading text gives binary too (for now)");
-Test($bytesback eq $bytestring, "No blob corruption");
-Test($textback eq $bytestring, "Same text, different encoding");
+ok(! is_utf8($bytesback), "Reading blob gives binary");
+ok(! is_utf8($textback), "Reading text gives binary too (for now)");
+ok($bytesback eq $bytestring, "No blob corruption");
+ok($textback eq $bytestring, "Same text, different encoding");
 
 # Start over but now activate Unicode support.
 $dbh->{unicode} = 1;
 
 ($textback, $bytesback) = database_roundtrip($utfstring, $bytestring);
 
-Test(! is_utf8($bytesback), "Reading blob still gives binary");
-Test(is_utf8($textback), "Reading text returns UTF-8");
-Test($bytesback eq $bytestring, "Still no blob corruption");
-Test($textback eq $utfstring, "Same text");
+ok(! is_utf8($bytesback), "Reading blob still gives binary");
+ok(is_utf8($textback), "Reading text returns UTF-8");
+ok($bytesback eq $bytestring, "Still no blob corruption");
+ok($textback eq $utfstring, "Same text");
 
 my $lengths = $dbh->selectall_arrayref(
 	"SELECT length(a), length(b) FROM table1"
 );
 
-Test($lengths->[0]->[0] == $lengths->[0]->[1],
+ok($lengths->[0]->[0] == $lengths->[0]->[1],
      "Database actually understands char set") or
     warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
-
-$dbh->do("DROP TABLE table1");
