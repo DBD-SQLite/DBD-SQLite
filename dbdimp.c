@@ -801,7 +801,11 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
             const char *fieldname = sqlite3_column_name(imp_sth->stmt, n);
             const char *datatype, *collseq;
             int notnull, primary, autoinc;
-            sqlite3_table_column_metadata(imp_dbh->db, database, tablename, fieldname, &datatype, &collseq, &notnull, &primary, &autoinc);
+            int retval = sqlite3_table_column_metadata(imp_dbh->db, database, tablename, fieldname, &datatype, &collseq, &notnull, &primary, &autoinc);
+            if (retval != SQLITE_OK) {
+                char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
+                sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, errmsg);
+            }
             av_store(av, n, newSViv(!notnull));
         }
 #endif
