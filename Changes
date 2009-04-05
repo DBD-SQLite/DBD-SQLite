@@ -19,6 +19,8 @@ Changes for Perl extension DBD-SQLite.
       the DBI documentation (ADAMK)
     - Resolved #29058: don't quote a bind param (as a text) if it
       looks like a number (ISHIGAKI)
+    - Resolved #27553: prepare_cached and analyze issue (actually
+      this has been fixed before) (ISHIGAKI)
 
 1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
