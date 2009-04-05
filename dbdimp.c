@@ -939,6 +939,20 @@ sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
     }
 }
 
+void
+sqlite3_db_enable_load_extension( SV *dbh, int onoff )
+{
+    D_imp_dbh(dbh);
+    int rv;
+    
+    rv = sqlite3_enable_load_extension( imp_dbh->db, onoff );
+    if ( rv != SQLITE_OK )
+    {
+        croak( "sqlite_enable_load_extension failed with error %s", 
+               sqlite3_errmsg(imp_dbh->db) );
+    }
+}
+
 typedef struct aggrInfo aggrInfo;
 struct aggrInfo {
   SV *aggr_inst;

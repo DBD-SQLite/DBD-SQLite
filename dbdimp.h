@@ -72,9 +72,10 @@ struct imp_sth_st {
 #define dbd_st_bind_col         sqlite_bind_col
 
 void sqlite3_db_create_function(SV *dbh, const char *name, int argc, SV *func);
+void sqlite3_db_enable_load_extension(SV *dbh, int onoff);
 void sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr );
-void sqlite_db_create_collation(SV *dbh, const char *name, SV *func);
-void sqlite_db_progress_handler(SV *dbh, int n_opcodes, SV *handler);
+void sqlite3_db_create_collation(SV *dbh, const char *name, SV *func);
+void sqlite3_db_progress_handler(SV *dbh, int n_opcodes, SV *handler);
 void sqlite_st_reset( SV *sth );
 int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs );
 int dbd_set_sqlite3_busy_timeout ( SV *dbh, int timeout );

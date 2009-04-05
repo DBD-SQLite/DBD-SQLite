@@ -43,6 +43,15 @@ create_function(dbh, name, argc, func)
     }
 
 void
+enable_load_extension(dbh, onoff)
+    SV *dbh
+    int onoff
+    CODE:
+    {
+        sqlite3_db_enable_load_extension( dbh, onoff );
+    }
+
+void
 create_aggregate(dbh, name, argc, aggr)
     SV *dbh
     char *name
