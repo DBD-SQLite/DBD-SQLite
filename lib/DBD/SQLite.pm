@@ -2,7 +2,7 @@ package DBD::SQLite;
 
 use 5.00503;
 use strict;
-use DBI   1.43 ();
+use DBI   1.57 ();
 use DynaLoader ();
 
 use vars qw($VERSION @ISA);

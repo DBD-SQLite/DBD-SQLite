@@ -2,6 +2,9 @@ Changes for Perl extension DBD-SQLite.
 
 1.19_10 Mon  6 Apr 2009
     - A few more tests moved to Test::More (ADAMK)
+    - We need DBIXS_REVISION, which appeared in DBI 1.57.
+      Bumping up our dependency to match it and confirmed myself
+      that DBD::SQLite actually builds against 1.57 (ADAMK)
     - Resolved #40594: $sth->{NULLABLE} implementation (ISHIGAKI)
     - Resolved #29629: sqlite where length issue (actually this has
       been fixed before) (ISHIGAKI)

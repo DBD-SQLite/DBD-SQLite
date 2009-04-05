@@ -210,7 +210,7 @@ WriteMakefile(
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
 				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
-				'DBI'                 => '1.43',
+				'DBI'                 => '1.57',
 			},
 			build_requires => {
 				'Test::More'          => '0.42',
