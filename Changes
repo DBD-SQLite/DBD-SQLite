@@ -1,5 +1,7 @@
 Changes for Perl extension DBD-SQLite.
 
+    - Check DBI version in Makefile.PL (CHORNY)
+
 1.19_10 Mon  6 Apr 2009
     - A few more tests moved to Test::More (ADAMK)
     - We need DBIXS_REVISION, which appeared in DBI 1.57.

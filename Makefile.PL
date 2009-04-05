@@ -2,6 +2,13 @@ use 5.006; #from ExtUtils::MakeMaker 6.48 and DBI 1.43
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
+my $DBI_required=1.57;
+eval { require DBI; };
+if ($@ or DBI->VERSION < $DBI_required) {
+  print "Please install DBI $DBI_required manually or upgrade you CPAN/CPANPLUS shell\n";
+  exit 0;
+}
+
 
 # Some dependencies need to be more aggressive on Windows
 sub WINLIKE () {
@@ -192,7 +199,7 @@ WriteMakefile(
 	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM     => 'lib/DBD/SQLite.pm',
 	PREREQ_PM        => {
-		'DBI'              => '1.43',
+		'DBI'              => $DBI_required,
 		'Test::More'       => '0.42',
 		'Test::NoWarnings' => '0.081',
 	},
@@ -210,7 +217,7 @@ WriteMakefile(
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
 				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
-				'DBI'                 => '1.57',
+				'DBI'                 => $DBI_required,
 			},
 			build_requires => {
 				'Test::More'          => '0.42',
