@@ -341,7 +341,6 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     dTHR;
     D_imp_dbh_from_sth;
     char *errmsg;
-    const char *extra;
     int num_params = DBIc_NUM_PARAMS(imp_sth);
     int i;
     int retval;
@@ -529,7 +528,7 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
     D_imp_dbh_from_sth;
     int numFields = DBIc_NUM_FIELDS(imp_sth);
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
-    int i, retval;
+    int i;
 
     sqlite_trace(6, "numFields == %d, nrow == %d\n", numFields, imp_sth->nrow);
 
@@ -1300,7 +1299,6 @@ sqlite3_db_progress_handler( SV *dbh, int n_opcodes, SV *handler )
       sqlite3_progress_handler( imp_dbh->db, 0, NULL, NULL);
     }
     else {
-      int rv;
       SV *handler_sv = newSVsv(handler);
 
       /* Copy the handler ref so that it can be deallocated at disconnect */
