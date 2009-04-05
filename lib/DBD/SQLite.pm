@@ -8,7 +8,7 @@ use DynaLoader ();
 use vars qw($VERSION @ISA);
 use vars qw{$err $errstr $drh $sqlite_version};
 BEGIN {
-    $VERSION = '1.19_10';
+    $VERSION = '1.19_11';
     @ISA     = ('DynaLoader');
 
     # Driver singleton
