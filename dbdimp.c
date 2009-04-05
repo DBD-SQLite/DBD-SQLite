@@ -392,9 +392,23 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             retval = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
         }
         else {
-            STRLEN len;
-            char * data = SvPV(value, len);
-            retval = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+            /* guess a bit before binding */
+            const int numtype = looks_like_number(value);
+            if ((numtype & (IS_NUMBER_IN_UV|IS_NUMBER_NOT_INT)) == IS_NUMBER_IN_UV) {
+#if defined(USE_64_BIT_INT)
+                retval = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
+#else
+                retval = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
+#endif
+            }
+            else if ((numtype & (IS_NUMBER_NOT_INT|IS_NUMBER_INFINITY|IS_NUMBER_NAN)) == IS_NUMBER_NOT_INT) {
+                retval = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
+            }
+            else {
+                STRLEN len;
+                char * data = SvPV(value, len);
+                retval = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+            }
         }
 
         if (value) {
