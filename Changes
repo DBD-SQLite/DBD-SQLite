@@ -12,6 +12,8 @@ Changes for Perl extension DBD-SQLite.
       the ticket based on _08, which was a flaw in the Makefile.PL
       involving an always-applied -Dno_last_insert_id, but it turns out
       CHORNY had inadvertantly applied the fix in the name of DBI cleaning)
+    - Starting to use Test::NoWarnings in the test scripts (ADAMK)
+    - Added link to MailingList resource (ADAMK)
 
 1.19_08 Sat  4 Apr 2009
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
