@@ -4,8 +4,6 @@ Changes for Perl extension DBD-SQLite.
     - Check DBI version in Makefile.PL (CHORNY)
     - Bundling Test::NoWarings into /inc to remove a dependency (ADAMK)
     - Correcting use 5.00503 to 5.006 in SQLite.pm (ADAMK)
-    - Resolved #44779: [t/03insert.t] last_insert_id returns undef where
-      4 is expected (ADAMK)
 
 1.19_10 Mon  6 Apr 2009
     - A few more tests moved to Test::More (ADAMK)
