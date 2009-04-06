@@ -97,10 +97,6 @@ sub _get_version {
     return( DBD::SQLite::db::FETCH($_[0], 'sqlite_version') );
 }
 
-sub disconnect {
-	$DB::single = 1;
-}
-
 my %info = (
     17 => 'SQLite',       # SQL_DBMS_NAME
     18 => \&_get_version, # SQL_DBMS_VER
