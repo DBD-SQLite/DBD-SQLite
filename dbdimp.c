@@ -343,7 +343,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     char *errmsg;
     int num_params = DBIc_NUM_PARAMS(imp_sth);
     int i;
-    int retval = 0;
+    int retval; /* = 0; */
 
     sqlite_trace(3, "execute");
 
