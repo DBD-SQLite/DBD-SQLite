@@ -1,6 +1,7 @@
 Changes for Perl extension DBD-SQLite.
 
-1.19_11 to be released
+1.20 to be released
+    - Moving to the first production release of the new era.
     - Check DBI version in Makefile.PL (CHORNY)
     - Bundling Test::NoWarings into /inc to remove a dependency (ADAMK)
     - Correcting use 5.00503 to 5.006 in SQLite.pm (ADAMK)
