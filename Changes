@@ -1,6 +1,10 @@
 Changes for Perl extension DBD-SQLite.
 
-1.20 to be released
+1.20_01 not yet released
+    - fixed the issue that execute on inactive handles returned
+      0 instead of undef, which made a DBIC test broken (ISHIGAKI)
+
+1.20 Mon  7 Apr 2009
     - Moving to the first production release of the new era.
     - Check DBI version in Makefile.PL (CHORNY)
     - Bundling Test::NoWarings into /inc to remove a dependency (ADAMK)
