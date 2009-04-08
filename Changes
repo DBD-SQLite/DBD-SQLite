@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22
+1.22_01 Wed  9 Apr 2009
      - Resolved #25371: Calls sv_utf8_upgrade on strings going into
        the database to make sure latin-1 strings are not saved as
        Malformed UTF-8 character in the SQLite TEXT column (MIYAGAWA)
