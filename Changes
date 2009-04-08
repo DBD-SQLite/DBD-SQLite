@@ -1,5 +1,15 @@
 Changes for Perl extension DBD-SQLite.
 
+1.22_02 Wed  9 Apr 2009
+     - Added missing documentation bits for 'create_collation'
+       and 'progress_handler' (DAMI)
+     - Resolved RT#25924 (Arguments to user-defined functions do not
+       respect unicode setting) (DAMI)
+     - Added comments on the return values on error, and fixed another
+       wrong return value in execute (ISHIGAKI)
+     - Added SQL_NULLABLE_UNKNOWN; still wonders if the error above
+       should be ignored or not (ISHIGAKI)
+
 1.22_01 Wed  9 Apr 2009
      - Resolved #25371: Calls sv_utf8_upgrade on strings going into
        the database to make sure latin-1 strings are not saved as
