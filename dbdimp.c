@@ -405,7 +405,11 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             }
             else {
                 STRLEN len;
-                char * data = SvPV(value, len);
+                char *data;
+                if (imp_dbh->unicode) {
+                    sv_utf8_upgrade(value);
+                }
+                data = SvPV(value, len);
                 retval = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
             }
         }
