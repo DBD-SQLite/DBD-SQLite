@@ -808,8 +808,11 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
             if (retval != SQLITE_OK) {
                 char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
                 sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, errmsg);
+                av_store(av, n, newSViv(2)); /* SQL_NULLABLE_UNKNOWN */
             }
-            av_store(av, n, newSViv(!notnull));
+            else {
+                av_store(av, n, newSViv(!notnull));
+            }
         }
 #endif
     }
