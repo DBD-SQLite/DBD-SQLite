@@ -854,14 +854,14 @@ sqlite_db_set_result(sqlite3_context *context, SV *result, int is_error )
 }
 
 static void
-sqlite_db_func_dispatcher(sqlite3_context *context, int argc, sqlite3_value **value)
+sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sqlite3_value **value)
 {
     dSP;
     int count;
     int i;
     SV *func;
 
-    func = sqlite3_user_data(context);
+    func      = sqlite3_user_data(context);
 
     ENTER;
     SAVETMPS;
@@ -881,7 +881,11 @@ sqlite_db_func_dispatcher(sqlite3_context *context, int argc, sqlite3_value **va
                 arg = sv_2mortal(newSVnv(sqlite3_value_double(value[i])));
                 break;
             case SQLITE_TEXT:
-                arg = sv_2mortal(newSVpvn((const char *)sqlite3_value_text(value[i]), len));
+                arg = newSVpvn((const char *)sqlite3_value_text(value[i]), len);
+                if (is_unicode) {
+                  SvUTF8_on(arg);
+                }
+                arg = sv_2mortal(arg);
                 break;
             case SQLITE_BLOB:
                 arg = sv_2mortal(newSVpvn(sqlite3_value_blob(value[i]), len));
@@ -921,6 +925,19 @@ sqlite_db_func_dispatcher(sqlite3_context *context, int argc, sqlite3_value **va
     LEAVE;
 }
 
+
+static void
+sqlite_db_func_dispatcher_unicode(sqlite3_context *context, int argc, sqlite3_value **value)
+{
+  sqlite_db_func_dispatcher(1, context, argc, value);
+}
+
+static void
+sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3_value **value)
+{
+  sqlite_db_func_dispatcher(0, context, argc, value);
+}
+
 void
 sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
 {
@@ -933,8 +950,10 @@ sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
 
     /* warn("create_function %s with %d args\n", name, argc); */
     rv = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
-                                 func_sv,
-                                 sqlite_db_func_dispatcher, NULL, NULL );
+                                  func_sv,
+                                  imp_dbh->unicode ? sqlite_db_func_dispatcher_unicode
+                                                   : sqlite_db_func_dispatcher_no_unicode, 
+                                  NULL, NULL );
     if ( rv != SQLITE_OK )
     {
         croak( "sqlite_create_function failed with error %s", 
