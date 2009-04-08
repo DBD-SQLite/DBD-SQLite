@@ -528,15 +528,36 @@ be used from SQL.
 =item $code_ref
 
 This should be a reference to the function's implementation.
+The driver will check that this is a proper sorting function.
 
 =back
 
-By default, the collations "perl" and "perllocale" are created for you.
+Collations C<binary> and C<nocase> are builtin within Sqlite.
+Collations C<perl> and C<perllocale> are builtin within 
+the C<DBD::SQLite> driver, and correspond to the 
+Perl C<cmp> operator with or without the L<locale> pragma; 
+so you can write for example 
 
-These allow sorting in Perl terms using "cmp", in both locale and non-locale
-forms. For example, the following does a locale-aware Perl cmp sort.
+  CREATE TABLE foo(txt1 COLLATE perl,
+                   txt2 COLLATE perllocale,
+                   txt3 COLLATE nocase)
+
+or
 
   SELECT * FROM foo ORDER BY name COLLATE perllocale
+
+If the attribute C<< $dbh->{unicode} >> is set, strings coming from
+the database and passed to the collation function will be properly
+tagged with the utf8 flag; but this only works if the 
+C<unicode> attribute is set B<before> the call to 
+C<create_collation>. The recommended way to activate unicode
+is to set the parameter at connection time :
+
+  my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", 
+                          { RaiseError => 1,
+                            unicode    => 1} );
+
+
 
 =head2 $dbh->func( $name, $argc, $pkg, 'create_aggregate' )
 
@@ -629,6 +650,32 @@ The aggregate function can then be used as:
   SELECT group_name, variance(score)
   FROM results
   GROUP BY group_name;
+
+=head2 $dbh->func( $n_opcodes, $code_ref, 'progress_handler' )
+
+This method registers a handler to be invoked 
+periodically during long running calls to SQLite.
+An example use for this interface is to keep a GUI 
+updated during a large query.
+The parameters are:
+
+=over
+
+=item $n_opcodes
+
+The progress handler is invoked once for every C<$n_opcodes>
+virtual machine opcodes in SQLite.
+
+=item $handler
+
+Reference to the handler subroutine.  If the progress handler returns
+non-zero, the SQLite operation is interrupted. This feature can be used to
+implement a "Cancel" button on a GUI dialog box.
+
+Set this argument to C<undef> if you want to unregister a previous
+progress handler.
+
+=back
 
 =head1 BLOBS
 
