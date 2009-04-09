@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22_03 not yet released
+1.22_03 Thu 10 Apr 2009
      - Resolved #44876: Patch to fix includes in the SQLITE_LOCATION case by janus (ISHIGAKI)
      - added PERL_NO_GET_CONTEXT for efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
      - refactored error handling (suggested in #44884, #44871 by TIMB) (ISHIGAKI)
