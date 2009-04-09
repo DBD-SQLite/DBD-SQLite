@@ -493,17 +493,23 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
         paramstring = SvPV(param, len);
         if(paramstring[len] == 0 && strlen(paramstring) == len) {
             pos = sqlite3_bind_parameter_index(imp_sth->stmt, paramstring);
-            if (pos==0)
-                croak("Unknown named parameter: %s", paramstring);
+            if (pos==0) {
+                char errmsg[8192];
+                sqlite3_snprintf(8191, errmsg, "Unknown named parameter: %s", paramstring);
+                sqlite_error(sth, (imp_xxh_t*)imp_sth, 0, errmsg);
+                return FALSE; /* -> &sv_no in SQLite.xsi */
+            }
             pos = 2 * (pos - 1);
         }
         else {
-            croak("<param> could not be coerced to a C string");
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, 0, "<param> could not be coerced to a C string");
+            return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
     else {
         if (is_inout) {
-            croak("InOut bind params not implemented");
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, 0, "InOut bind params not implemented");
+            return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
     pos = 2 * (SvIV(param) - 1);
@@ -959,8 +965,9 @@ sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
                                   NULL, NULL );
     if ( rv != SQLITE_OK )
     {
-        croak( "sqlite_create_function failed with error %s", 
-               sqlite3_errmsg(imp_dbh->db) );
+        char errmsg[8192];
+        sqlite3_snprintf(8191, errmsg, "sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 0, errmsg);
     }
 }
 
@@ -973,8 +980,9 @@ sqlite3_db_enable_load_extension( SV *dbh, int onoff )
     rv = sqlite3_enable_load_extension( imp_dbh->db, onoff );
     if ( rv != SQLITE_OK )
     {
-        croak( "sqlite_enable_load_extension failed with error %s", 
-               sqlite3_errmsg(imp_dbh->db) );
+        char errmsg[8192];
+        sqlite3_snprintf(8191, errmsg, "sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 0, errmsg);
     }
 }
 
@@ -1190,8 +1198,9 @@ sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr_pkg )
 
     if ( rv != SQLITE_OK )
     {
-        croak( "sqlite_create_aggregate failed with error %s", 
-               sqlite3_errmsg(imp_dbh->db) );
+        char errmsg[8192];
+        sqlite3_snprintf(8191, errmsg, "sqlite_create_aggregate failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 0, errmsg);
     }
 }
 
@@ -1289,8 +1298,8 @@ sqlite3_db_create_collation( SV *dbh, const char *name, SV *func )
 
     if ( rv != SQLITE_OK )
     {
-        croak( "sqlite_create_collation failed with error %s", 
-               sqlite3_errmsg(imp_dbh->db) );
+        char errmsg[8192];
+        sqlite3_snprintf(8191, errmsg, "sqlite_create_collation failed with error %s", sqlite3_errmsg(imp_dbh->db));
     }
 }
 
