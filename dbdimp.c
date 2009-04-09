@@ -43,7 +43,7 @@ _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *wha
     /* #7753: DBD::SQLite error shouldn't include extraneous info */
     /* sv_catpvf(errstr, "(%d) at %s line %d", rc, file, line); */
 
-    if ( DBIS->debug >= 3 ) {
+    if ( DBIc_TRACE(imp_xxh, 0, 0, 3) ) {
         PerlIO_printf(DBILOGFP, "sqlite error %d recorded: %s at %s line %d\n",
             rc, what, file, line);
     }
@@ -55,7 +55,7 @@ _sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const
     dTHR;
     
     va_list ap;
-    if (DBIS->debug >= level) {
+    if ( DBIc_TRACE(imp_xxh, 0, 0, level) ) {
         char format[8192];
         sqlite3_snprintf(8191, format, "sqlite trace: %s at %s line %d\n", fmt, file, line);
         va_start(ap, fmt);
@@ -70,7 +70,7 @@ _sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...
     dTHR;
     
     va_list ap;
-    if (DBIS->debug >= level) {
+    if ( DBIc_TRACE(imp_xxh, 0, 0, level) ) {
         char format[8192];
         sqlite3_snprintf(8191, format, "sqlite trace: %s\n", fmt);
         va_start(ap, fmt);
@@ -86,7 +86,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     int retval;
     char *errmsg = NULL;
 
-    if ( DBIS->debug >= 3 ) {
+    if ( DBIc_TRACE(imp_dbh, 0, 0, 3) ) {
         PerlIO_printf(DBILOGFP, "    login '%s' (version %s)\n",
             dbname, sqlite3_version);
     }
