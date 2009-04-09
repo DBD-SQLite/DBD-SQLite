@@ -28,7 +28,7 @@ void
 sqlite_init(dbistate_t *dbistate)
 {
     dTHR;
-    DBIS = dbistate;
+    DBIS = dbistate; /* XXX: looks like this can be removed, right? */
 }
 
 static void
@@ -554,7 +554,7 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
 
     imp_sth->nrow++;
 
-    av = DBIS->get_fbav(imp_sth);
+    av = DBIc_DBISTATE((imp_xxh_t *)imp_sth)->get_fbav(imp_sth);
     for (i = 0; i < numFields; i++) {
         int len;
         char * val;
