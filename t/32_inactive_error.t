@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 4;
 use t::lib::Test;
 
-my $dbh = connect_ok( PrintError => 0, RaiseError => 1 );
+my $dbh = connect_ok( PrintError => 1, RaiseError => 1 );
 
 my $sth = $dbh->prepare('CREATE TABLE foo (f)');
 
@@ -20,6 +20,7 @@ my @warning = ();
 SCOPE: {
 	local $SIG{__WARN__} = sub { push @warning, @_; return };
 	my $ret = eval { $sth->execute; };
+	# we need PrintError => 1, or warn $@ if $@;
 	ok ! defined $ret;
 }
 
