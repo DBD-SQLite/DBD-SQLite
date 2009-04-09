@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite.
 
+1.22_03 not yet released
+     - added PERL_NO_GET_CONTEXT for efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
+     - refactored error handling (suggested in #44884, #44871 by TIMB) (ISHIGAKI)
+
 1.22_02 Wed  9 Apr 2009
      - Added missing documentation bits for 'create_collation'
        and 'progress_handler' (DAMI)
