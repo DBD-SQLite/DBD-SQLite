@@ -36,15 +36,13 @@ _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *wha
 {
     dTHR;
 
-    SV *errstr = DBIc_ERRSTR(imp_xxh);
-    sv_setiv(DBIc_ERR(imp_xxh), (IV)rc);
-    sv_setpv(errstr, what);
+    DBIh_SET_ERR_CHAR(h, imp_xxh, Nullch, rc, what, Nullch, Nullch);
 
     /* #7753: DBD::SQLite error shouldn't include extraneous info */
     /* sv_catpvf(errstr, "(%d) at %s line %d", rc, file, line); */
 
-    if ( DBIc_TRACE(imp_xxh, 0, 0, 3) ) {
-        PerlIO_printf(DBILOGFP, "sqlite error %d recorded: %s at %s line %d\n",
+    if ( DBIc_TRACE_LEVEL(imp_xxh) >= 3 ) {
+        PerlIO_printf(DBIc_LOGPIO(imp_xxh), "sqlite error %d recorded: %s at %s line %d\n",
             rc, what, file, line);
     }
 }
@@ -55,11 +53,11 @@ _sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const
     dTHR;
     
     va_list ap;
-    if ( DBIc_TRACE(imp_xxh, 0, 0, level) ) {
+    if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
         char format[8192];
         sqlite3_snprintf(8191, format, "sqlite trace: %s at %s line %d\n", fmt, file, line);
         va_start(ap, fmt);
-        PerlIO_vprintf(DBILOGFP, format, ap);
+        PerlIO_vprintf(DBIc_LOGPIO(imp_xxh), format, ap);
         va_end(ap);
     }
 }
@@ -70,11 +68,11 @@ _sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...
     dTHR;
     
     va_list ap;
-    if ( DBIc_TRACE(imp_xxh, 0, 0, level) ) {
+    if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
         char format[8192];
         sqlite3_snprintf(8191, format, "sqlite trace: %s\n", fmt);
         va_start(ap, fmt);
-        PerlIO_vprintf(DBILOGFP, format, ap);
+        PerlIO_vprintf(DBIc_LOGPIO(imp_xxh), format, ap);
         va_end(ap);
     }
 }
@@ -86,13 +84,13 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     int retval;
     char *errmsg = NULL;
 
-    if ( DBIc_TRACE(imp_dbh, 0, 0, 3) ) {
+    if ( DBIc_TRACE_LEVEL(imp_dbh) >= 3 ) {
         PerlIO_printf(DBILOGFP, "    login '%s' (version %s)\n",
             dbname, sqlite3_version);
     }
 
-    if ( sqlite3_open(dbname, &(imp_dbh->db)) != SQLITE_OK ) {
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 1, (char*)sqlite3_errmsg(imp_dbh->db));
+    if ((retval = sqlite3_open(dbname, &(imp_dbh->db))) != SQLITE_OK ) {
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, (char*)sqlite3_errmsg(imp_dbh->db));
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
     DBIc_IMPSET_on(imp_dbh);
@@ -270,12 +268,12 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
     int retval = 0;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
-      sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, "attempt to prepare on inactive database handle");
+      sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "attempt to prepare on inactive database handle");
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
     if (strlen(statement) < 1) {
-      sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, "attempt to prepare empty statement");
+      sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "attempt to prepare empty statement");
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
@@ -350,7 +348,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     /* warn("execute\n"); */
 
     if (!DBIc_ACTIVE(imp_dbh)) {
-        sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, "attempt to execute on inactive database handle");
+        sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "attempt to execute on inactive database handle");
         return -2; /* -> undef in SQLite.xsi */
     }
 
@@ -496,19 +494,19 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
             if (pos==0) {
                 char errmsg[8192];
                 sqlite3_snprintf(8191, errmsg, "Unknown named parameter: %s", paramstring);
-                sqlite_error(sth, (imp_xxh_t*)imp_sth, 0, errmsg);
+                sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, errmsg);
                 return FALSE; /* -> &sv_no in SQLite.xsi */
             }
             pos = 2 * (pos - 1);
         }
         else {
-            sqlite_error(sth, (imp_xxh_t*)imp_sth, 0, "<param> could not be coerced to a C string");
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "<param> could not be coerced to a C string");
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
     else {
         if (is_inout) {
-            sqlite_error(sth, (imp_xxh_t*)imp_sth, 0, "InOut bind params not implemented");
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "InOut bind params not implemented");
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
@@ -951,23 +949,23 @@ void
 sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
 {
     D_imp_dbh(dbh);
-    int rv;
+    int retval;
 
     /* Copy the function reference */
     SV *func_sv = newSVsv(func);
     av_push( imp_dbh->functions, func_sv );
 
     /* warn("create_function %s with %d args\n", name, argc); */
-    rv = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
+    retval = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
                                   func_sv,
                                   imp_dbh->unicode ? sqlite_db_func_dispatcher_unicode
                                                    : sqlite_db_func_dispatcher_no_unicode, 
                                   NULL, NULL );
-    if ( rv != SQLITE_OK )
+    if ( retval != SQLITE_OK )
     {
         char errmsg[8192];
         sqlite3_snprintf(8191, errmsg, "sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 0, errmsg);
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
     }
 }
 
@@ -975,14 +973,14 @@ void
 sqlite3_db_enable_load_extension( SV *dbh, int onoff )
 {
     D_imp_dbh(dbh);
-    int rv;
+    int retval;
     
-    rv = sqlite3_enable_load_extension( imp_dbh->db, onoff );
-    if ( rv != SQLITE_OK )
+    retval = sqlite3_enable_load_extension( imp_dbh->db, onoff );
+    if ( retval != SQLITE_OK )
     {
         char errmsg[8192];
         sqlite3_snprintf(8191, errmsg, "sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 0, errmsg);
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
     }
 }
 
@@ -1183,24 +1181,24 @@ void
 sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr_pkg )
 {
     D_imp_dbh(dbh);
-    int rv;
+    int retval;
 
     /* Copy the aggregate reference */
     SV *aggr_pkg_copy = newSVsv(aggr_pkg);
     av_push( imp_dbh->aggregates, aggr_pkg_copy );
 
-    rv = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
+    retval = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
                                   aggr_pkg_copy,
                                   NULL,
                                   sqlite_db_aggr_step_dispatcher, 
                                   sqlite_db_aggr_finalize_dispatcher
                                 );
 
-    if ( rv != SQLITE_OK )
+    if ( retval != SQLITE_OK )
     {
         char errmsg[8192];
         sqlite3_snprintf(8191, errmsg, "sqlite_create_aggregate failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, 0, errmsg);
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
     }
 }
 
