@@ -166,7 +166,7 @@ my @CC_INC = (
 	'-I$(DBI_INSTARCH_DIR)',
 );
 if ( $sqlite_inc ) {
-	push @INC, "-I$sqlite_inc";
+	push @CC_INC, "-I$sqlite_inc";
 }
 
 my @CC_DEFINE = (
