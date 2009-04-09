@@ -1,3 +1,4 @@
+#define PERL_NO_GET_CONTEXT
 
 #include "SQLiteXS.h"
 
@@ -27,14 +28,14 @@ DBISTATE_DECLARE;
 void
 sqlite_init(dbistate_t *dbistate)
 {
-    dTHR;
+    dTHX;
     DBIS = dbistate; /* XXX: looks like this can be removed, right? */
 }
 
 static void
 _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *what)
 {
-    dTHR;
+    dTHX;
 
     DBIh_SET_ERR_CHAR(h, imp_xxh, Nullch, rc, what, Nullch, Nullch);
 
@@ -50,7 +51,7 @@ _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *wha
 static void
 _sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
 {
-    dTHR;
+    dTHX;
     
     va_list ap;
     if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
@@ -65,7 +66,7 @@ _sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const
 static void
 _sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
 {
-    dTHR;
+    dTHX;
     
     va_list ap;
     if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
@@ -80,7 +81,7 @@ _sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...
 int
 sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass)
 {
-    dTHR;
+    dTHX;
     int retval;
     char *errmsg = NULL;
 
@@ -142,6 +143,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 int
 dbd_set_sqlite3_busy_timeout ( SV *dbh, int timeout )
 {
+  dTHX;
+
   D_imp_dbh(dbh);
   if (timeout) {
     imp_dbh->timeout = timeout;
@@ -153,7 +156,7 @@ dbd_set_sqlite3_busy_timeout ( SV *dbh, int timeout )
 int
 sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
 {
-    dTHR;
+    dTHX;
     sqlite3_stmt *pStmt;
     DBIc_ACTIVE_off(imp_dbh);
 
@@ -185,7 +188,7 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
 void
 sqlite_db_destroy (SV *dbh, imp_dbh_t *imp_dbh)
 {
-    dTHR;
+    dTHX;
     if (DBIc_ACTIVE(imp_dbh)) {
         /* warn("DBIc_ACTIVE is on"); */
         sqlite_db_disconnect(dbh, imp_dbh);
@@ -200,7 +203,7 @@ sqlite_db_destroy (SV *dbh, imp_dbh_t *imp_dbh)
 int
 sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 {
-    dTHR;
+    dTHX;
     int retval;
     char *errmsg;
 
@@ -222,7 +225,7 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 int
 sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 {
-    dTHR;
+    dTHX;
     int retval;
     char *errmsg;
 
@@ -248,13 +251,14 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 int
 sqlite_discon_all(SV *drh, imp_drh_t *imp_drh)
 {
-    dTHR;
+    dTHX;
     return FALSE; /* no way to do this */
 }
 
 SV *
 sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, SV *table, SV *field, SV *attr)
 {
+    dTHX;
     return newSViv(sqlite3_last_insert_rowid(imp_dbh->db));
 }
 
@@ -262,7 +266,7 @@ int
 sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
                 char *statement, SV *attribs)
 {
-    dTHR;
+    dTHX;
     D_imp_dbh_from_sth;
     const char *extra;
     int retval = 0;
@@ -307,6 +311,7 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
 char *
 sqlite_quote(imp_dbh_t *imp_dbh, SV *val)
 {
+    dTHX;
     STRLEN len;
     char *cval = SvPV(val, len);
     SV *ret = sv_2mortal(NEWSV(0, SvCUR(val) + 2));
@@ -328,6 +333,7 @@ sqlite_quote(imp_dbh_t *imp_dbh, SV *val)
 void
 sqlite_st_reset (SV *sth)
 {
+    dTHX;
     D_imp_sth(sth);
     if (DBIc_IMPSET(imp_sth))
         sqlite3_reset(imp_sth->stmt);
@@ -336,7 +342,7 @@ sqlite_st_reset (SV *sth)
 int
 sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 {
-    dTHR;
+    dTHX;
     D_imp_dbh_from_sth;
     char *errmsg;
     int num_params = DBIc_NUM_PARAMS(imp_sth);
@@ -484,6 +490,7 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
                 SV *param, SV *value, IV sql_type, SV *attribs,
                                 int is_inout, IV maxlen)
 {
+    dTHX;
     int pos;
     if (!looks_like_number(param)) {
         STRLEN len;
@@ -522,6 +529,8 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
 int
 sqlite_bind_col(SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs)
 {
+    dTHX;
+
     /* store the type */
     av_store(imp_sth->col_types, SvIV(col)-1, newSViv(sql_type));
 
@@ -532,6 +541,8 @@ sqlite_bind_col(SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *
 AV *
 sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
 {
+    dTHX;
+
     AV *av;
     D_imp_dbh_from_sth;
     int numFields = DBIc_NUM_FIELDS(imp_sth);
@@ -625,6 +636,8 @@ sqlite_st_finish (SV *sth, imp_sth_t *imp_sth)
 int
 sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
 {
+    dTHX;
+
     D_imp_dbh_from_sth;
 
     /* warn("finish statement\n"); */
@@ -655,6 +668,8 @@ sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
 void
 sqlite_st_destroy (SV *sth, imp_sth_t *imp_sth)
 {
+    dTHX;
+
     D_imp_dbh_from_sth;
     /* warn("destroy statement: %s\n", imp_sth->statement); */
     DBIc_ACTIVE_off(imp_sth);
@@ -678,7 +693,7 @@ sqlite_st_blob_read (SV *sth, imp_sth_t *imp_sth,
 int
 sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
 {
-    dTHR;
+    dTHX;
     char *key = SvPV_nolen(keysv);
     char *errmsg;
     int retval;
@@ -711,7 +726,7 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
 SV *
 sqlite_db_FETCH_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
 {
-    dTHR;
+    dTHX;
     char *key = SvPV_nolen(keysv);
 
     if (strEQ(key, "sqlite_version")) {
@@ -727,6 +742,7 @@ sqlite_db_FETCH_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
 int
 sqlite_st_STORE_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv, SV *valuesv)
 {
+    dTHX;
     char *key = SvPV_nolen(keysv);
     return FALSE;
 }
@@ -747,6 +763,7 @@ type_to_odbc_type (int type)
 SV *
 sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
 {
+    dTHX;
     D_imp_dbh_from_sth;
     char *key = SvPV_nolen(keysv);
     SV *retsv = NULL;
@@ -834,6 +851,7 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
 static void
 sqlite_db_set_result(sqlite3_context *context, SV *result, int is_error )
 {
+    dTHX;
     STRLEN len;
     char *s;
 
@@ -863,6 +881,7 @@ sqlite_db_set_result(sqlite3_context *context, SV *result, int is_error )
 static void
 sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sqlite3_value **value)
 {
+    dTHX;
     dSP;
     int count;
     int i;
@@ -948,6 +967,7 @@ sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3
 void
 sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
 {
+    dTHX;
     D_imp_dbh(dbh);
     int retval;
 
@@ -972,6 +992,7 @@ sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
 void
 sqlite3_db_enable_load_extension( SV *dbh, int onoff )
 {
+    dTHX;
     D_imp_dbh(dbh);
     int retval;
     
@@ -994,6 +1015,7 @@ struct aggrInfo {
 static void
 sqlite_db_aggr_new_dispatcher( sqlite3_context *context, aggrInfo *aggr_info )
 {
+    dTHX;
     dSP;
     SV *pkg = NULL;
     int count = 0;
@@ -1051,6 +1073,7 @@ static void
 sqlite_db_aggr_step_dispatcher (sqlite3_context *context,
                                 int argc, sqlite3_value **value)
 {
+    dTHX;
     dSP;
     int i;
     aggrInfo *aggr;
@@ -1115,6 +1138,7 @@ sqlite_db_aggr_step_dispatcher (sqlite3_context *context,
 static void
 sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
 {
+    dTHX;
     dSP;
     aggrInfo *aggr, myAggr;
     int count = 0;
@@ -1180,6 +1204,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
 void
 sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr_pkg )
 {
+    dTHX;
     D_imp_dbh(dbh);
     int retval;
 
@@ -1206,6 +1231,7 @@ sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr_pkg )
 int sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
                                                int len2, const void *string2)
 {
+    dTHX;
     dSP;
     int cmp;
     int n_retval;
@@ -1233,6 +1259,7 @@ int sqlite_db_collation_dispatcher_utf8(
   void *func, int len1, const void *string1,
               int len2, const void *string2)
 {
+    dTHX;
     dSP;
     int cmp;
     int n_retval;
@@ -1265,6 +1292,7 @@ int sqlite_db_collation_dispatcher_utf8(
 void
 sqlite3_db_create_collation( SV *dbh, const char *name, SV *func )
 {
+    dTHX;
     D_imp_dbh(dbh);
     int rv, rv2;
     void *aa = "aa";
@@ -1304,6 +1332,7 @@ sqlite3_db_create_collation( SV *dbh, const char *name, SV *func )
 
 int sqlite_db_progress_handler_dispatcher( void *handler )
 {
+    dTHX;
     dSP;
     int n_retval;
     int retval;
@@ -1325,6 +1354,7 @@ int sqlite_db_progress_handler_dispatcher( void *handler )
 void
 sqlite3_db_progress_handler( SV *dbh, int n_opcodes, SV *handler )
 {
+    dTHX;
     D_imp_dbh(dbh);
 
     if (handler == &PL_sv_undef) {
