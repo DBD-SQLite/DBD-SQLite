@@ -19,7 +19,7 @@ DBISTATE_DECLARE;
 
 #define sqlite_error(h,xxh,rc,what) _sqlite_error(__FILE__, __LINE__, h, xxh, rc, what)
 #if defined(__GNUC__) && (__GNUC__ > 2)
-#  define sqlite_trace(level,fmt...) _sqlite_tracef(__FILE__, __LINE__, level, fmt)
+#  define sqlite_trace(h,xxh,level,fmt...) _sqlite_tracef(__FILE__, __LINE__, h, xxh, level, fmt)
 #else
 #  define sqlite_trace _sqlite_tracef_noline
 #endif
@@ -50,7 +50,7 @@ _sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *wha
 }
 
 static void
-_sqlite_tracef(char *file, int line, int level, const char *fmt, ...)
+_sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
 {
     dTHR;
     
@@ -65,7 +65,7 @@ _sqlite_tracef(char *file, int line, int level, const char *fmt, ...)
 }
 
 static void
-_sqlite_tracef_noline(int level, const char *fmt, ...)
+_sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
 {
     dTHR;
     
@@ -207,7 +207,7 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
     char *errmsg;
 
     if (imp_dbh->in_tran) {
-        sqlite_trace(2, "ROLLBACK TRAN");
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "ROLLBACK TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION",
             NULL, NULL, &errmsg))
             != SQLITE_OK)
@@ -234,7 +234,7 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
     }
 
     if (imp_dbh->in_tran) {
-        sqlite_trace(2, "COMMIT TRAN");
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "COMMIT TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION",
             NULL, NULL, &errmsg))
             != SQLITE_OK)
@@ -279,7 +279,7 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
-    sqlite_trace(2, "prepare statement: %s", statement);
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 2, "prepare statement: %s", statement);
     imp_sth->nrow      = -1;
     imp_sth->retval    = SQLITE_OK;
     imp_sth->params    = newAV();
@@ -345,7 +345,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     int i;
     int retval = 0;
 
-    sqlite_trace(3, "execute");
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "execute");
 
     /* warn("execute\n"); */
 
@@ -355,7 +355,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     }
 
     if (DBIc_ACTIVE(imp_sth)) {
-         sqlite_trace(3, "execute still active, reset");
+         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "execute still active, reset");
          if ((imp_sth->retval = sqlite3_reset(imp_sth->stmt)) != SQLITE_OK) {
              char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
              sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, errmsg);
@@ -368,11 +368,11 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
         SV *sql_type_sv = av_shift(imp_sth->params);
         int sql_type = SvIV(sql_type_sv);
 
-        sqlite_trace(4, "params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params));
-        sqlite_trace(4, "bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value));
+        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params));
+        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value));
         
         if (!SvOK(value)) {
-            sqlite_trace(5, "binding null");
+            sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "binding null");
             retval = sqlite3_bind_null(imp_sth->stmt, i+1);
         }
         else if (sql_type >= SQL_NUMERIC && sql_type <= SQL_SMALLINT) {
@@ -425,7 +425,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     }
 
     if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!imp_dbh->in_tran) ) {
-        sqlite_trace(2, "BEGIN TRAN");
+        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 2, "BEGIN TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION",
             NULL, NULL, &errmsg))
             != SQLITE_OK)
@@ -438,7 +438,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 
     imp_sth->nrow = 0;
 
-    sqlite_trace(3, "Execute returned %d cols\n", DBIc_NUM_FIELDS(imp_sth));
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "Execute returned %d cols\n", DBIc_NUM_FIELDS(imp_sth));
     if (DBIc_NUM_FIELDS(imp_sth) == 0) {
         while ((imp_sth->retval = sqlite3_step(imp_sth->stmt)) != SQLITE_DONE) {
             if (imp_sth->retval == SQLITE_ROW) {
@@ -461,7 +461,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     switch (imp_sth->retval) {
         case SQLITE_ROW:
         case SQLITE_DONE: DBIc_ACTIVE_on(imp_sth);
-                          sqlite_trace(5, "exec ok - %d rows, %d cols\n", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth));
+                          sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "exec ok - %d rows, %d cols\n", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth));
                           return 0; /* -> '0E0' in SQLite.xsi */
         default:          sqlite3_reset(imp_sth->stmt);
                           imp_sth->stmt = NULL;
@@ -507,7 +507,7 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
         }
     }
     pos = 2 * (SvIV(param) - 1);
-    sqlite_trace(3, "bind into 0x%p: %d => %s (%d) pos %d\n",
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "bind into 0x%p: %d => %s (%d) pos %d\n",
       imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos);
     av_store(imp_sth->params, pos, SvREFCNT_inc(value));
     av_store(imp_sth->params, pos+1, newSViv(sql_type));
@@ -534,7 +534,7 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
     int i;
 
-    sqlite_trace(6, "numFields == %d, nrow == %d\n", numFields, imp_sth->nrow);
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 6, "numFields == %d, nrow == %d\n", numFields, imp_sth->nrow);
 
     if (!DBIc_ACTIVE(imp_sth)) {
         return Nullav;
@@ -683,7 +683,7 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         if (SvTRUE(valuesv)) {
             /* commit tran? */
             if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (imp_dbh->in_tran) ) {
-                sqlite_trace(2, "COMMIT TRAN");
+                sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "COMMIT TRAN");
                 if ((retval = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION",
                     NULL, NULL, &errmsg))
                     != SQLITE_OK)
