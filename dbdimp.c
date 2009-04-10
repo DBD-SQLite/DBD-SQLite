@@ -28,8 +28,7 @@ DBISTATE_DECLARE;
 void
 sqlite_init(dbistate_t *dbistate)
 {
-    dTHX;
-    DBIS = dbistate; /* XXX: looks like this can be removed, right? */
+    /* does nothing now */
 }
 
 static void
