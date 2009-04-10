@@ -23,11 +23,11 @@ sub driver {
 
     $class .= "::dr";
 
-    $drh = DBI::_new_drh($class, {
+    $drh = DBI::_new_drh( $class, {
         Name        => 'SQLite',
         Version     => $VERSION,
         Attribution => 'DBD::SQLite by Matt Sergeant et al',
-    });
+    } );
 
     return $drh;
 }
@@ -53,18 +53,18 @@ sub connect {
     my $real = $dbname;
     if ( $dbname =~ /=/ ) {
         foreach my $attrib ( split(/;/, $dbname ) ) {
-            my ($k, $v) = split(/=/, $attrib, 2);
-            if ($k eq 'dbname') {
-                $real = $v;
+            my ($key, $value) = split(/=/, $attrib, 2);
+            if ( $key eq 'dbname' ) {
+                $real = $value;
             } else {
-                # TODO: add to attribs
+                $attr->{$key} = $value;
             }
         }
     }
 
     DBD::SQLite::db::_login($dbh, $real, $user, $auth) or return undef;
 
-    # install perl collations
+    # Install perl collations
     my $perl_collation        = sub { $_[0] cmp $_[1] };
     my $perl_locale_collation = sub { use locale; $_[0] cmp $_[1] };
     $dbh->func( "perl",       $perl_collation,        "create_collation" );
@@ -373,7 +373,7 @@ __END__
 
 =head1 NAME
 
-DBD::SQLite - Self Contained RDBMS in a DBI Driver
+DBD::SQLite - Self-contained RDBMS in a DBI Driver
 
 =head1 SYNOPSIS
 
@@ -386,8 +386,8 @@ SQLite is a public domain RDBMS database engine that you can find
 at L<http://www.hwaci.com/sw/sqlite/>.
 
 Rather than ask you to install SQLite first, because SQLite is public
-domain, DBD::SQLite includes the entire thing in the distribution. So
-in order to get a fast transaction capable RDBMS working for your
+domain, B<DBD::SQLite> includes the entire thing in the distribution.
+So in order to get a fast transaction capable RDBMS working for your
 perl project you simply have to install this module, and B<nothing>
 else.
 
@@ -402,11 +402,11 @@ See L<http://www.hwaci.com/sw/sqlite/lang.html> for details.
 =item A complete DB in a single disk file
 
 Everything for your database is stored in a single disk file, making it
-easier to move things around than with DBD::CSV.
+easier to move things around than with L<DBD::CSV>.
 
 =item Atomic commit and rollback
 
-Yes, DBD::SQLite is small and light, but it supports full transactions!
+Yes, B<DBD::SQLite> is small and light, but it supports full transactions!
 
 =item Extensible
 
@@ -435,12 +435,12 @@ limited by the typeless nature of the SQLite database.
 
 =item sqlite_version
 
-Returns the version of the SQLite library which DBD::SQLite is using,
+Returns the version of the SQLite library which B<DBD::SQLite> is using,
 e.g., "2.8.0". Can only be read.
 
 =item unicode
 
-If set to a true value, DBD::SQLite will turn the UTF-8 flag on for all text
+If set to a true value, B<DBD::SQLite> will turn the UTF-8 flag on for all text
 strings coming out of the database. For more details on the UTF-8 flag see
 L<perlunicode>. The default is for the UTF-8 flag to be turned off.
 
@@ -470,7 +470,7 @@ This method returns the last inserted rowid. If you specify an INTEGER PRIMARY
 KEY as the first column in your table, that is the column that is returned.
 Otherwise, it is the hidden ROWID column. See the sqlite docs for details.
 
-Note: You can now use $dbh->last_insert_id() if you have a recent version of
+Note: You can now use $dbh-E<gt>last_insert_id() if you have a recent version of
 DBI.
 
 =head2 $dbh->func('busy_timeout')
@@ -534,13 +534,15 @@ The driver will check that this is a proper sorting function.
 
 Collations C<binary> and C<nocase> are builtin within Sqlite.
 Collations C<perl> and C<perllocale> are builtin within 
-the C<DBD::SQLite> driver, and correspond to the 
+the B<DBD::SQLite> driver, and correspond to the 
 Perl C<cmp> operator with or without the L<locale> pragma; 
 so you can write for example 
 
-  CREATE TABLE foo(txt1 COLLATE perl,
-                   txt2 COLLATE perllocale,
-                   txt3 COLLATE nocase)
+  CREATE TABLE foo(
+      txt1 COLLATE perl,
+      txt2 COLLATE perllocale,
+      txt3 COLLATE nocase
+  )
 
 or
 
@@ -553,11 +555,13 @@ C<unicode> attribute is set B<before> the call to
 C<create_collation>. The recommended way to activate unicode
 is to set the parameter at connection time :
 
-  my $dbh = DBI->connect("dbi:SQLite:dbname=foo", "", "", 
-                          { RaiseError => 1,
-                            unicode    => 1} );
-
-
+  my $dbh = DBI->connect(
+      "dbi:SQLite:dbname=foo", "", "", 
+      {
+          RaiseError => 1,
+          unicode    => 1,
+      }
+  );
 
 =head2 $dbh->func( $name, $argc, $pkg, 'create_aggregate' )
 
@@ -716,7 +720,7 @@ the DBI module. Just type:
 On the command line to access the file F<foo.db>.
 
 Alternatively you can install SQLite from the link above without conflicting
-with DBD::SQLite and use the supplied C<sqlite> command line tool.
+with B<DBD::SQLite> and use the supplied C<sqlite> command line tool.
 
 =head1 PERFORMANCE
 

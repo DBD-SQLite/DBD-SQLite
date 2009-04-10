@@ -6,27 +6,26 @@ BEGIN {
 	$^W = 1;
 }
 
+use t::lib::Test;
 use Test::More;
 BEGIN {
-	if ( $] >= 5.008 ) {
-		plan( tests => 8 );
+	if ( $] >= 5.008005 ) {
+		plan( tests => 9 );
 	} else {
-		plan( skip_all => 'Need Perl 5.8 or later' );
-		exit(0);
+		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-
-use t::lib::Test;
+use Test::NoWarnings;
 use Encode qw/decode/;
 
 BEGIN {
-    # Sadly perl for windows (and probably sqlite, too) may hang
-    # if the system locale doesn't support european languages.
-    # en-us should be a safe default. if it doesn't work, use 'C'.
-    if ($^O eq 'MSWin32') {
-        use POSIX 'locale_h';
-        setlocale(LC_COLLATE, 'en-us');
-    }
+	# Sadly perl for windows (and probably sqlite, too) may hang
+	# if the system locale doesn't support european languages.
+	# en-us should be a safe default. if it doesn't work, use 'C'.
+	if ( $^O eq 'MSWin32') {
+		use POSIX 'locale_h';
+		setlocale(LC_COLLATE, 'en-us');
+	}
 }
 
 my @words = qw{
@@ -48,12 +47,10 @@ my $db_sorted;
 my $sql = "SELECT txt from collate_test ORDER BY txt";
 
 sub no_accents ($$) {
-    my ( $a, $b ) = map lc, @_;
-
-    tr[àâáäåãçðèêéëìîíïñòôóöõøùûúüý]
-      [aaaaaacdeeeeiiiinoooooouuuuy] for $a, $b;
-
-    $a cmp $b;
+	my ( $a, $b ) = map lc, @_;
+	tr[àâáäåãçðèêéëìîíïñòôóöõøùûúüý]
+	  [aaaaaacdeeeeiiiinoooooouuuuy] for $a, $b;
+	$a cmp $b;
 }
 
 $dbh = connect_ok( RaiseError => 1 );

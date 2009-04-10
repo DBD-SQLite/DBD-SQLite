@@ -1,4 +1,5 @@
-use 5.006; #from ExtUtils::MakeMaker 6.48 and DBI 1.43
+# From ExtUtils::MakeMaker 6.48 and DBI 1.43
+use 5.006;
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
@@ -140,7 +141,6 @@ if ( 0 ) {
 
 # Use always the bundled one.
 # XXX: ... and this message should be more informative.
-
 $force_local = 1;
 print "We're using the bundled sqlite library.\n" if $ENV{AUTOMATED_TESTING};
 
