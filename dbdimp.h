@@ -71,14 +71,14 @@ struct imp_sth_st {
 #define dbd_bind_ph             sqlite_bind_ph
 #define dbd_st_bind_col         sqlite_bind_col
 
-void sqlite3_db_create_function(SV *dbh, const char *name, int argc, SV *func);
-void sqlite3_db_enable_load_extension(SV *dbh, int onoff);
-void sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr );
-void sqlite3_db_create_collation(SV *dbh, const char *name, SV *func);
-void sqlite3_db_progress_handler(SV *dbh, int n_opcodes, SV *handler);
-void sqlite_st_reset( SV *sth );
+void sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
+void sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
+void sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr );
+void sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func);
+void sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler);
+void sqlite_st_reset(pTHX_ SV *sth );
 int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs );
-int dbd_set_sqlite3_busy_timeout ( SV *dbh, int timeout );
+int dbd_set_sqlite3_busy_timeout (pTHX_ SV *dbh, int timeout );
 
 #ifdef SvUTF8_on
 

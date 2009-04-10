@@ -18,7 +18,9 @@ DBISTATE_DECLARE;
 #define call_sv(x,y) perl_call_sv(x,y)
 #endif
 
-#define sqlite_error(h,xxh,rc,what) _sqlite_error(__FILE__, __LINE__, h, xxh, rc, what)
+#define sqlite_error(h,xxh,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, xxh, rc, what)
+
+/* XXX: is there any good way to use pTHX_/aTHX_ here like above? */
 #if defined(__GNUC__) && (__GNUC__ > 2)
 #  define sqlite_trace(h,xxh,level,fmt...) _sqlite_tracef(__FILE__, __LINE__, h, xxh, level, fmt)
 #else
@@ -32,10 +34,8 @@ sqlite_init(dbistate_t *dbistate)
 }
 
 static void
-_sqlite_error(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *what)
+_sqlite_error(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, char *what)
 {
-    dTHX;
-
     DBIh_SET_ERR_CHAR(h, imp_xxh, Nullch, rc, what, Nullch, Nullch);
 
     /* #7753: DBD::SQLite error shouldn't include extraneous info */
@@ -51,7 +51,7 @@ static void
 _sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
 {
     dTHX;
-    
+
     va_list ap;
     if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
         char format[8192];
@@ -66,7 +66,7 @@ static void
 _sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
 {
     dTHX;
-    
+
     va_list ap;
     if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
         char format[8192];
@@ -140,10 +140,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 }
 
 int
-dbd_set_sqlite3_busy_timeout ( SV *dbh, int timeout )
+dbd_set_sqlite3_busy_timeout (pTHX_ SV *dbh, int timeout )
 {
-  dTHX;
-
   D_imp_dbh(dbh);
   if (timeout) {
     imp_dbh->timeout = timeout;
@@ -330,9 +328,8 @@ sqlite_quote(imp_dbh_t *imp_dbh, SV *val)
 }
 
 void
-sqlite_st_reset (SV *sth)
+sqlite_st_reset (pTHX_ SV *sth)
 {
-    dTHX;
     D_imp_sth(sth);
     if (DBIc_IMPSET(imp_sth))
         sqlite3_reset(imp_sth->stmt);
@@ -848,9 +845,8 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
 }
 
 static void
-sqlite_db_set_result(sqlite3_context *context, SV *result, int is_error )
+sqlite_db_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error )
 {
-    dTHX;
     STRLEN len;
     char *s;
 
@@ -929,19 +925,19 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
 
     /* Check for an error */
     if (SvTRUE(ERRSV) ) {
-        sqlite_db_set_result( context, ERRSV, 1);
+        sqlite_db_set_result(aTHX_ context, ERRSV, 1);
         POPs;
     } else if ( count != 1 ) {
         SV *err = sv_2mortal(newSVpvf( "function should return 1 argument, got %d",
                                        count ));
 
-        sqlite_db_set_result( context, err, 1);
+        sqlite_db_set_result(aTHX_ context, err, 1);
         /* Clear the stack */
         for ( i=0; i < count; i++ ) {
             POPs;
         }
     } else {
-        sqlite_db_set_result( context, POPs, 0 );
+        sqlite_db_set_result(aTHX_ context, POPs, 0 );
     }
 
     PUTBACK;
@@ -964,9 +960,8 @@ sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3
 }
 
 void
-sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
+sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
 {
-    dTHX;
     D_imp_dbh(dbh);
     int retval;
 
@@ -989,9 +984,8 @@ sqlite3_db_create_function( SV *dbh, const char *name, int argc, SV *func )
 }
 
 void
-sqlite3_db_enable_load_extension( SV *dbh, int onoff )
+sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
 {
-    dTHX;
     D_imp_dbh(dbh);
     int retval;
     
@@ -1012,9 +1006,8 @@ struct aggrInfo {
 };
 
 static void
-sqlite_db_aggr_new_dispatcher( sqlite3_context *context, aggrInfo *aggr_info )
+sqlite_db_aggr_new_dispatcher(pTHX_ sqlite3_context *context, aggrInfo *aggr_info )
 {
-    dTHX;
     dSP;
     SV *pkg = NULL;
     int count = 0;
@@ -1086,7 +1079,7 @@ sqlite_db_aggr_step_dispatcher (sqlite3_context *context,
 
     /* initialize on first step */
     if ( !aggr->inited ) {
-        sqlite_db_aggr_new_dispatcher( context, aggr );
+        sqlite_db_aggr_new_dispatcher(aTHX_ context, aggr );
     }
 
     if ( aggr->err || !aggr->aggr_inst ) 
@@ -1153,7 +1146,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
         aggr = &myAggr;
         aggr->aggr_inst = NULL;
         aggr->err = NULL;
-        sqlite_db_aggr_new_dispatcher (context, aggr);
+        sqlite_db_aggr_new_dispatcher(aTHX_ context, aggr);
     } 
 
     if  ( ! aggr->err && aggr->aggr_inst ) {
@@ -1177,7 +1170,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
                 POPs;
             }
         } else {
-            sqlite_db_set_result( context, POPs, 0 );
+            sqlite_db_set_result(aTHX_ context, POPs, 0 );
         }
         PUTBACK;
     }
@@ -1186,7 +1179,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
         warn( "DBD::SQLite: error in aggregator cannot be reported to SQLite: %s",
             SvPV_nolen( aggr->err ) );
 
-        /* sqlite_db_set_result( context, aggr->err, 1 ); */
+        /* sqlite_db_set_result(aTHX_ context, aggr->err, 1 ); */
         SvREFCNT_dec( aggr->err );
         aggr->err = NULL;
     }
@@ -1201,9 +1194,8 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
 }
 
 void
-sqlite3_db_create_aggregate( SV *dbh, const char *name, int argc, SV *aggr_pkg )
+sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_pkg )
 {
-    dTHX;
     D_imp_dbh(dbh);
     int retval;
 
@@ -1289,9 +1281,8 @@ int sqlite_db_collation_dispatcher_utf8(
 
 
 void
-sqlite3_db_create_collation( SV *dbh, const char *name, SV *func )
+sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 {
-    dTHX;
     D_imp_dbh(dbh);
     int rv, rv2;
     void *aa = "aa";
@@ -1351,9 +1342,8 @@ int sqlite_db_progress_handler_dispatcher( void *handler )
 
 
 void
-sqlite3_db_progress_handler( SV *dbh, int n_opcodes, SV *handler )
+sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 {
-    dTHX;
     D_imp_dbh(dbh);
 
     if (handler == &PL_sv_undef) {

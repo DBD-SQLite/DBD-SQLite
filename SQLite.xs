@@ -1,3 +1,4 @@
+#define PERL_NO_GET_CONTEXT
 
 #include "SQLiteXS.h"
 
@@ -39,7 +40,7 @@ create_function(dbh, name, argc, func)
     SV *func
     CODE:
     {
-        sqlite3_db_create_function( dbh, name, argc, func );
+        sqlite3_db_create_function(aTHX_ dbh, name, argc, func );
     }
 
 void
@@ -48,7 +49,7 @@ enable_load_extension(dbh, onoff)
     int onoff
     CODE:
     {
-        sqlite3_db_enable_load_extension( dbh, onoff );
+        sqlite3_db_enable_load_extension(aTHX_ dbh, onoff );
     }
 
 void
@@ -59,7 +60,7 @@ create_aggregate(dbh, name, argc, aggr)
     SV *aggr
     CODE:
     {
-        sqlite3_db_create_aggregate( dbh, name, argc, aggr );
+        sqlite3_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
     }
 
 void
@@ -69,7 +70,7 @@ create_collation(dbh, name, func)
     SV *func
     CODE:
     {
-        sqlite3_db_create_collation( dbh, name, func );
+        sqlite3_db_create_collation(aTHX_ dbh, name, func );
     }
 
 void
@@ -79,7 +80,7 @@ progress_handler(dbh, n_opcodes, handler)
     SV *handler
     CODE:
     {
-        sqlite3_db_progress_handler( dbh, n_opcodes, handler );
+        sqlite3_db_progress_handler(aTHX_ dbh, n_opcodes, handler );
     }
 
 int
@@ -87,7 +88,7 @@ busy_timeout(dbh, timeout=0)
   SV *dbh
   int timeout
   CODE:
-    RETVAL = dbd_set_sqlite3_busy_timeout( dbh, timeout );
+    RETVAL = dbd_set_sqlite3_busy_timeout(aTHX_ dbh, timeout );
   OUTPUT:
     RETVAL
 
@@ -100,7 +101,7 @@ reset(sth)
     SV *sth
     CODE:
     {
-        sqlite_st_reset(sth);
+        sqlite_st_reset(aTHX_ sth);
     }
 
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite
