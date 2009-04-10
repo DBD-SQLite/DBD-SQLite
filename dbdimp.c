@@ -30,7 +30,8 @@ DBISTATE_DECLARE;
 void
 sqlite_init(dbistate_t *dbistate)
 {
-     /* DBISTATE_INIT;   Initialize the DBI macros  */
+    dTHX;
+    DBISTATE_INIT; /* Initialize the DBI macros  */
 }
 
 static void
@@ -40,10 +41,12 @@ _sqlite_error(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, cha
 
     /* #7753: DBD::SQLite error shouldn't include extraneous info */
     /* sv_catpvf(errstr, "(%d) at %s line %d", rc, file, line); */
-
     if ( DBIc_TRACE_LEVEL(imp_xxh) >= 3 ) {
-        PerlIO_printf(DBIc_LOGPIO(imp_xxh), "sqlite error %d recorded: %s at %s line %d\n",
-            rc, what, file, line);
+        PerlIO_printf(
+            DBIc_LOGPIO(imp_xxh),
+            "sqlite error %d recorded: %s at %s line %d\n",
+            rc, what, file, line
+        );
     }
 }
 
