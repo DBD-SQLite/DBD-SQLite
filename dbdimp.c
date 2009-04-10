@@ -30,7 +30,7 @@ DBISTATE_DECLARE;
 void
 sqlite_init(dbistate_t *dbistate)
 {
-     DBISTATE_INIT;  /*  Initialize the DBI macros  */
+     /* DBISTATE_INIT;   Initialize the DBI macros  */
 }
 
 static void
