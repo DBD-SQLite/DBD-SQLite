@@ -394,7 +394,8 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             retval = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
         }
         else {
-            /* guess a bit before binding */
+#if 0
+            /* stop guessing until we figure out better way to do this */
             const int numtype = looks_like_number(value);
             if ((numtype & (IS_NUMBER_IN_UV|IS_NUMBER_NOT_INT)) == IS_NUMBER_IN_UV) {
 #if defined(USE_64_BIT_INT)
@@ -407,6 +408,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
                 retval = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
             }
             else {
+#endif
                 STRLEN len;
                 char *data;
                 if (imp_dbh->unicode) {
@@ -414,7 +416,9 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
                 }
                 data = SvPV(value, len);
                 retval = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+#if 0
             }
+#endif
         }
 
         if (value) {
