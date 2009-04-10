@@ -8,8 +8,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 6;
 use t::lib::Test;
+use Test::More tests => 7;
+use Test::NoWarnings;
 
 my $dbh = connect_ok();
 $dbh->do(<<'END_SQL');

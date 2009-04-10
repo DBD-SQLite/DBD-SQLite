@@ -6,8 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 11;
 use t::lib::Test;
+use Test::More tests => 12;
+use Test::NoWarnings;
 
 my $dbh = connect_ok();
 

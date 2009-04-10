@@ -7,8 +7,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 18;
 use t::lib::Test;
+use Test::More tests => 19;
+use Test::NoWarnings;
 
 sub now {
     return time();
