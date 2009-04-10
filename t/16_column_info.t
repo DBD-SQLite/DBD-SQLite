@@ -6,8 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 6;
 use t::lib::Test;
+use Test::More tests => 7;
+use Test::NoWarnings;
 
 my $dbh = DBI->connect('dbi:SQLite:dbname=:memory:',undef,undef,{RaiseError => 1});
 

@@ -6,17 +6,15 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 26;
 use t::lib::Test;
+use Test::More tests => 27;
+use Test::NoWarnings;
 
-my $dbh = DBI->connect('dbi:SQLite:foo', '', '', 
-{
+my $dbh = connect_ok(
     RaiseError => 1,
     PrintError => 0,
     AutoCommit => 0,
-});
-
-ok($dbh);
+);
 
 ok($dbh->do("CREATE TABLE Blah ( id INTEGER, val VARCHAR )"));
 ok($dbh->commit);
