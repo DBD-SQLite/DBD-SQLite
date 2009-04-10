@@ -720,7 +720,12 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         return TRUE;
     }
     if (strEQ(key, "unicode")) {
+#if (PERL_REVISION <= 5) && ((PERL_VERSION < 8) || (PERL_VERSION == 8 && PERL_SUBVERSION < 5))
+      sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
+      imp_dbh->unicode = 0;
+#else
       imp_dbh->unicode = !(! SvTRUE(valuesv));
+#endif
       return TRUE;
     }
     return FALSE;
@@ -736,7 +741,12 @@ sqlite_db_FETCH_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
         return newSVpv(sqlite3_version,0);
     }
    if (strEQ(key, "unicode")) {
+#if (PERL_REVISION <= 5) && ((PERL_VERSION < 8) || (PERL_VERSION == 8 && PERL_SUBVERSION < 5))
+      sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
+     return newSViv(0);
+#else
      return newSViv(imp_dbh->unicode ? 1 : 0);
+#endif
    }
 
     return NULL;
