@@ -1,9 +1,12 @@
 Changes for Perl extension DBD-SQLite.
 
+1.22_04 not yet released
+     - Inserted pTHX_/aTHX_ for better efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
+
 1.22_03 Thu 10 Apr 2009
      - Resolved #44876: Patch to fix includes in the SQLITE_LOCATION case by janus (ISHIGAKI)
-     - added PERL_NO_GET_CONTEXT for efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
-     - refactored error handling (suggested in #44884, #44871 by TIMB) (ISHIGAKI)
+     - Added PERL_NO_GET_CONTEXT for efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
+     - Refactored error handling (suggested in #44884, #44871 by TIMB) (ISHIGAKI)
 
 1.22_02 Wed  9 Apr 2009
      - Added missing documentation bits for 'create_collation'
