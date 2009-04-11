@@ -15,7 +15,8 @@ BEGIN {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-require utf8;
+eval "require utf8";
+die $@ if $@;
 
 my $dbh = connect_ok( unicode => 1 );
 $dbh->func( "perl_uc", 1, \&perl_uc, "create_function" );
