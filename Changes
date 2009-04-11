@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22_04 not yet released
+1.22_04 Sat 11 Apr 2009 
     - Adding support parsing attributes out of the DSN (ADAMK)
     - Inserted pTHX_/aTHX_ for better efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
     - Dropping support for uncode before 5.8.5 to simplify support and
