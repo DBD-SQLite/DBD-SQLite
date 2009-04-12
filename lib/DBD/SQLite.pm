@@ -441,10 +441,10 @@ e.g., "2.8.0". Can only be read.
 =item unicode
 
 If set to a true value, B<DBD::SQLite> will turn the UTF-8 flag on for all text
-strings coming out of the database. For more details on the UTF-8 flag see
+strings coming out of the database (this feature is currently disabled for perl < 5.8.5). For more details on the UTF-8 flag see
 L<perlunicode>. The default is for the UTF-8 flag to be turned off.
 
-Also note that due to some bizareness in SQLite's type system (see
+Also note that due to some bizarreness in SQLite's type system (see
 L<http://www.sqlite.org/datatype3.html>), if you want to retain
 blob-style behavior for B<some> columns under C<< $dbh->{unicode} = 1
 >> (say, to store images in the database), you have to state so
