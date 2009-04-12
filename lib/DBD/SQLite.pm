@@ -383,7 +383,7 @@ DBD::SQLite - Self-contained RDBMS in a DBI Driver
 =head1 DESCRIPTION
 
 SQLite is a public domain RDBMS database engine that you can find
-at L<http://www.hwaci.com/sw/sqlite/>.
+at L<http://www.sqlite.org/>.
 
 Rather than ask you to install SQLite first, because SQLite is public
 domain, B<DBD::SQLite> includes the entire thing in the distribution.
@@ -397,7 +397,7 @@ SQLite supports the following features:
 
 =item Implements a large subset of SQL92
 
-See L<http://www.hwaci.com/sw/sqlite/lang.html> for details.
+See L<http://www.sqlite.org/lang.html> for details.
 
 =item A complete DB in a single disk file
 
@@ -532,7 +532,7 @@ The driver will check that this is a proper sorting function.
 
 =back
 
-Collations C<binary> and C<nocase> are builtin within Sqlite.
+Collations C<binary> and C<nocase> are builtin within SQLite.
 Collations C<perl> and C<perllocale> are builtin within 
 the B<DBD::SQLite> driver, and correspond to the 
 Perl C<cmp> operator with or without the L<locale> pragma; 
