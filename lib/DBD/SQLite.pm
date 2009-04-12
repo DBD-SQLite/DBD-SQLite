@@ -766,26 +766,14 @@ There're several pended RT bugs/patches at the moment
 
 Here's the list.
 
-L<http://rt.cpan.org/Public/Bug/Display.html?id=41631>
-(patch required)
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=40594>
-(patch required, and the following tests may break)
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=30167>
-(need to see what is the best solution right now)
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=36836>
-(patch required)
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=13631>
-(test required)
-
 L<http://rt.cpan.org/Public/Bug/Display.html?id=35449>
-(break tests)
+(breaks tests)
 
 L<http://rt.cpan.org/Public/Bug/Display.html?id=29629>
-(patch required)
+(requires a patch)
+
+L<http://rt.cpan.org/Public/Bug/Display.html?id=29058>
+(requires a patch)
 
 Switch tests to L<Test::More> to support more advanced testing behaviours
 
