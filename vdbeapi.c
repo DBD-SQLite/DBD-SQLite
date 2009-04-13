@@ -13,7 +13,7 @@
 ** This file contains code use to implement APIs that are part of the
 ** VDBE.
 **
-** $Id: vdbeapi.c,v 1.156 2009/03/25 15:43:09 danielk1977 Exp $
+** $Id: vdbeapi.c,v 1.161 2009/04/10 23:11:31 drh Exp $
 */
 #include "sqliteInt.h"
 #include "vdbeInt.h"
@@ -443,7 +443,7 @@ static int sqlite3Step(Vdbe *p){
   }
 
   if( p->pc<=0 && p->expired ){
-    if( p->rc==SQLITE_OK ){
+    if( ALWAYS(p->rc==SQLITE_OK) ){
       p->rc = SQLITE_SCHEMA;
     }
     rc = SQLITE_ERROR;
@@ -559,7 +559,7 @@ int sqlite3_step(sqlite3_stmt *pStmt){
       sqlite3_reset(pStmt);
       v->expired = 0;
     }
-    if( rc==SQLITE_SCHEMA && v->isPrepareV2 && db->pErr ){
+    if( rc==SQLITE_SCHEMA && ALWAYS(v->isPrepareV2) && ALWAYS(db->pErr) ){
       /* This case occurs after failing to recompile an sql statement. 
       ** The error message from the SQL compiler has already been loaded 
       ** into the database handle. This block copies the error message 
@@ -618,7 +618,7 @@ void sqlite3InvalidFunction(
   const char *zName = context->pFunc->zName;
   char *zErr;
   UNUSED_PARAMETER2(NotUsed, NotUsed2);
-  zErr = sqlite3MPrintf(0,
+  zErr = sqlite3_mprintf(
       "unable to use function %s in the requested context", zName);
   sqlite3_result_error(context, zErr, -1);
   sqlite3_free(zErr);
@@ -764,7 +764,7 @@ static Mem *columnMem(sqlite3_stmt *pStmt, int i){
   }else{
     /* ((double)0) In case of SQLITE_OMIT_FLOATING_POINT... */
     static const Mem nullMem = {{0}, (double)0, 0, "", 0, MEM_Null, SQLITE_NULL, 0, 0, 0 };
-    if( pVm && pVm->db ){
+    if( pVm && ALWAYS(pVm->db) ){
       sqlite3_mutex_enter(pVm->db->mutex);
       sqlite3Error(pVm->db, SQLITE_RANGE, 0);
     }
@@ -904,24 +904,23 @@ static const void *columnName(
   const void *ret = 0;
   Vdbe *p = (Vdbe *)pStmt;
   int n;
+  sqlite3 *db = p->db;
   
-
-  if( p!=0 ){
-    n = sqlite3_column_count(pStmt);
-    if( N<n && N>=0 ){
-      N += useType*n;
-      sqlite3_mutex_enter(p->db->mutex);
-      ret = xFunc(&p->aColName[N]);
-
-      /* A malloc may have failed inside of the xFunc() call. If this
-      ** is the case, clear the mallocFailed flag and return NULL.
-      */
-      if( p->db && p->db->mallocFailed ){
-        p->db->mallocFailed = 0;
-        ret = 0;
-      }
-      sqlite3_mutex_leave(p->db->mutex);
+  assert( db!=0 );
+  n = sqlite3_column_count(pStmt);
+  if( N<n && N>=0 ){
+    N += useType*n;
+    sqlite3_mutex_enter(db->mutex);
+    assert( db->mallocFailed==0 );
+    ret = xFunc(&p->aColName[N]);
+     /* A malloc may have failed inside of the xFunc() call. If this
+    ** is the case, clear the mallocFailed flag and return NULL.
+    */
+    if( db->mallocFailed ){
+      db->mallocFailed = 0;
+      ret = 0;
     }
+    sqlite3_mutex_leave(db->mutex);
   }
   return ret;
 }
@@ -1161,8 +1160,8 @@ int sqlite3_bind_value(sqlite3_stmt *pStmt, int i, const sqlite3_value *pValue){
       rc = sqlite3VdbeChangeEncoding(&p->aVar[i-1], ENC(p->db));
     }
     sqlite3_mutex_leave(p->db->mutex);
+    rc = sqlite3ApiExit(p->db, rc);
   }
-  rc = sqlite3ApiExit(p->db, rc);
   return rc;
 }
 int sqlite3_bind_zeroblob(sqlite3_stmt *pStmt, int i, int n){
@@ -1192,18 +1191,21 @@ int sqlite3_bind_parameter_count(sqlite3_stmt *pStmt){
 */
 static void createVarMap(Vdbe *p){
   if( !p->okVar ){
+    int j;
+    Op *pOp;
     sqlite3_mutex_enter(p->db->mutex);
-    if( !p->okVar ){
-      int j;
-      Op *pOp;
-      for(j=0, pOp=p->aOp; j<p->nOp; j++, pOp++){
-        if( pOp->opcode==OP_Variable ){
-          assert( pOp->p1>0 && pOp->p1<=p->nVar );
-          p->azVar[pOp->p1-1] = pOp->p4.z;
-        }
+    /* The race condition here is harmless.  If two threads call this
+    ** routine on the same Vdbe at the same time, they both might end
+    ** up initializing the Vdbe.azVar[] array.  That is a little extra
+    ** work but it results in the same answer.
+    */
+    for(j=0, pOp=p->aOp; j<p->nOp; j++, pOp++){
+      if( pOp->opcode==OP_Variable ){
+        assert( pOp->p1>0 && pOp->p1<=p->nVar );
+        p->azVar[pOp->p1-1] = pOp->p4.z;
       }
-      p->okVar = 1;
     }
+    p->okVar = 1;
     sqlite3_mutex_leave(p->db->mutex);
   }
 }
@@ -1248,36 +1250,40 @@ int sqlite3_bind_parameter_index(sqlite3_stmt *pStmt, const char *zName){
 
 /*
 ** Transfer all bindings from the first statement over to the second.
-** If the two statements contain a different number of bindings, then
-** an SQLITE_ERROR is returned.
 */
 int sqlite3TransferBindings(sqlite3_stmt *pFromStmt, sqlite3_stmt *pToStmt){
   Vdbe *pFrom = (Vdbe*)pFromStmt;
   Vdbe *pTo = (Vdbe*)pToStmt;
-  int i, rc = SQLITE_OK;
-  if( (pFrom->magic!=VDBE_MAGIC_RUN && pFrom->magic!=VDBE_MAGIC_HALT)
-    || (pTo->magic!=VDBE_MAGIC_RUN && pTo->magic!=VDBE_MAGIC_HALT)
-    || pTo->db!=pFrom->db ){
-    return SQLITE_MISUSE;
-  }
-  if( pFrom->nVar!=pTo->nVar ){
-    return SQLITE_ERROR;
-  }
+  int i;
+  assert( pTo->db==pFrom->db );
+  assert( pTo->nVar==pFrom->nVar );
   sqlite3_mutex_enter(pTo->db->mutex);
-  for(i=0; rc==SQLITE_OK && i<pFrom->nVar; i++){
+  for(i=0; i<pFrom->nVar; i++){
     sqlite3VdbeMemMove(&pTo->aVar[i], &pFrom->aVar[i]);
   }
   sqlite3_mutex_leave(pTo->db->mutex);
-  assert( rc==SQLITE_OK || rc==SQLITE_NOMEM );
-  return rc;
+  return SQLITE_OK;
 }
 
 #ifndef SQLITE_OMIT_DEPRECATED
 /*
 ** Deprecated external interface.  Internal/core SQLite code
 ** should call sqlite3TransferBindings.
+**
+** Is is misuse to call this routine with statements from different
+** database connections.  But as this is a deprecated interface, we
+** will not bother to check for that condition.
+**
+** If the two statements contain a different number of bindings, then
+** an SQLITE_ERROR is returned.  Nothing else can go wrong, so otherwise
+** SQLITE_OK is returned.
 */
 int sqlite3_transfer_bindings(sqlite3_stmt *pFromStmt, sqlite3_stmt *pToStmt){
+  Vdbe *pFrom = (Vdbe*)pFromStmt;
+  Vdbe *pTo = (Vdbe*)pToStmt;
+  if( pFrom->nVar!=pTo->nVar ){
+    return SQLITE_ERROR;
+  }
   return sqlite3TransferBindings(pFromStmt, pToStmt);
 }
 #endif

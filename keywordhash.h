@@ -57,10 +57,10 @@ static int keywordCode(const char *z, int n){
     'A','C','U','U','M','V','I','E','W','I','N','I','T','I','A','L','L','Y',
   };
   static const unsigned char aHash[127] = {
-      70,  99, 112,  68,   0,  43,   0,   0,  76,   0,  71,   0,   0,
+      70,  99, 112,  68,   0,  44,   0,   0,  76,   0,  71,   0,   0,
       41,  12,  72,  15,   0, 111,  79,  49, 106,   0,  19,   0,   0,
      116,   0, 114, 109,   0,  22,  87,   0,   9,   0,   0,  64,  65,
-       0,  63,   6,   0,  47,  84,  96,   0, 113,  95,   0,   0,  44,
+       0,  63,   6,   0,  47,  84,  96,   0, 113,  95,   0,   0,  43,
        0,  97,  24,   0,  17,   0, 117,  48,  23,   0,   5, 104,  25,
       90,   0,   0, 119, 100,  55, 118,  52,   7,  50,   0,  85,   0,
       94,  26,   0,  93,   0,   0,   0,  89,  86,  91,  82, 103,  14,
@@ -70,9 +70,9 @@ static int keywordCode(const char *z, int n){
   };
   static const unsigned char aNext[119] = {
        0,   0,   0,   0,   4,   0,   0,   0,   0,   0,   0,   0,   0,
-       0,   3,   0,   0,   0,   0,   0,   0,  13,   0,   0,   0,   0,
+       0,   2,   0,   0,   0,   0,   0,   0,  13,   0,   0,   0,   0,
        0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
-       0,   0,   0,   0,  32,  21,   0,   0,   0,  42,   2,  46,   0,
+       0,   0,   0,  32,   0,  21,   0,   0,   0,  42,   3,  46,   0,
        0,   0,   0,   0,  29,   0,  37,   0,   0,   0,   1,  60,   0,
        0,  61,   0,  40,   0,   0,   0,   0,   0,   0,   0,  59,   0,
        0,   0,   0,  30,  54,  16,  33,  11,   0,   0,   0,   0,   0,
@@ -81,10 +81,10 @@ static int keywordCode(const char *z, int n){
        0,   0,
   };
   static const unsigned char aLen[119] = {
-       7,   5,   7,   4,   6,   4,   5,   3,   6,   3,   7,   6,   6,
+       7,   7,   5,   4,   6,   4,   5,   3,   6,   3,   7,   6,   6,
        7,   7,   3,   8,   2,   6,   5,   4,   4,   3,  10,   4,   6,
       11,   2,   7,   5,   5,   9,   6,   9,   9,   7,  10,  10,   4,
-       6,   2,   3,   4,   9,   2,   6,   5,   6,   6,   5,   6,   5,
+       6,   2,   3,   9,   4,   2,   6,   5,   6,   6,   5,   6,   5,
        5,   7,   7,   3,   7,   4,   4,   7,   3,   6,   4,   7,   6,
       12,   6,   9,   4,   6,   5,   4,   7,   6,   5,   6,   7,   5,
        4,   5,   6,   5,   7,   3,   7,  13,   2,   2,   4,   6,   6,
@@ -105,7 +105,7 @@ static int keywordCode(const char *z, int n){
      531, 536,
   };
   static const unsigned char aCode[119] = {
-    TK_REINDEX,    TK_INDEX,      TK_INDEXED,    TK_DESC,       TK_ESCAPE,     
+    TK_REINDEX,    TK_INDEXED,    TK_INDEX,      TK_DESC,       TK_ESCAPE,     
     TK_EACH,       TK_CHECK,      TK_KEY,        TK_BEFORE,     TK_FOR,        
     TK_FOREIGN,    TK_IGNORE,     TK_LIKE_KW,    TK_EXPLAIN,    TK_INSTEAD,    
     TK_ADD,        TK_DATABASE,   TK_AS,         TK_SELECT,     TK_TABLE,      
@@ -138,8 +138,8 @@ static int keywordCode(const char *z, int n){
   for(i=((int)aHash[h])-1; i>=0; i=((int)aNext[i])-1){
     if( aLen[i]==n && sqlite3StrNICmp(&zText[aOffset[i]],z,n)==0 ){
       testcase( i==0 ); /* TK_REINDEX */
-      testcase( i==1 ); /* TK_INDEX */
-      testcase( i==2 ); /* TK_INDEXED */
+      testcase( i==1 ); /* TK_INDEXED */
+      testcase( i==2 ); /* TK_INDEX */
       testcase( i==3 ); /* TK_DESC */
       testcase( i==4 ); /* TK_ESCAPE */
       testcase( i==5 ); /* TK_EACH */

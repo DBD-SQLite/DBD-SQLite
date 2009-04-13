@@ -16,7 +16,7 @@
 ** so is applicable.  Because this module is responsible for selecting
 ** indices, you might also think of this module as the "query optimizer".
 **
-** $Id: where.c,v 1.379 2009/03/29 00:15:54 drh Exp $
+** $Id: where.c,v 1.382 2009/04/07 13:48:12 drh Exp $
 */
 #include "sqliteInt.h"
 
@@ -26,7 +26,7 @@
 #if defined(SQLITE_TEST) || defined(SQLITE_DEBUG)
 int sqlite3WhereTrace = 0;
 #endif
-#if 0
+#if defined(SQLITE_TEST) && defined(SQLITE_DEBUG)
 # define WHERETRACE(X)  if(sqlite3WhereTrace) sqlite3DebugPrintf X
 #else
 # define WHERETRACE(X)
@@ -1762,6 +1762,13 @@ static void bestIndex(
   if( pProbe==0 &&
      findTerm(pWC, iCur, -1, 0, WO_EQ|WO_IN|WO_LT|WO_LE|WO_GT|WO_GE,0)==0 &&
      (pOrderBy==0 || !sortableByRowid(iCur, pOrderBy, pWC->pMaskSet, &rev)) ){
+     if( pParse->db->flags & SQLITE_ReverseOrder ){
+      /* For application testing, randomly reverse the output order for
+      ** SELECT statements that omit the ORDER BY clause.  This will help
+      ** to find cases where
+      */
+      pCost->plan.wsFlags |= WHERE_REVERSE;
+    }
     return;
   }
   pCost->rCost = SQLITE_BIG_DBL;

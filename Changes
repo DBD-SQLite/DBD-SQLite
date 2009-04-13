@@ -1,6 +1,7 @@
 Changes for Perl extension DBD-SQLite.
 
 1.22_05 Sat 11 Apr 2009
+    - Updated to SQLite 3.6.13 (DUNCAND)
     - Setting svn:eol-style to native to prevent EOL issues (ADAMK)
 
 1.22_04 Sat 11 Apr 2009 

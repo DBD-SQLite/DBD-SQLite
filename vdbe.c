@@ -43,7 +43,7 @@
 ** in this file for details.  If in doubt, do not deviate from existing
 ** commenting and indentation practices when changing or adding code.
 **
-** $Id: vdbe.c,v 1.828 2009/03/23 17:11:27 danielk1977 Exp $
+** $Id: vdbe.c,v 1.832 2009/04/10 12:55:17 danielk1977 Exp $
 */
 #include "sqliteInt.h"
 #include "vdbeInt.h"
@@ -562,11 +562,13 @@ int sqlite3VdbeExec(
 #ifndef SQLITE_OMIT_PROGRESS_CALLBACK
   int nProgressOps = 0;      /* Opcodes executed since progress callback. */
 #endif
-  UnpackedRecord aTempRec[16]; /* Space to hold a transient UnpackedRecord */
+
+  /* Temporary space into which to unpack a record. */
+  char aTempRec[ROUND8(sizeof(UnpackedRecord)) + sizeof(Mem)*3 + 7];
 
   assert( p->magic==VDBE_MAGIC_RUN );  /* sqlite3_step() verifies this */
   assert( db->magic==SQLITE_MAGIC_BUSY );
-  sqlite3BtreeMutexArrayEnter(&p->aMutex);
+  sqlite3VdbeMutexArrayEnter(p);
   if( p->rc==SQLITE_NOMEM ){
     /* This happens if a malloc() inside a call to sqlite3_column_text() or
     ** sqlite3_column_text16() failed.  */
@@ -2365,7 +2367,11 @@ case OP_MakeRecord: {
 case OP_Count: {         /* out2-prerelease */
   i64 nEntry;
   BtCursor *pCrsr = p->apCsr[pOp->p1]->pCursor;
-  rc = sqlite3BtreeCount(pCrsr, &nEntry);
+  if( pCrsr ){
+    rc = sqlite3BtreeCount(pCrsr, &nEntry);
+  }else{
+    nEntry = 0;
+  }
   pOut->flags = MEM_Int;
   pOut->u.i = nEntry;
   break;
@@ -4149,11 +4155,13 @@ case OP_IdxRowid: {              /* out2-prerelease */
   BtCursor *pCrsr;
   VdbeCursor *pC;
 
+
   assert( i>=0 && i<p->nCursor );
   assert( p->apCsr[i]!=0 );
   if( (pCrsr = (pC = p->apCsr[i])->pCursor)!=0 ){
     i64 rowid;
-
+    rc = sqlite3VdbeCursorMoveto(pC);
+    if( rc ) goto abort_due_to_error;
     assert( pC->deferredMoveto==0 );
     assert( pC->isTable==0 );
     if( !pC->nullRow ){

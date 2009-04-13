@@ -14,7 +14,7 @@
 ** other files are for internal use by SQLite and should not be
 ** accessed by users of the library.
 **
-** $Id: main.c,v 1.534 2009/03/23 04:33:32 danielk1977 Exp $
+** $Id: main.c,v 1.536 2009/04/09 01:23:49 drh Exp $
 */
 #include "sqliteInt.h"
 
@@ -219,6 +219,7 @@ int sqlite3_shutdown(void){
   if( sqlite3GlobalConfig.isInit ){
     sqlite3_os_end();
   }
+  sqlite3_reset_auto_extension();
   sqlite3MallocEnd();
   sqlite3MutexEnd();
   sqlite3GlobalConfig.isInit = 0;
@@ -418,7 +419,7 @@ static int setupLookaside(sqlite3 *db, void *pBuf, int sz, int cnt){
   if( pStart ){
     int i;
     LookasideSlot *p;
-    assert( sz > sizeof(LookasideSlot*) );
+    assert( sz > (int)sizeof(LookasideSlot*) );
     p = (LookasideSlot*)pStart;
     for(i=cnt-1; i>=0; i--){
       p->pNext = db->lookaside.pFree;

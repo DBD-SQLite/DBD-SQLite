@@ -14,7 +14,7 @@
 ** to version 2.8.7, all this code was combined into the vdbe.c source file.
 ** But that file was getting too big so this subroutines were split out.
 **
-** $Id: vdbeaux.c,v 1.446 2009/03/25 15:43:09 danielk1977 Exp $
+** $Id: vdbeaux.c,v 1.451 2009/04/10 15:42:36 shane Exp $
 */
 #include "sqliteInt.h"
 #include "vdbeInt.h"
@@ -1023,6 +1023,7 @@ static void allocSpace(
   u8 *pEnd,            /* Pointer to 1 byte past the end of *ppFrom buffer */
   int *pnByte          /* If allocation cannot be made, increment *pnByte */
 ){
+  assert( EIGHT_BYTE_ALIGNMENT(*ppFrom) );
   if( (*(void**)pp)==0 ){
     nByte = ROUND8(nByte);
     if( (pEnd - *ppFrom)>=nByte ){
@@ -1096,6 +1097,9 @@ void sqlite3VdbeMakeReady(
     if( isExplain && nMem<10 ){
       nMem = 10;
     }
+    zCsr += (zCsr - (u8*)0)&7;
+    assert( EIGHT_BYTE_ALIGNMENT(zCsr) );
+    if( zEnd<zCsr ) zEnd = zCsr;
 
     do {
       memset(zCsr, 0, zEnd-zCsr);
@@ -1607,6 +1611,33 @@ int sqlite3VdbeCloseStatement(Vdbe *p, int eOp){
 }
 
 /*
+** If SQLite is compiled to support shared-cache mode and to be threadsafe,
+** this routine obtains the mutex associated with each BtShared structure
+** that may be accessed by the VM passed as an argument. In doing so it
+** sets the BtShared.db member of each of the BtShared structures, ensuring
+** that the correct busy-handler callback is invoked if required.
+**
+** If SQLite is not threadsafe but does support shared-cache mode, then
+** sqlite3BtreeEnterAll() is invoked to set the BtShared.db variables
+** of all of BtShared structures accessible via the database handle 
+** associated with the VM. Of course only a subset of these structures
+** will be accessed by the VM, and we could use Vdbe.btreeMask to figure
+** that subset out, but there is no advantage to doing so.
+**
+** If SQLite is not threadsafe and does not support shared-cache mode, this
+** function is a no-op.
+*/
+#ifndef SQLITE_OMIT_SHARED_CACHE
+void sqlite3VdbeMutexArrayEnter(Vdbe *p){
+#if SQLITE_THREADSAFE
+  sqlite3BtreeMutexArrayEnter(&p->aMutex);
+#else
+  sqlite3BtreeEnterAll(p->db);
+#endif
+}
+#endif
+
+/*
 ** This routine is called the when a VDBE tries to halt.  If the VDBE
 ** has made changes and is in autocommit mode, then commit those
 ** changes.  If a rollback is needed, then do the rollback.
@@ -1655,7 +1686,7 @@ int sqlite3VdbeHalt(Vdbe *p){
     int isSpecialError;            /* Set to true if a 'special' error */
 
     /* Lock all btrees used by the statement */
-    sqlite3BtreeMutexArrayEnter(&p->aMutex);
+    sqlite3VdbeMutexArrayEnter(p);
 
     /* Check for one of the special errors */
     mrc = p->rc & 0xff;
@@ -2316,30 +2347,40 @@ UnpackedRecord *sqlite3VdbeRecordUnpack(
   KeyInfo *pKeyInfo,     /* Information about the record format */
   int nKey,              /* Size of the binary record */
   const void *pKey,      /* The binary record */
-  UnpackedRecord *pSpace,/* Space available to hold resulting object */
+  char *pSpace,          /* Unaligned space available to hold the object */
   int szSpace            /* Size of pSpace[] in bytes */
 ){
   const unsigned char *aKey = (const unsigned char *)pKey;
-  UnpackedRecord *p;
-  int nByte, d;
+  UnpackedRecord *p;  /* The unpacked record that we will return */
+  int nByte;          /* Memory space needed to hold p, in bytes */
+  int d;
   u32 idx;
-  u16 u;                 /* Unsigned loop counter */
+  u16 u;              /* Unsigned loop counter */
   u32 szHdr;
   Mem *pMem;
+  int nOff;           /* Increase pSpace by this much to 8-byte align it */
   
-  assert( sizeof(Mem)>sizeof(*p) );
-  nByte = sizeof(Mem)*(pKeyInfo->nField+2);
+  /*
+  ** We want to shift the pointer pSpace up such that it is 8-byte aligned.
+  ** Thus, we need to calculate a value, nOff, between 0 and 7, to shift 
+  ** it by.  If pSpace is already 8-byte aligned, nOff should be zero.
+  */
+  nOff = (8 - (SQLITE_PTR_TO_INT(pSpace) & 7)) & 7;
+  pSpace += nOff;
+  szSpace -= nOff;
+  nByte = ROUND8(sizeof(UnpackedRecord)) + sizeof(Mem)*(pKeyInfo->nField+1);
   if( nByte>szSpace ){
     p = sqlite3DbMallocRaw(pKeyInfo->db, nByte);
     if( p==0 ) return 0;
     p->flags = UNPACKED_NEED_FREE | UNPACKED_NEED_DESTROY;
   }else{
-    p = pSpace;
+    p = (UnpackedRecord*)pSpace;
     p->flags = UNPACKED_NEED_DESTROY;
   }
   p->pKeyInfo = pKeyInfo;
   p->nField = pKeyInfo->nField + 1;
-  p->aMem = pMem = &((Mem*)p)[1];
+  p->aMem = pMem = (Mem*)&((char*)p)[ROUND8(sizeof(UnpackedRecord))];
+  assert( EIGHT_BYTE_ALIGNMENT(pMem) );
   idx = getVarint32(aKey, szHdr);
   d = szHdr;
   u = 0;

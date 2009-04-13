@@ -11,7 +11,7 @@
 *************************************************************************
 ** This file contains code used to implement the PRAGMA command.
 **
-** $Id: pragma.c,v 1.204 2009/02/23 16:52:08 drh Exp $
+** $Id: pragma.c,v 1.209 2009/04/07 22:05:43 drh Exp $
 */
 #include "sqliteInt.h"
 
@@ -144,14 +144,16 @@ static int changeTempStorage(Parse *pParse, const char *zStorageType){
 /*
 ** Generate code to return a single integer value.
 */
-static void returnSingleInt(Parse *pParse, const char *zLabel, int value){
+static void returnSingleInt(Parse *pParse, const char *zLabel, i64 value){
   Vdbe *v = sqlite3GetVdbe(pParse);
   int mem = ++pParse->nMem;
-  sqlite3VdbeAddOp2(v, OP_Integer, value, mem);
-  if( pParse->explain==0 ){
-    sqlite3VdbeSetNumCols(v, 1);
-    sqlite3VdbeSetColName(v, 0, COLNAME_NAME, zLabel, SQLITE_STATIC);
+  i64 *pI64 = sqlite3DbMallocRaw(pParse->db, sizeof(value));
+  if( pI64 ){
+    memcpy(pI64, &value, sizeof(value));
   }
+  sqlite3VdbeAddOp4(v, OP_Int64, 0, mem, 0, (char*)pI64, P4_INT64);
+  sqlite3VdbeSetNumCols(v, 1);
+  sqlite3VdbeSetColName(v, 0, COLNAME_NAME, zLabel, SQLITE_STATIC);
   sqlite3VdbeAddOp2(v, OP_ResultRow, mem, 1);
 }
 
@@ -369,7 +371,7 @@ void sqlite3Pragma(
       ** buffer that the pager module resizes using sqlite3_realloc().
       */
       db->nextPagesize = atoi(zRight);
-      if( SQLITE_NOMEM==sqlite3BtreeSetPageSize(pBt, db->nextPagesize, -1) ){
+      if( SQLITE_NOMEM==sqlite3BtreeSetPageSize(pBt, db->nextPagesize, -1, 0) ){
         db->mallocFailed = 1;
       }
     }
@@ -531,14 +533,11 @@ void sqlite3Pragma(
     Pager *pPager = sqlite3BtreePager(pDb->pBt);
     i64 iLimit = -2;
     if( zRight ){
-      int iLimit32 = atoi(zRight);
-      if( iLimit32<-1 ){
-        iLimit32 = -1;
-      }
-      iLimit = iLimit32;
+      sqlite3Atoi64(zRight, &iLimit);
+      if( iLimit<-1 ) iLimit = -1;
     }
     iLimit = sqlite3PagerJournalSizeLimit(pPager, iLimit);
-    returnSingleInt(pParse, "journal_size_limit", (int)iLimit);
+    returnSingleInt(pParse, "journal_size_limit", iLimit);
   }else
 
 #endif /* SQLITE_OMIT_PAGER_PRAGMAS */
@@ -1079,7 +1078,6 @@ void sqlite3Pragma(
           cnt++;
         }
       }
-      if( cnt==0 ) continue;
 
       /* Make sure sufficient number of registers have been allocated */
       if( pParse->nMem < cnt+4 ){
@@ -1152,7 +1150,6 @@ void sqlite3Pragma(
              { OP_Concat,       3,  2,  2},
              { OP_ResultRow,    2,  1,  0},
           };
-          if( pIdx->tnum==0 ) continue;
           addr = sqlite3VdbeAddOp1(v, OP_IfPos, 1);
           sqlite3VdbeAddOp2(v, OP_Halt, 0, 0);
           sqlite3VdbeJumpHere(v, addr);

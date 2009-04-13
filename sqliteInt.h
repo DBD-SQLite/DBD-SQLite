@@ -11,7 +11,7 @@
 *************************************************************************
 ** Internal interface definitions for SQLite.
 **
-** @(#) $Id: sqliteInt.h,v 1.848 2009/03/25 16:51:43 drh Exp $
+** @(#) $Id: sqliteInt.h,v 1.854 2009/04/08 13:51:51 drh Exp $
 */
 #ifndef _SQLITEINT_H_
 #define _SQLITEINT_H_
@@ -456,6 +456,11 @@ extern const int sqlite3one;
 #define ROUNDDOWN8(x) ((x)&~7)
 
 /*
+** Assert that the pointer X is aligned to an 8-byte boundary.
+*/
+#define EIGHT_BYTE_ALIGNMENT(X)   ((((char*)(X) - (char*)0)&7)==0)
+
+/*
 ** An instance of the following structure is used to store the busy-handler
 ** callback for a given sqlite handle. 
 **
@@ -831,6 +836,13 @@ struct sqlite3 {
 #ifdef SQLITE_ENABLE_UNLOCK_NOTIFY
   /* The following variables are all protected by the STATIC_MASTER 
   ** mutex, not by sqlite3.mutex. They are used by code in notify.c. 
+  **
+  ** When X.pUnlockConnection==Y, that means that X is waiting for Y to
+  ** unlock so that it can proceed.
+  **
+  ** When X.pBlockingConnection==Y, that means that something that X tried
+  ** tried to do recently failed with an SQLITE_LOCKED error due to locks
+  ** held by Y.
   */
   sqlite3 *pBlockingConnection; /* Connection that caused SQLITE_LOCKED */
   sqlite3 *pUnlockConnection;           /* Connection to watch for unlock */
@@ -875,7 +887,6 @@ struct sqlite3 {
 
 #define SQLITE_RecoveryMode   0x00040000  /* Ignore schema errors */
 #define SQLITE_SharedCache    0x00080000  /* Cache sharing is enabled */
-#define SQLITE_Vtab           0x00100000  /* There exists a virtual table */
 #define SQLITE_CommitBusy     0x00200000  /* In the process of committing */
 #define SQLITE_ReverseOrder   0x00400000  /* Reverse unordered SELECTs */
 
@@ -1441,19 +1452,18 @@ struct AggInfo {
 **
 ** ALLOCATION NOTES:
 **
-** Expr structures may be stored as part of the in-memory database schema,
-** for example as part of trigger, view or table definitions. In this case,
-** the amount of memory consumed by complex expressions may be significant.
-** For this reason, less than sizeof(Expr) bytes may be allocated for some 
-** Expr structs stored as part of the in-memory database schema.
+** Expr objects can use a lot of memory space in database schema.  To
+** help reduce memory requirements, sometimes an Expr object will be
+** truncated.  And to reduce the number of memory allocations, sometimes
+** two or more Expr objects will be stored in a single memory allocation,
+** together with Expr.token and/or Expr.span strings.
 **
-** If the EP_Reduced flag is set in Expr.flags, then only EXPR_REDUCEDSIZE
-** bytes of space are allocated for the expression structure. This is enough
-** space to store all fields up to and including the "Token span;" field.
-**
-** If the EP_TokenOnly flag is set in Expr.flags, then only EXPR_TOKENONLYSIZE
-** bytes of space are allocated for the expression structure. This is enough
-** space to store all fields up to and including the "Token token;" field.
+** If the EP_Reduced, EP_SpanToken, and EP_TokenOnly flags are set when
+** an Expr object is truncated.  When EP_Reduced is set, then all
+** the child Expr objects in the Expr.pLeft and Expr.pRight subtrees
+** are contained within the same memory allocation.  Note, however, that
+** the subtrees in Expr.x.pList or Expr.x.pSelect are always separately
+** allocated, regardless of whether or not EP_Reduced is set.
 */
 struct Expr {
   u8 op;                 /* Operation performed by this node */
@@ -1469,7 +1479,7 @@ struct Expr {
 
   Token span;            /* Complete text of the expression */
 
-  /* If the EP_SpanOnly flag is set in the Expr.flags mask, then no
+  /* If the EP_SpanToken flag is set in the Expr.flags mask, then no
   ** space is allocated for the fields below this point. An attempt to
   ** access them will result in a segfault or malfunction. 
   *********************************************************************/
@@ -1517,7 +1527,7 @@ struct Expr {
 
 #define EP_Reduced    0x2000  /* Expr struct is EXPR_REDUCEDSIZE bytes only */
 #define EP_TokenOnly  0x4000  /* Expr struct is EXPR_TOKENONLYSIZE bytes only */
-#define EP_SpanOnly   0x8000  /* Expr struct is EXPR_SPANONLYSIZE bytes only */
+#define EP_SpanToken  0x8000  /* Expr size is EXPR_SPANTOKENSIZE bytes */
 
 /*
 ** The following are the meanings of bits in the Expr.vvaFlags field.
@@ -1542,18 +1552,17 @@ struct Expr {
 ** struct, an Expr struct with the EP_Reduced flag set in Expr.flags 
 ** and an Expr struct with the EP_TokenOnly flag set.
 */
-#define EXPR_FULLSIZE           sizeof(Expr)
-#define EXPR_REDUCEDSIZE        offsetof(Expr,iTable)
-#define EXPR_TOKENONLYSIZE      offsetof(Expr,span)
-#define EXPR_SPANONLYSIZE       offsetof(Expr,pLeft)
+#define EXPR_FULLSIZE           sizeof(Expr)           /* Full size */
+#define EXPR_REDUCEDSIZE        offsetof(Expr,iTable)  /* Common features */
+#define EXPR_SPANTOKENSIZE      offsetof(Expr,pLeft)   /* Fewer features */
+#define EXPR_TOKENONLYSIZE      offsetof(Expr,span)    /* Smallest possible */
 
 /*
 ** Flags passed to the sqlite3ExprDup() function. See the header comment 
 ** above sqlite3ExprDup() for details.
 */
-#define EXPRDUP_REDUCE         0x0001
-#define EXPRDUP_SPAN           0x0002
-#define EXPRDUP_DISTINCTSPAN   0x0004
+#define EXPRDUP_REDUCE         0x0001  /* Used reduced-size Expr nodes */
+#define EXPRDUP_SPAN           0x0002  /* Make a copy of Expr.span */
 
 /*
 ** A list of expressions.  Each expression may optionally have a
@@ -2533,6 +2542,7 @@ void sqlite3MaterializeView(Parse*, Table*, Expr*, int);
 # define sqlite3DropTriggerPtr(A,B)
 # define sqlite3UnlinkAndDeleteTrigger(A,B,C)
 # define sqlite3CodeRowTrigger(A,B,C,D,E,F,G,H,I,J,K,L) 0
+# define sqlite3TriggerList(X, Y) 0
 #endif
 
 int sqlite3JoinType(Parse*, Token*, Token*, Token*);
@@ -2564,7 +2574,7 @@ int sqlite3GetInt32(const char *, int*);
 int sqlite3FitsIn64Bits(const char *, int);
 int sqlite3Utf16ByteLen(const void *pData, int nChar);
 int sqlite3Utf8CharLen(const char *pData, int nByte);
-int sqlite3Utf8Read(const u8*, const u8*, const u8**);
+int sqlite3Utf8Read(const u8*, const u8**);
 
 /*
 ** Routines to read and write variable-length integers.  These used to
