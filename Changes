@@ -1,6 +1,7 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22_05 not yet released
+1.22_05 Wed 15 Apr 2009
+    - Hopefully the last dev release before the next production release.
     - Updated to SQLite 3.6.13 (DUNCAND)
     - Setting svn:eol-style to native to prevent EOL issues (ADAMK)
     - Resolved #44861: tweaked Makefile.PL to support older HP-UX (ISHIGAKI)
