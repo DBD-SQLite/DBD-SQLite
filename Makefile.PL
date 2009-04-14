@@ -182,6 +182,9 @@ if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 unless ( $Config{usethreads} ) {
 	push @CC_DEFINE, '-DTHREADSAFE=0';
 }
+if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
+	push @CC_DEFINE, '-DSQLITE_OMIT_LOAD_EXTENSION';
+}
 
 my @CC_OPTIONS = (
 	INC          => join( ' ', @CC_INC    ),
