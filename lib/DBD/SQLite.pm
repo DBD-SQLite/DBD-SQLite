@@ -69,9 +69,10 @@ sub connect {
         require Win32;
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);
-        if ( -f $real ) {
+        my $short = Win32::GetShortPathName($real);
+        if ( $short && -f $short ) {
             # Existing files will work directly.
-            $real = Win32::GetShortPathName($real);
+            $real = short;
         } elsif ( -d $dir ) {
             # We are creating a new file.
             # Does the directory it's in at least exist?
