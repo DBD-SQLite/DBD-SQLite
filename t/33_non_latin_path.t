@@ -16,18 +16,26 @@ use Test::NoWarnings;
 use File::Temp            qw(tempdir);
 use File::Spec::Functions qw(catdir catfile);
 
-my @subdirs = ('database', 'adatbázis');
-plan tests => 1 + @subdirs * 2;
+my @words = ('database', 'adatbázis');
+plan tests => 1 + @words * 3;
 
 my $dir = tempdir( CLEANUP => 1 );
 
-foreach my $subdir (@subdirs) {
-	ok(mkdir(catdir($dir, $subdir)), "$subdir created");
+foreach my $subdir (@words) {
+	ok(mkdir(catdir($dir, $subdir)), "subdir $subdir created");
 	my $dbfile = catfile($dir, $subdir, 'db.db');
 	eval {
-		DBI->connect("dbi:SQLite:dbname=$dbfile");
+		DBI->connect("dbi:SQLite:dbname=$dbfile", "", "", {RaiseError => 1, PrintError => 0});
 	};
 	ok(!$@, "Could connect to database in $subdir") or diag $@;
+	
+	# when the name of the database file has non-latin characters
+	my $dbfilex = catfile($dir, "$subdir.db");
+	eval {
+		DBI->connect("dbi:SQLite:dbname=$dbfilex", "", "", {RaiseError => 1, PrintError => 0});
+	};
+	ok(!$@, "Could connect to database in $dbfilex") or diag $@;
 }
+
 
 
