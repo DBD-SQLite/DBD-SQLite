@@ -75,7 +75,7 @@ sub connect {
         } elsif ( -d $dir ) {
             # We are creating a new file.
             # Does the directory it's in at least exist?
-            $real = Win32::GetShortPathName($dir) . $file . $suffix;
+            $real = join '', grep { defined } Win32::GetShortPathName($dir), $file, $suffix;
         } else {
             # SQLite can't do mkpath anyway.
             # So let it go through as it and fail.
