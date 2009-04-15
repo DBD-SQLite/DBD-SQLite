@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite.
 
+1.22_06 Wed 15 Apr 2009
+    - Simplifying various miscellaneous code (ADAMK)
+    - Adding a test for non-latin filename support ()
+
 1.22_05 Wed 15 Apr 2009
     - Hopefully the last dev release before the next production release.
     - Updated to SQLite 3.6.13 (DUNCAND)

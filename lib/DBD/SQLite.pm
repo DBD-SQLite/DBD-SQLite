@@ -8,28 +8,29 @@ use DynaLoader ();
 use vars qw($VERSION @ISA);
 use vars qw{$err $errstr $drh $sqlite_version};
 BEGIN {
-    $VERSION = '1.22_05';
+    $VERSION = '1.22_06';
     @ISA     = ('DynaLoader');
 
+    # Initialize errors
+    $err     = undef;
+    $errstr  = undef;
+
     # Driver singleton
-    $drh     = undef;
+    $drh = undef;
+
+    # sqlite_version cache
+    $sqlite_version = undef;
 }
 
 __PACKAGE__->bootstrap($VERSION);
 
 sub driver {
-    return $drh if $drh;
-    my ($class, $attr) = @_;
-
-    $class .= "::dr";
-
-    $drh = DBI::_new_drh( $class, {
+    $drh or
+    $drh = DBI::_new_drh( "$_[0]::dr", {
         Name        => 'SQLite',
         Version     => $VERSION,
         Attribution => 'DBD::SQLite by Matt Sergeant et al',
     } );
-
-    return $drh;
 }
 
 sub CLONE {
@@ -82,19 +83,19 @@ sub connect {
 package DBD::SQLite::db;
 
 sub prepare {
-    my ($dbh, $statement, @attribs) = @_;
+    my $dbh = shift;
 
-    my $sth = DBI::_new_sth($dbh, {
-        Statement => $statement,
-    });
+    my $sth = DBI::_new_sth( $dbh, {
+        Statement => shift,
+    } );
 
-    DBD::SQLite::st::_prepare($sth, $statement, @attribs) or return undef;
+    DBD::SQLite::st::_prepare($sth, $statement, @_) or return undef;
 
     return $sth;
 }
 
 sub _get_version {
-    return( DBD::SQLite::db::FETCH($_[0], 'sqlite_version') );
+    return ( DBD::SQLite::db::FETCH($_[0], 'sqlite_version') );
 }
 
 my %info = (
@@ -110,11 +111,11 @@ sub get_info {
     return $v;
 }
 
+# SQL/CLI (ISO/IEC JTC 1/SC 32 N 0595), 6.63 Tables
+# Based on DBD::Oracle's
+# See also http://www.ch-werner.de/sqliteodbc/html/sqliteodbc_8c.html#a117
 sub table_info {
     my ($dbh, $cat_val, $sch_val, $tbl_val, $typ_val) = @_;
-    # SQL/CLI (ISO/IEC JTC 1/SC 32 N 0595), 6.63 Tables
-    # Based on DBD::Oracle's
-    # See also http://www.ch-werner.de/sqliteodbc/html/sqliteodbc_8c.html#a117
 
     my @where = ();
     my $sql;
@@ -252,49 +253,45 @@ sub primary_key_info {
 }
 
 sub type_info_all {
-    my ($dbh) = @_;
     return; # XXX code just copied from DBD::Oracle, not yet thought about
-    my $names = {
-        TYPE_NAME          =>  0,
-        DATA_TYPE          =>  1,
-        COLUMN_SIZE        =>  2,
-        LITERAL_PREFIX     =>  3,
-        LITERAL_SUFFIX     =>  4,
-        CREATE_PARAMS      =>  5,
-        NULLABLE           =>  6,
-        CASE_SENSITIVE     =>  7,
-        SEARCHABLE         =>  8,
-        UNSIGNED_ATTRIBUTE =>  9,
-        FIXED_PREC_SCALE   => 10,
-        AUTO_UNIQUE_VALUE  => 11,
-        LOCAL_TYPE_NAME    => 12,
-        MINIMUM_SCALE      => 13,
-        MAXIMUM_SCALE      => 14,
-        SQL_DATA_TYPE      => 15,
-        SQL_DATETIME_SUB   => 16,
-        NUM_PREC_RADIX     => 17,
-    };
-    my $ti = [
-        $names,
-        [ 'CHAR', 1, 255, '\'', '\'', 'max length', 1, 1, 3,
-            undef, '0', '0', undef, undef, undef, 1, undef, undef
-        ],
-        [ 'NUMBER', 3, 38, undef, undef, 'precision,scale', 1, '0', 3,
-            '0', '0', '0', undef, '0', 38, 3, undef, 10
-        ],
-        [ 'DOUBLE', 8, 15, undef, undef, undef, 1, '0', 3,
-            '0', '0', '0', undef, undef, undef, 8, undef, 10
-        ],
-        [ 'DATE', 9, 19, '\'', '\'', undef, 1, '0', 3,
-            undef, '0', '0', undef, '0', '0', 11, undef, undef
-        ],
-        [ 'VARCHAR', 12, 1024*1024, '\'', '\'', 'max length', 1, 1, 3,
-            undef, '0', '0', undef, undef, undef, 12, undef, undef
-        ]
-    ];
-    return $ti;
+#    return [
+#        {
+#            TYPE_NAME          =>  0,
+#            DATA_TYPE          =>  1,
+#            COLUMN_SIZE        =>  2,
+#            LITERAL_PREFIX     =>  3,
+#            LITERAL_SUFFIX     =>  4,
+#            CREATE_PARAMS      =>  5,
+#            NULLABLE           =>  6,
+#            CASE_SENSITIVE     =>  7,
+#            SEARCHABLE         =>  8,
+#            UNSIGNED_ATTRIBUTE =>  9,
+#            FIXED_PREC_SCALE   => 10,
+#            AUTO_UNIQUE_VALUE  => 11,
+#            LOCAL_TYPE_NAME    => 12,
+#            MINIMUM_SCALE      => 13,
+#            MAXIMUM_SCALE      => 14,
+#            SQL_DATA_TYPE      => 15,
+#            SQL_DATETIME_SUB   => 16,
+#            NUM_PREC_RADIX     => 17,
+#        },
+#        [ 'CHAR', 1, 255, '\'', '\'', 'max length', 1, 1, 3,
+#            undef, '0', '0', undef, undef, undef, 1, undef, undef
+#        ],
+#        [ 'NUMBER', 3, 38, undef, undef, 'precision,scale', 1, '0', 3,
+#            '0', '0', '0', undef, '0', 38, 3, undef, 10
+#        ],
+#        [ 'DOUBLE', 8, 15, undef, undef, undef, 1, '0', 3,
+#            '0', '0', '0', undef, undef, undef, 8, undef, 10
+#        ],
+#        [ 'DATE', 9, 19, '\'', '\'', undef, 1, '0', 3,
+#            undef, '0', '0', undef, '0', '0', 11, undef, undef
+#        ],
+#        [ 'VARCHAR', 12, 1024*1024, '\'', '\'', 'max length', 1, 1, 3,
+#            undef, '0', '0', undef, undef, undef, 12, undef, undef
+#        ]
+#    ];
 }
-
 
 # Taken from Fey::Loader::SQLite
 sub column_info {
