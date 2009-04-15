@@ -84,12 +84,13 @@ package DBD::SQLite::db;
 
 sub prepare {
     my $dbh = shift;
+    my $sql = shift;
 
     my $sth = DBI::_new_sth( $dbh, {
-        Statement => shift,
+        Statement => $sql,
     } );
 
-    DBD::SQLite::st::_prepare($sth, $statement, @_) or return undef;
+    DBD::SQLite::st::_prepare($sth, $sql, @_) or return undef;
 
     return $sth;
 }
