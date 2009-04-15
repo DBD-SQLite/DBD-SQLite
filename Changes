@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite.
 
+1.22_07 not yet released
+    - Improved non-latin unicode filename support/test on Windows (SZABGAB/ISHIGAKI)
+
 1.22_06 Wed 15 Apr 2009
     - Simplifying various miscellaneous code (ADAMK)
     - Adding support for non-latin unicode filenames on Windows (ADAMK)
