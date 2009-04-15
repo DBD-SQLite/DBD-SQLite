@@ -65,7 +65,7 @@ sub connect {
 
     # To avoid unicode and long file name problems on Windows,
     # convert to the shortname if the file (or parent directory) exists.
-    if ( $^O eq 'MSWin32' ) {
+    if ( $^O eq 'MSWin32' and $real ne ':memory:') {
         require Win32;
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);
