@@ -53,7 +53,7 @@ sub connect {
 
     my $real = $dbname;
     if ( $dbname =~ /=/ ) {
-        foreach my $attrib ( split(/;/, $dbname ) ) {
+        foreach my $attrib ( split(/;/, $dbname) ) {
             my ($key, $value) = split(/=/, $attrib, 2);
             if ( $key eq 'dbname' ) {
                 $real = $value;
@@ -63,6 +63,26 @@ sub connect {
         }
     }
 
+    # To avoid unicode and long file name problems on Windows,
+    # convert to the shortname if the file (or parent directory) exists.
+    if ( $^O eq 'MSWin32' ) {
+        require Win32;
+        require File::Basename;
+        my ($file, $dir, $suffix) = File::Basename::fileparse($real);
+        if ( -f $real ) {
+            # Existing files will work directly.
+            $real = Win32::GetShortPathName($real);
+        } elsif ( -d $dir ) {
+            # We are creating a new file.
+            # Does the directory it's in at least exist?
+            $real = Win32::GetShortPathName($dir) . $file . $suffix;
+        } else {
+            # SQLite can't do mkpath anyway.
+            # So let it go through as it and fail.
+        }
+    }
+
+    # Hand off to the actual login function
     DBD::SQLite::db::_login($dbh, $real, $user, $auth) or return undef;
 
     # Install perl collations
