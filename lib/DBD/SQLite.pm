@@ -72,7 +72,7 @@ sub connect {
         my $short = Win32::GetShortPathName($real);
         if ( $short && -f $short ) {
             # Existing files will work directly.
-            $real = short;
+            $real = $short;
         } elsif ( -d $dir ) {
             # We are creating a new file.
             # Does the directory it's in at least exist?
