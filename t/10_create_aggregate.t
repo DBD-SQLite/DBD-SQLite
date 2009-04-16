@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 15;
+use Test::More tests => 16;
 use Test::NoWarnings;
 
 # Create the aggregate test packages

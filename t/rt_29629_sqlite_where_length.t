@@ -13,11 +13,12 @@ use DBI qw(:sql_types);
 my $dbh = connect_ok();
 
 $dbh->do('drop table if exists artist');
-$dbh->do(<<'');
+$dbh->do(<<'END_SQL');
 create table artist (
   id int not null primary key,
   name text not null
 )
+END_SQL
 
 ok ( $dbh->do(q/insert into artist (id,name) values(1, 'Leonardo da Vinci')/), 'insert');
 

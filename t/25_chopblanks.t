@@ -9,128 +9,60 @@ BEGIN {
 }
 
 use t::lib::Test;
+use Test::More tests => 14;
+use Test::NoWarnings;
 
-#
-#   Make -w happy
-#
-use vars qw($state);
-use vars qw($COL_NULLABLE $COL_KEY);
+# Create a database
+my $dbh = connect_ok( RaiseError => 1 );
 
-#
-#   Include lib.pl
-#
-do 't/lib.pl';
-if ($@) {
-	print STDERR "Error while executing lib.pl: $@\n";
-	exit 10;
+# Create the table
+ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
+CREATE TABLE one (
+    id INTEGER NOT NULL,
+    name CHAR (64) NOT NULL
+)
+END_SQL
+
+# Fill the table
+ok(
+	$dbh->do('INSERT INTO one values ( 1, ? )', {}, 'NULL' ),
+	'INSERT 1',
+);
+ok(
+	$dbh->do('INSERT INTO one values ( 2, ? )', {}, ' '),
+	'INSERT 2',
+);
+ok(
+	$dbh->do('INSERT INTO one values ( 3, ? )', {}, ' a b c '),
+	'INSERT 3',
+);
+
+# Test fetching with ChopBlanks off
+SCOPE: {
+	my $sth = $dbh->prepare('SELECT * FROM one ORDER BY id');
+	isa_ok( $sth, 'DBI::st' );
+	ok( $sth->execute, '->execute ok' );
+	$sth->{ChopBlanks} = 0;
+	my $rows = $sth->fetchall_arrayref;
+	is_deeply( $rows, [
+		[ 1, 'NULL'    ],
+		[ 2, ' '       ],
+		[ 3, ' a b c ' ],
+	], 'ChopBlanks = 0' );
+	ok( $sth->finish, '->finish' );
 }
 
-sub ServerError() {
-    print STDERR ("Cannot connect: ", $DBI::errstr, "\n",
-	"\tEither your server is not up and running or you have no\n",
-	"\tpermissions for acessing the DSN DBI:SQLite:dbname=foo.\n",
-	"\tThis test requires a running server and write permissions.\n",
-	"\tPlease make sure your server is running and you have\n",
-	"\tpermissions, then retry.\n");
-    exit 10;
+# Test fetching with ChopBlanks on
+SCOPE: {
+	my $sth = $dbh->prepare('SELECT * FROM one ORDER BY id');
+	isa_ok( $sth, 'DBI::st' );
+	ok( $sth->execute, '->execute ok' );
+	$sth->{ChopBlanks} = 1;
+	my $rows = $sth->fetchall_arrayref;
+	is_deeply( $rows, [
+		[ 1, 'NULL'   ],
+		[ 2, ''       ],
+		[ 3, ' a b c' ],
+	], 'ChopBlanks = 1' );
+	ok( $sth->finish, '->finish' );
 }
-
-#
-#   Main loop; leave this untouched, put tests after creating
-#   the new table.
-#
-while (Testing()) {
-    my ($dbh, $sth, $query);
-
-    #
-    #   Connect to the database
-    Test($state or ($dbh = DBI->connect("DBI:SQLite:dbname=foo", '',
-					'')))
-	   or ServerError();
-
-    #
-    #   Find a possible new table name
-    #
-    my $table = '';
-    Test($state or $table = 'table1')
-	   or ErrMsgF("Cannot determine a legal table name: Error %s.\n",
-		      $dbh->errstr);
-
-    #
-    #   Create a new table; EDIT THIS!
-    #
-    Test($state or ($query = TableDefinition($table,
-				      ["id",   "INTEGER",  4, $COL_NULLABLE],
-				      ["name", "CHAR",    64, $COL_NULLABLE]),
-		    $dbh->do($query)))
-	or ErrMsgF("Cannot create table: Error %s.\n",
-		      $dbh->errstr);
-
-
-    #
-    #   and here's the right place for inserting new tests:
-    #
-    my @rows
-      = ([1, 'NULL'],
- 	 [2, ' '],
-	 [3, ' a b c ']);
-    my $ref;
-    foreach $ref (@rows) {
-	my ($id, $name) = @$ref;
-	if (!$state) {
-	    $query = sprintf("INSERT INTO $table (id, name) VALUES ($id, %s)",
-			     $dbh->quote($name));
-	}
-	Test($state or $dbh->do($query))
-	    or ErrMsgF("INSERT failed: query $query, error %s.\n",
-		       $dbh->errstr);
-        $query = "SELECT id, name FROM $table WHERE id = $id\n";
-	Test($state or ($sth = $dbh->prepare($query)))
-	    or ErrMsgF("prepare failed: query $query, error %s.\n",
-		       $dbh->errstr);
-
-	# First try to retreive without chopping blanks.
-	$sth->{'ChopBlanks'} = 0;
-	Test($state or $sth->execute)
-	    or ErrMsgF("execute failed: query %s, error %s.\n", $query,
-		       $sth->errstr);
-	Test($state or defined($ref = $sth->fetchrow_arrayref))
-	    or ErrMsgF("fetch failed: query $query, error %s.\n",
-		       $sth->errstr);
-	Test($state or ($$ref[1] eq $name))
-	    or ErrMsgF("problems with ChopBlanks = 0:"
-		       . " expected '%s', got '%s'.\n",
-		       $name, $$ref[1]);
-	Test($state or $sth->finish());
-
-	# Now try to retreive with chopping blanks.
-	$sth->{'ChopBlanks'} = 1;
-	Test($state or $sth->execute)
-	    or ErrMsg("execute failed: query $query, error %s.\n",
-		      $sth->errstr);
-	my $n = $name;
-	$n =~ s/\s+$//;
-	Test($state or ($ref = $sth->fetchrow_arrayref))
-	    or ErrMsgF("fetch failed: query $query, error %s.\n",
-		       $sth->errstr);
-	Test($state or ($$ref[1] eq $n))
-	    or ErrMsgF("problems with ChopBlanks = 1:"
-		       . " expected '%s', got '%s'.\n",
-		       $n, $$ref[1]);
-
-	Test($state or $sth->finish)
-	    or ErrMsgF("Cannot finish: %s.\n", $sth->errstr);
-    }
-
-    #
-    #   Finally drop the test table.
-    #
-    Test($state or $dbh->do("DROP TABLE $table"))
-	   or ErrMsgF("Cannot DROP test table $table: %s.\n",
-		      $dbh->errstr);
-
-    #   ... and disconnect
-    Test($state or $dbh->disconnect)
-	or ErrMsgF("Cannot disconnect: %s.\n", $dbh->errmsg);
-}
-

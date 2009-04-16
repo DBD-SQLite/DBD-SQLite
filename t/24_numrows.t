@@ -9,136 +9,71 @@ BEGIN {
 }
 
 use t::lib::Test;
+use Test::More tests => 18;
+use Test::NoWarnings;
 
-use vars qw($state);
-
-#
-#   Include lib.pl
-#
-do 't/lib.pl';
-if ($@) {
-	print STDERR "Error while executing lib.pl: $@\n";
-	exit 10;
-}
-
-sub ServerError() {
-    print STDERR ("Cannot connect: ", $DBI::errstr, "\n",
-	"\tEither your server is not up and running or you have no\n",
-	"\tpermissions for acessing the DSN 'DBI:SQLite:dbname=foo'.\n",
-	"\tThis test requires a running server and write permissions.\n",
-	"\tPlease make sure your server is running and you have\n",
-	"\tpermissions, then retry.\n");
-    exit 10;
-}
-
-
-sub TrueRows($) {
-    my ($sth) = @_;
-    my $count = 0;
+sub rows {
+    my $sth      = shift;
+    my $expected = shift;
+    my $count    = 0;
     while ($sth->fetchrow_arrayref) {
 	++$count;
     }
-    $count;
+    Test::More::is( $count, $expected, "Got $expected rows" );
 }
 
+# Create a database
+my $dbh = connect_ok();
 
-#
-#   Main loop; leave this untouched, put tests after creating
-#   the new table.
-#
-my ($dbh, $table, $def, $cursor, $numrows);
-while (Testing()) {
-    #
-    #   Connect to the database
-    Test($state or ($dbh = DBI->connect('DBI:SQLite:dbname=foo', '',
-					'')))
-	or ServerError();
+# Create the table
+ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
+CREATE TABLE one (
+    id INTEGER NOT NULL,
+    name CHAR (64) NOT NULL
+)
+END_SQL
 
-    #
-    #   Find a possible new table name
-    #
-    Test($state or ($table = 'table1'))
-	   or DbiError($dbh->err, $dbh->errstr);
+# Insert into table
+ok(
+	$dbh->do("INSERT INTO one VALUES ( 1, 'Alligator Descartes' )"),
+	'INSERT 1',
+);
 
-    #
-    #   Create a new table; EDIT THIS!
-    #
-    Test($state or ($def = TableDefinition($table,
-					   ["id",   "INTEGER",  4, 0],
-					   ["name", "CHAR",    64, 0]),
-		    $dbh->do($def)))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-
-    #
-    #   This section should exercise the sth->rows
-    #   method by preparing a statement, then finding the
-    #   number of rows within it.
-    #   Prior to execution, this should fail. After execution, the
-    #   number of rows affected by the statement will be returned.
-    #
-    Test($state or $dbh->do("INSERT INTO $table"
-			    . " VALUES( 1, 'Alligator Descartes' )"))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or ($cursor = $dbh->prepare("SELECT * FROM $table"
-					   . " WHERE id = 1")))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or $cursor->execute)
-           or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or ($numrows = TrueRows($cursor)) == 1)
-        	or ErrMsgF("Expected to fetch 1 rows, got %s.\n", $numrows);
-
-    Test($state or $cursor->finish)
-           or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or undef $cursor or 1);
-
-    Test($state or $dbh->do("INSERT INTO $table"
-			    . " VALUES( 2, 'Jochen Wiedmann' )"))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or ($cursor = $dbh->prepare("SELECT * FROM $table"
-					    . " WHERE id >= 1")))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or $cursor->execute)
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or ($numrows = TrueRows($cursor)) == 2)
-        	or ErrMsgF("Expected to fetch 2 rows, got %s.\n", $numrows);
-
-    Test($state or $cursor->finish)
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or undef $cursor or 1);
-
-    Test($state or $dbh->do("INSERT INTO $table"
-			    . " VALUES(3, 'Tim Bunce')"))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or ($cursor = $dbh->prepare("SELECT * FROM $table"
-					    . " WHERE id >= 2")))
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or $cursor->execute)
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or ($numrows = TrueRows($cursor)) == 2)
-	       or ErrMsgF("Expected to fetch 2 rows, got %s.\n", $numrows);
-
-    Test($state or $cursor->finish)
-	   or DbiError($dbh->err, $dbh->errstr);
-
-    Test($state or undef $cursor or 1);
-
-    #
-    #   Finally drop the test table.
-    #
-    Test($state or $dbh->do("DROP TABLE $table"))
-	   or DbiError($dbh->err, $dbh->errstr);
-
+# Count the rows
+SCOPE: {
+	my $sth = $dbh->prepare('SELECT * FROM one WHERE id = 1');
+	isa_ok( $sth, 'DBI::st' );
+	ok( $sth->execute, '->execute' );
+	rows( $sth, 1 );
+	ok( $sth->finish, '->finish' );
 }
 
+# Insert another row
+ok(
+	$dbh->do("INSERT INTO one VALUES ( 2, 'Jochen Wiedmann' )"),
+	'INSERT 2',
+);
+
+# Count the rows
+SCOPE: {
+	my $sth = $dbh->prepare('SELECT * FROM one WHERE id >= 1');
+	isa_ok( $sth, 'DBI::st' );
+	ok( $sth->execute, '->execute' );
+	rows( $sth, 2 );
+	ok( $sth->finish, '->finish' );
+}
+
+# Insert another row
+ok(
+	$dbh->do("INSERT INTO one VALUES ( 3, 'Tim Bunce' )"),
+	'INSERT 3',
+);
+
+# Count the rows
+SCOPE: {
+	my $sth = $dbh->prepare('SELECT * FROM one WHERE id >= 2');
+	isa_ok( $sth, 'DBI::st' );
+	ok( $sth->execute, '->execute' );
+	rows( $sth, 2 );
+	ok( $sth->finish, '->finish' );
+}
