@@ -7,6 +7,7 @@ Changes for Perl extension DBD-SQLite.
       getting us closer to removing t/lib.pl entirely (ADAMK)
     - Increased use of Test::NoWarnings (ADAMK)
     - Converted half the remaining lib.pl tests to t::lib::Test (ADAMK)
+    - Require Win32.pm on Windows (CHORNY)
 
 1.22_06 Wed 15 Apr 2009
     - Simplifying various miscellaneous code (ADAMK)
