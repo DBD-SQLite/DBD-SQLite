@@ -60,7 +60,7 @@ while (Testing()) {
     #
     #   Find a possible new table name
     #
-    Test($state or ($table = FindNewTable($dbh)))
+    Test($state or $table = 'table1')
 	   or DbiError($dbh->err, $dbh->errstr);
 
     #

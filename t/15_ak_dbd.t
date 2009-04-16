@@ -34,7 +34,7 @@ while (Testing()) {
     #
     #   Find a possible new table name
     #
-    Test($state or $test_table = FindNewTable($dbh)) or 1
+    Test($state or $test_table = 'table1') or 1
 	or ErrMsg("Cannot get table name: $dbh->errstr.\n");
 
     #

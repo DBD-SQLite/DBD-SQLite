@@ -215,51 +215,7 @@ sub DbiError ($$) {
     print "Test $::numTests: DBI error $rc, $err\n";
 }
 
-
-#
-#   This functions generates a list of possible DSN's aka
-#   databases and returns a possible table name for a new
-#   table being created.
-SCOPE: {
-    my(@tables, $testtable, $listed);
-
-    $testtable = "testaa";
-    $listed = 0;
-
-    sub FindNewTable($) {
-	my($dbh) = @_;
-
-	if (!$listed) {
-            @tables = $dbh->func('list_tables');
-            if ($dbh->errstr) {
-                die "Cannot create table list: " . $dbh->errstr;
-            }
-	    $listed = 1;
-	}
-
-	# A small loop to find a free test table we can use to mangle stuff in
-	# and out of. This starts at testaa and loops until testaz, then testba
-	# - testbz and so on until testzz.
-	my $foundtesttable = 1;
-	my $table;
-	while ($foundtesttable) {
-	    $foundtesttable = 0;
-	    foreach $table (@tables) {
-		if ($table eq $testtable) {
-		    $testtable++;
-		    $foundtesttable = 1;
-		}
-	    }
-	}
-	$table = $testtable;
-	$testtable++;
-	$table;
-    }
-}
-
-
 sub ErrMsg { print (@_); }
 sub ErrMsgF { printf (@_); }
-
 
 1;

@@ -71,7 +71,7 @@ while (Testing()) {
     #
     #   Find a possible new table name
     #
-    Test($state or $table = FindNewTable($dbh))
+    Test($state or $table = 'table1')
 	or ErrMsgF("Cannot determine a legal table name: Error %s.\n",
 		   $dbh->errstr);
 

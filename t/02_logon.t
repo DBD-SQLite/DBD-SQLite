@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use Test::NoWarnings;
 
 # Ordinary connect
@@ -31,4 +31,10 @@ SKIP: {
 	my $dbh = DBI->connect( 'dbi:SQLite:dbname=foo;unicode=1', '', '' );
 	isa_ok( $dbh, 'DBI::db' );
 	is( $dbh->{unicode}, 1, 'Unicode is on' );
+}
+
+# Connect to a memory database
+SCOPE: {
+	my $dbh = DBI->connect( 'dbi:SQLite:dbname=:memory:', '', '' );
+	isa_ok( $dbh, 'DBI::db' );	
 }

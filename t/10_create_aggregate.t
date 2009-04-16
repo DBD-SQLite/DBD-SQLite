@@ -6,8 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 15;
 use t::lib::Test;
+use Test::More tests => 15;
+use Test::NoWarnings;
 
 # Create the aggregate test packages
 SCOPE: {
