@@ -35,7 +35,7 @@ END_SQL
 
 # Insert into table
 ok(
-	$dbh->do("INSERT INTO one VALUES ( 1, 'Alligator Descartes' )"),
+	$dbh->do("INSERT INTO one VALUES ( 1, 'A' )"),
 	'INSERT 1',
 );
 

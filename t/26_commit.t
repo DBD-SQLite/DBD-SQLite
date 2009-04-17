@@ -9,196 +9,113 @@ BEGIN {
 }
 
 use t::lib::Test;
+use Test::More tests => 28;
+# use Test::NoWarnings;
 
-use vars qw($state);
+my $warning_count = 0;
 
-#
-#   Include lib.pl
-#
-do 't/lib.pl';
-if ($@) {
-	print STDERR "Error while executing lib.pl: $@\n";
-	exit 10;
+
+
+
+#####################################################################
+# Support functions
+
+sub insert {
+	Test::More::ok(
+		$_[0]->do("INSERT INTO one VALUES (1, 'Jochen')"),
+		'INSERT 1',
+	);
+}
+
+sub rows {
+	my $dbh      = shift;
+	my $expected = shift;
+	is_deeply(
+		$dbh->selectall_arrayref('select count(*) from one'),
+		[ [ $expected ] ],
+		"Found $expected rows",
+	);
 }
 
 
-use vars qw($gotWarning);
-sub CatchWarning ($) {
-    $gotWarning = 1;
-}
 
 
-sub NumRows($$$) {
-    my($dbh, $table, $num) = @_;
-    my($sth, $got);
 
-    if (!($sth = $dbh->prepare("SELECT * FROM $table"))) {
-	return "Failed to prepare: err " . $dbh->err . ", errstr "
-	    . $dbh->errstr;
-    }
-    if (!$sth->execute) {
-	return "Failed to execute: err " . $dbh->err . ", errstr "
-	    . $dbh->errstr;
-    }
-    $got = 0;
-    while ($sth->fetchrow_arrayref) {
-	++$got;
-    }
-    if ($got ne $num) {
-	return "Wrong result: Expected $num rows, got $got.\n";
-    }
-    return '';
-}
+#####################################################################
+# Main Tests
 
-#
-#   Main loop; leave this untouched, put tests after creating
-#   the new table.
-#
-my ($dbh, $def, $table, $msg);
-while (Testing()) {
-    #
-    #   Connect to the database
-    Test($state or ($dbh = DBI->connect("DBI:SQLite:dbname=foo", '',
-					'')),
-	 'connect',
-	 "Attempting to connect.\n")
-	or ErrMsgF("Cannot connect: Error %s.\n\n"
-		   . "Make sure, your database server is up and running.\n"
-		   . "Check that 'DBI:SQLite:dbname=foo' references a valid database"
-		   . " name.\nDBI error message: %s\n",
-		   $DBI::err, $DBI::errstr);
+# Create a database
+my $dbh = connect_ok( RaiseError => 1 );
 
-    #
-    #   Find a possible new table name
-    #
-    Test($state or $table = 'table1')
-	or ErrMsgF("Cannot determine a legal table name: Error %s.\n",
-		   $dbh->errstr);
+# Create the table
+ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
+CREATE TABLE one (
+    id INTEGER NOT NULL,
+    name CHAR (64) NOT NULL
+)
+END_SQL
 
-    #
-    #   Create a new table
-    #
-    Test($state or ($def = TableDefinition($table,
-					   ["id",   "INTEGER",  4, 0],
-					   ["name", "CHAR",    64, 0]),
-		    $dbh->do($def)))
-	or ErrMsgF("Cannot create table: Error %s.\n",
-		   $dbh->errstr);
+# Turn AutoCommit off
+$dbh->{AutoCommit} = 0;
+ok( ! $dbh->{AutoCommit}, 'AutoCommit is off' );
+ok( ! $dbh->err,          '->err is false'    );
+ok( ! $dbh->errstr,       '->err is false'    );
 
-    Test($state or $dbh->{AutoCommit})
-	or ErrMsg("AutoCommit is off\n", 'AutoCommint on');
+# Check rollback
+insert( $dbh );
+rows( $dbh, 1 );
+ok( $dbh->rollback, '->rollback ok' );
+rows( $dbh, 0 );
 
-    #
-    #   Tests for databases that do support transactions
-    #
-    if ( 1 ) {
-	# Turn AutoCommit off
-	$dbh->{AutoCommit} = 0;
-	Test($state or (!$dbh->err && !$dbh->errstr && !$dbh->{AutoCommit}))
-	    or ErrMsgF("Failed to turn AutoCommit off: err %s, errstr %s\n",
-		       $dbh->err, $dbh->errstr);
+# Check commit
+ok( $dbh->do('DELETE FROM one WHERE id = 1'), 'DELETE 1' );
+rows( $dbh, 0 );
+ok( $dbh->commit, '->commit ok' );
+rows( $dbh, 0 );
 
-	# Check rollback
-	Test($state or $dbh->do("INSERT INTO $table VALUES (1, 'Jochen')"))
-	    or ErrMsgF("Failed to insert value: err %s, errstr %s.\n",
-		       $dbh->err, $dbh->errstr);
+# Check auto rollback after disconnect
+insert( $dbh );
+rows( $dbh, 1 );
+ok( $dbh->disconnect, '->disconnect ok' );
+$dbh = connect_ok();
+rows( $dbh, 0 );
 
-	Test($state or !($msg = NumRows($dbh, $table, 1)))
-	    or ErrMsg($msg);
-	Test($state or $dbh->rollback)
-	    or ErrMsgF("Failed to rollback: err %s, errstr %s.\n",
-		       $dbh->err, $dbh->errstr);
-	Test($state or !($msg = NumRows($dbh, $table, 0)))
-	    or ErrMsg($msg);
+# Check that AutoCommit is back on again after the reconnect
+is( $dbh->{AutoCommit}, 1, 'AutoCommit is on' );
 
-	# Check commit
-	Test($state or $dbh->do("DELETE FROM $table WHERE id = 1"))
-	    or ErrMsgF("Failed to insert value: err %s, errstr %s.\n",
-		       $dbh->err, $dbh->errstr);
-	Test($state or !($msg = NumRows($dbh, $table, 0)))
-	    or ErrMsg($msg);
-	Test($state or $dbh->commit)
-	    or ErrMsgF("Failed to rollback: err %s, errstr %s.\n",
-		       $dbh->err, $dbh->errstr);
-	Test($state or !($msg = NumRows($dbh, $table, 0)))
-	    or ErrMsg($msg);
+# Check whether AutoCommit mode works.
+insert( $dbh );
+rows( $dbh, 1 );
+ok( $dbh->disconnect, '->disconnect ok' );
+$dbh = connect_ok();
+rows( $dbh, 1 );
 
-	# Check auto rollback after disconnect
-	Test($state or $dbh->do("INSERT INTO $table VALUES (1, 'Jochen')"))
-	    or ErrMsgF("Failed to insert: err %s, errstr %s.\n",
-		       $dbh->err, $dbh->errstr);
-	Test($state or !($msg = NumRows($dbh, $table, 1)))
-	    or ErrMsg($msg);
-	Test($state or $dbh->disconnect)
-	    or ErrMsgF("Failed to disconnect: err %s, errstr %s.\n",
-		       $dbh->err, $dbh->errstr);
-	Test($state or ($dbh = DBI->connect("DBI:SQLite:dbname=foo", '',
-					    '')))
-	    or ErrMsgF("Failed to reconnect: err %s, errstr %s.\n",
-		       $DBI::err, $DBI::errstr);
-	Test($state or !($msg = NumRows($dbh, $table, 0)))
-	    or ErrMsg($msg);
-
-	# Check whether AutoCommit is on again
-	Test($state or $dbh->{AutoCommit})
-	    or ErrMsg("AutoCommit is off\n");
-    }
-
-    #   Check whether AutoCommit mode works.
-    Test($state or $dbh->do("INSERT INTO $table VALUES (1, 'Jochen')"))
-	or ErrMsgF("Failed to delete: err %s, errstr %s.\n",
-		   $dbh->err, $dbh->errstr);
-    Test($state or !($msg = NumRows($dbh, $table, 1)), 'NumRows')
-	or ErrMsg($msg);
-    Test($state or $dbh->disconnect, 'disconnect')
-	or ErrMsgF("Failed to disconnect: err %s, errstr %s.\n",
-		   $dbh->err, $dbh->errstr);
-    Test($state or ($dbh = DBI->connect("DBI:SQLite:dbname=foo", '',
-					'')))
-	or ErrMsgF("Failed to reconnect: err %s, errstr %s.\n",
-		   $DBI::err, $DBI::errstr);
-    Test($state or !($msg = NumRows($dbh, $table, 1)))
-	or ErrMsg($msg);
-
-    #   Check whether commit issues a warning in AutoCommit mode
-    Test($state or $dbh->do("INSERT INTO $table VALUES (2, 'Tim')"))
-	or ErrMsgF("Failed to insert: err %s, errstr %s.\n",
-		   $dbh->err, $dbh->errstr);
-    my $result;
-    if (!$state) {
-	$@ = '';
-	$SIG{__WARN__} = \&CatchWarning;
-	$gotWarning = 0;
-	eval { $result = $dbh->commit; };
+# Check whether commit issues a warning in AutoCommit mode
+ok( $dbh->do("INSERT INTO one VALUES ( 2, 'Tim' )"), 'INSERT 2' );
+SCOPE: {
+	local $@ = '';
+	$SIG{__WARN__} = sub {
+		$warning_count++;
+	};
+	eval {
+		$dbh->commit;
+	};
 	$SIG{__WARN__} = 'DEFAULT';
-    }
-    Test($state or $gotWarning)
-	or ErrMsg("Missing warning when committing in AutoCommit mode");
+	is( $warning_count, 1, 'Got one warning' );
+}
 
-    #   Check whether rollback issues a warning in AutoCommit mode
-    #   We accept error messages as being legal, because the DBI
-    #   requirement of just issueing a warning seems scary.
-    Test($state or $dbh->do("INSERT INTO $table VALUES (3, 'Alligator')"))
-	or ErrMsgF("Failed to insert: err %s, errstr %s.\n",
-		   $dbh->err, $dbh->errstr);
-    if (!$state) {
-	$@ = '';
-	$SIG{__WARN__} = \&CatchWarning;
-	$gotWarning = 0;
-	eval { $result = $dbh->rollback; };
+# Check whether rollback issues a warning in AutoCommit mode
+# We accept error messages as being legal, because the DBI
+# requirement of just issueing a warning seems scary.
+ok( $dbh->do("INSERT INTO one VALUES ( 3, 'Alligator' )"), 'INSERT 3' );
+SCOPE: {
+	local $@ = '';
+	$SIG{__WARN__} = sub {
+		$warning_count++;
+	};
+	eval {
+		$dbh->rollback;
+	};
 	$SIG{__WARN__} = 'DEFAULT';
-    }
-    Test($state or $gotWarning or $dbh->err)
-	or ErrMsg("Missing warning when rolling back in AutoCommit mode");
-
-
-    #
-    #   Finally drop the test table.
-    #
-    Test($state or $dbh->do("DROP TABLE $table"))
-	or ErrMsgF("Cannot DROP test table $table: %s.\n",
-		   $dbh->errstr);
-    Test($state or $dbh->disconnect())
-	or ErrMsgF("Cannot DROP test table $table: %s.\n",
-		   $dbh->errstr);
+	is( $warning_count, 2, 'Got one warning' );
 }

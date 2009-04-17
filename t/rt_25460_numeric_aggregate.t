@@ -6,8 +6,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 13;
 use t::lib::Test;
+use Test::More tests => 14;
+use Test::NoWarnings;
 
 # Create the table
 my $dbh = connect_ok();

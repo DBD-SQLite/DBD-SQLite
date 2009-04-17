@@ -5,8 +5,9 @@ BEGIN {
     $^W = 1;
 }
 
-use Test::More tests => 5;
 use t::lib::Test;
+use Test::More tests => 6;
+use Test::NoWarnings;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 

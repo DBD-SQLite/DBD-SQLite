@@ -10,11 +10,13 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => 14 );
+		plan( tests => 15 );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
+use Test::NoWarnings;
+
 eval "require utf8";
 die $@ if $@;
 

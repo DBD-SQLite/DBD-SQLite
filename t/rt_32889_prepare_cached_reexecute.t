@@ -10,8 +10,9 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 31;
 use t::lib::Test;
+use Test::More tests => 32;
+use Test::NoWarnings;
 
 # Create the table
 SCOPE: {

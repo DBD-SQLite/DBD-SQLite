@@ -1,6 +1,10 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22_07 not yet released
+1.22_08 not yet released
+    - Completed the migration of all tests and deleted lib.pl (ADAMK)
+    - Prevented a double "commit is innefective" warning (ADAMK)
+
+1.22_07 Thu 16 Apr 2009
     - Improved non-latin unicode filename support/test
       on Windows (SZABGAB/ISHIGAKI)
     - Removed the table name generator from t/lib.pl,
