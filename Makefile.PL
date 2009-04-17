@@ -209,7 +209,9 @@ WriteMakefile(
 		'File::Spec'       => (WINLIKE ? '3.27' : '0.82'),
 		'DBI'              => $DBI_required,
 		'Test::More'       => '0.42',
-		(WINLIKE ? ('Win32' => 0) : ()),
+		( WINLIKE ? (
+			'Win32' => '0.30',
+		) : () ),
 	},
 	OPTIONAL( '6.48',
 		MIN_PERL_VERSION => '5.006',

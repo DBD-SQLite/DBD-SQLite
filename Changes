@@ -1,8 +1,9 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22_08 not yet released
+1.22_08 Fri 17 Apr 2009
     - Completed the migration of all tests and deleted lib.pl (ADAMK)
     - Prevented a double "commit is innefective" warning (ADAMK)
+    - Adding a version for the Win32.pm dependency (ADAMK)
 
 1.22_07 Thu 16 Apr 2009
     - Improved non-latin unicode filename support/test
