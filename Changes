@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite.
 
-1.22_09 unreleased
+1.22_09 Sun 19 Apr 2009
     - silence(!) Win64 build warnings (BrowserUk)
 
 1.22_08 Fri 17 Apr 2009
