@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite.
 
+1.23 Sun 19 Apr 2009
+    - No changes from 1.22_08, just switched to production release (ADAMK)
+
 1.22_08 Fri 17 Apr 2009
     - Completed the migration of all tests and deleted lib.pl (ADAMK)
     - Prevented a double "commit is innefective" warning (ADAMK)
