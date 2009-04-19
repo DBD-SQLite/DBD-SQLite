@@ -547,7 +547,7 @@ static void porter_stemmer(const char *zIn, int nIn, char *zOut, int *pnOut){
   /* z[] is now the stemmed word in reverse order.  Flip it back
   ** around into forward order and return.
   */
-  *pnOut = i = (int)strlen(z);
+  *pnOut = i = strlen(z);
   zOut[i] = 0;
   while( *z ){
     zOut[--i] = *(z++);

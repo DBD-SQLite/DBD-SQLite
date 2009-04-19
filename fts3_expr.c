@@ -358,7 +358,7 @@ static int getNextNode(
         pRet->eType = pKey->eType;
         pRet->nNear = nNear;
         *ppExpr = pRet;
-        *pnConsumed = (int)( (zInput - z) + nKey );
+        *pnConsumed = (zInput - z) + nKey;
         return SQLITE_OK;
       }
 
@@ -378,14 +378,14 @@ static int getNextNode(
       if( rc==SQLITE_OK && !*ppExpr ){
         rc = SQLITE_DONE;
       }
-      *pnConsumed = (int)( (zInput - z) + 1 + nConsumed );
+      *pnConsumed = (zInput - z) + 1 + nConsumed;
       return rc;
     }
-
+  
     /* Check for a close bracket. */
     if( *zInput==')' ){
       pParse->nNest--;
-      *pnConsumed = (int)( (zInput - z) + 1 );
+      *pnConsumed = (zInput - z) + 1;
       return SQLITE_DONE;
     }
   }
@@ -397,7 +397,7 @@ static int getNextNode(
   */
   if( *zInput=='"' ){
     for(ii=1; ii<nInput && zInput[ii]!='"'; ii++);
-    *pnConsumed = (int)( (zInput - z) + ii + 1 );
+    *pnConsumed = (zInput - z) + ii + 1;
     if( ii==nInput ){
       return SQLITE_ERROR;
     }
@@ -685,7 +685,7 @@ int sqlite3Fts3ExprParse(
     return SQLITE_OK;
   }
   if( n<0 ){
-    n = (int)strlen(z);
+    n = strlen(z);
   }
   rc = fts3ExprParse(&sParse, z, n, ppExpr, &nParsed);
 

@@ -1719,7 +1719,7 @@ static char *string_dup_n(const char *s, int n){
  * (We don't use strdup() since it is not part of the standard C library and
  * may not be available everywhere.) */
 static char *string_dup(const char *s){
-  return string_dup_n(s, (int)strlen(s));
+  return string_dup_n(s, strlen(s));
 }
 
 /* Format a string, replacing each occurrence of the % character with
@@ -1742,7 +1742,7 @@ static char *string_format(const char *zFormat,
   }
   len += 1;  /* for null terminator */
 
-  r = result = sqlite3_malloc((int)len);
+  r = result = sqlite3_malloc(len);
   for(p = zFormat; *p; ++p){
     if( *p=='%' ){
       memcpy(r, zDb, nDb);
@@ -2565,7 +2565,7 @@ typedef struct FtsToken {
 */
 static char **tokenizeString(const char *z, int *pnToken){
   int nToken = 0;
-  FtsToken *aToken = sqlite3_malloc( (int)( strlen(z) * sizeof(aToken[0]) ) );
+  FtsToken *aToken = sqlite3_malloc( strlen(z) * sizeof(aToken[0]) );
   int n = 1;
   int e, i;
   int totalSize = 0;
@@ -2765,7 +2765,7 @@ static int parseSpec(TableSpec *pSpec, int argc, const char *const*argv,
   */
   CLEAR(pSpec);
   for(i=n=0; i<argc; i++){
-    n += (int)( strlen(argv[i]) + 1 );
+    n += strlen(argv[i]) + 1;
   }
   azArg = sqlite3_malloc( sizeof(char*)*argc + n );
   if( azArg==0 ){
@@ -2901,11 +2901,11 @@ static int constructVtab(
     return SQLITE_NOMEM;
   }
 
-  zTok = spec->azTokenizer[0];
+  zTok = spec->azTokenizer[0]; 
   if( !zTok ){
     zTok = "simple";
   }
-  nTok = (int)( strlen(zTok)+1 );
+  nTok = strlen(zTok)+1;
 
   m = (sqlite3_tokenizer_module *)sqlite3Fts3HashFind(pHash, zTok, nTok);
   if( !m ){

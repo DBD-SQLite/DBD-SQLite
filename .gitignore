@@ -1,10 +1,6 @@
 *.o
 *.bs
 blib/
-*.def
-dll.base
-dll.def
-dll.exp
 SQLite.c
 *.xsi
 pm_to_blib

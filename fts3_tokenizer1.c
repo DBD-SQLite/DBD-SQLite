@@ -75,7 +75,7 @@ static int simpleCreate(
   ** information on the initial create.
   */
   if( argc>1 ){
-    int i, n = (int)strlen(argv[1]);
+    int i, n = strlen(argv[1]);
     for(i=0; i<n; i++){
       unsigned char ch = argv[1][i];
       /* We explicitly don't support UTF-8 delimiters for now. */
