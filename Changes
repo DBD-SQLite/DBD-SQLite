@@ -3,6 +3,7 @@ Changes for Perl extension DBD-SQLite.
 1.23_01 not yet released
     - Now DBD::SQLite also uses amalgamated source recommended at sqlite.org (ISHIGAKI)
     - Resolved #45166: better unicode path handling under cygwin (ISHIGAKI)
+    - Resolved #45171: test failure on CentOS 4.6 (ISHIGAKI)
 
 1.23 Sun 19 Apr 2009
     - No changes from 1.22_08, just switched to production release (ADAMK)
