@@ -12,22 +12,13 @@ if (getstore(
 }
 print("done\n");
 
-rm_rf('sqlite');
+rm_rf('sqlite') || rm_rf("sqlite-$version");
 xsystem("tar zxvf sqlite.tar.gz");
 chdir("sqlite") || chdir("sqlite-$version") || die "SQLite directory not found";
-xsystem("sh configure --enable-utf8");
-xsystem("make parse.c sqlite3.h opcodes.h opcodes.c");
-eval { xsystem("make keywordhash.h") };
 
-my %skip = map { $_ => 1 } map { chomp; $_ } <DATA>;
-warn("Skip: $_\n") for keys %skip;
-
-foreach (<*.[ch]>, `find src -name \\*.[ch]`) {
-    chomp;
-    next if $skip{$_};
-    next if /\btest.*\.c$/;
-    xsystem("cp $_ ../");
-}
+xsystem("cp sqlite3.c ../");
+xsystem("cp sqlite3.h ../");
+xsystem("cp sqlite3ext.h ../");
 
 exit(0);
 
@@ -39,13 +30,3 @@ sub xsystem {
        die "system(@_) failed: $?";
     }
 }
-
-__DATA__
-lempar.c
-src/threadtest.c
-src/tclsqlite.c
-src/shell.c
-src/lemon.c
-src/md5.c
-src/encode.c
-src/experimental.c
