@@ -74,18 +74,28 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 
 sub _path {  # copied from DBD::SQLite::connect
 	my $path = shift;
-	return $path unless $^O eq 'MSWin32';
 
-	require Win32;
-	require File::Basename;
+	if ($^O =~ /MSWin32|cygwin/) {
+		require Win32;
+		require File::Basename;
 
-	my ($file, $dir, $suffix) = File::Basename::fileparse($path);
-	my $short = Win32::GetShortPathName($path);
-	if ( $short && -f $short ) {
-		# Existing files will work directly.
-		return $short;
-	} elsif ( -d $dir ) {
-		return join '', grep { defined } Win32::GetShortPathName($dir), $file, $suffix;
+		my ($file, $dir, $suffix) = File::Basename::fileparse($path);
+		my $short = Win32::GetShortPathName($path);
+		if ( $short && -f $short ) {
+			# Existing files will work directly.
+			$path = $short;
+		} elsif ( -d $dir ) {
+			$path = join '', grep { defined } Win32::GetShortPathName($dir), $file, $suffix;
+		}
+		if ($^O eq 'cygwin') {
+			if ($] >= 5.010) {
+				$path = Cygwin::win_to_posix_path($path, 'absolute');
+			}
+			else {
+				require Filesys::CygwinPaths;
+				$path = Filesys::CygwinPaths::fullposixpath($path);
+			}
+		}
 	}
 	return $path;
 }

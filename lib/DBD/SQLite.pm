@@ -65,7 +65,7 @@ sub connect {
 
     # To avoid unicode and long file name problems on Windows,
     # convert to the shortname if the file (or parent directory) exists.
-    if ( $^O eq 'MSWin32' and $real ne ':memory:' ) {
+    if ( $^O =~ /MSWin32|cygwin/ and $real ne ':memory:' ) {
         require Win32;
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);
@@ -80,6 +80,15 @@ sub connect {
         } else {
             # SQLite can't do mkpath anyway.
             # So let it go through as it and fail.
+        }
+        if ( $^O eq 'cygwin' ) {
+            if ( $] >= 5.010 ) {
+                $real = Cygwin::win_to_posix_path($real, 'absolute');
+            }
+            else {
+                require Filesys::CygwinPaths;
+                $real = Filesys::CygwinPaths::fullposixpath($real);
+            }
         }
     }
 
