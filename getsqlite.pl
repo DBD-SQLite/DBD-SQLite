@@ -4,9 +4,9 @@ use ExtUtils::Command;
 
 my $version = shift || die "Usage: getsqlite.pl <version>\n";
 
-print("downloading http://www.sqlite.org/sqlite-$version.tar.gz\n");
+print("downloading http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz\n");
 if (getstore(
-	"http://www.sqlite.org/sqlite-$version.tar.gz", 
+	"http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz", 
 	"sqlite.tar.gz") != 200) {
    die "Failed to download";
 }
