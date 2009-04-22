@@ -243,6 +243,11 @@ WriteMakefile(
 				repository  => 'http://svn.ali.as/cpan/trunk/DBD-SQLite',
 				MailingList => 'http://lists.scsys.co.uk/cgi-bin/mailman/listinfo/dbd-sqlite',
 			},
+			no_index => {
+				directory => [ qw{
+					t inc util
+				} ],
+			}
 		},
 	),
 	OBJECT           => ( $force_local

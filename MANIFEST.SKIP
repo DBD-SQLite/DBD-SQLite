@@ -19,3 +19,4 @@ CVS/.*
 ^sqlite\-
 \.svn
 ^bugs/
+^util/
