@@ -788,6 +788,13 @@ Which will prevent sqlite from doing fsync's when writing (which
 slows down non-transactional writes significantly) at the expense of some
 peace of mind. Also try playing with the cache_size pragma.
 
+The memory usage of SQLite can also be tuned using the cache_size pragma.
+
+  $dbh->do("PRAGMA cache_size = 800000");
+
+The above will allocate 800M for DB cache; the default is 2M. Your sweet spot
+probably lies somewhere in between.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
