@@ -1,15 +1,21 @@
+#!/usr/bin/perl
+
 use strict;
+use FindBin;
+use File::Spec::Functions ':ALL';
 use LWP::Simple qw(getstore);
 use ExtUtils::Command;
+
+chdir(catdir($FindBin::Bin, updir())) or die "Failed to change to the dist root";
 
 my $version = shift || die "Usage: getsqlite.pl <version>\n";
 
 print("downloading http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz\n");
-if (getstore(
+my $rv = getstore(
 	"http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz", 
-	"sqlite.tar.gz") != 200) {
-   die "Failed to download";
-}
+	"sqlite.tar.gz",
+);
+die "Failed to download" if $rv != 200;
 print("done\n");
 
 rm_rf('sqlite') || rm_rf("sqlite-$version");
