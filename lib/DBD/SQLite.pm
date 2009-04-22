@@ -795,6 +795,23 @@ The memory usage of SQLite can also be tuned using the cache_size pragma.
 The above will allocate 800M for DB cache; the default is 2M. Your sweet spot
 probably lies somewhere in between.
 
+=head1 TO DO
+
+The following items remain to be done.
+
+=head2 Warnings Upgrade
+
+We currently use a horridly hacky method to issue and suppress warnings.
+It suffices for now, but just barely.
+
+Migrate all of the warning code to use the recommended DBI warnings.
+
+=head2 Leak Detection
+
+Implement one or more leak detection tests that only run during
+AUTOMATED_TESTING and RELEASE_TESTING and validate that none of the C
+code we work with leaks.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
