@@ -1,6 +1,11 @@
 Changes for Perl extension DBD-SQLite.
 
-1.24_01 not yet released
+1.24_02 not yet released
+    - Merging various externally-contributed annotations from
+      annocpan.org (ADAMK)
+    - Created the beginnings of a DBD::SQLite::Cookbook (ADAMK)
+
+1.24_01 Wed 22 Apr 2009
     - Moved getsqlite.pl into util (ADAMK)
     - Switching to the RT queue instead of the RT report page that
       does nothing and just refers you to email (ADAMK)
