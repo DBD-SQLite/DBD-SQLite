@@ -44,8 +44,7 @@ sub return_null {
 }
 
 sub my_defined {
-#        warn("defined($_[0])\n");
-        return defined $_[0] ? 1 : 0;
+        defined($_[0]) ? 1 : 0;
 }
 
 sub noop {
