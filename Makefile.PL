@@ -284,21 +284,19 @@ sub libscan {
 
 sub test_via_harness {
 	my ($self, $perl, $tests) = @_;
-	if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
-		return qq{\tPERL_DL_NONLAZY=0 $perl "-MExtUtils::Command::MM" }.
-				qq{"-e" "test_harness(\$(TEST_VERBOSE), '\$(INST_LIB)', '\$(INST_ARCHLIB)')" $tests\n};
-	}
-	else {
+	if ( $^O eq 'hpux' and $Config{osvers} <= 10.20 ) {
+		return qq{\tPERL_DL_NONLAZY=0 $perl "-MExtUtils::Command::MM" }
+		     . qq{"-e" "test_harness(\$(TEST_VERBOSE), '\$(INST_LIB)', '\$(INST_ARCHLIB)')" $tests\n};
+	} else {
 		$self->SUPER::test_via_harness($perl, $tests);
 	}
 }
 
 sub test_via_script {
 	my ($self, $perl, $script) = @_;
-	if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
+	if ( $^O eq 'hpux' and $Config{osvers} <= 10.20 ) {
 		return qq{\tPERL_DL_NONLAZY=0 $perl "-I\$(INST_LIB)" "-I\$(INST_ARCHLIB)" $script\n};
-	}
-	else {
+	} else {
 		$self->SUPER::test_via_script($perl, $script);
 	}
 }

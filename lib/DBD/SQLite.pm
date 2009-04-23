@@ -8,7 +8,7 @@ use DynaLoader ();
 use vars qw($VERSION @ISA);
 use vars qw{$err $errstr $drh $sqlite_version};
 BEGIN {
-    $VERSION = '1.24_02';
+    $VERSION = '1.25';
     @ISA     = ('DynaLoader');
 
     # Initialize errors

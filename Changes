@@ -1,4 +1,8 @@
-Changes for Perl extension DBD-SQLite.
+Changes for Perl extension DBD-SQLite
+
+1.25 Thu 23 Apr 2009
+    - Amalgamation conversion turned out to be quicker than expected.
+    - Changing to a production release.  (ADAMK)
 
 1.24_02 Wed 22 Apr 2009
     - Merging various externally-contributed annotations from
