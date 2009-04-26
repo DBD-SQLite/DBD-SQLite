@@ -8,7 +8,7 @@ use DynaLoader ();
 use vars qw($VERSION @ISA);
 use vars qw{$err $errstr $drh $sqlite_version};
 BEGIN {
-    $VERSION = '1.25';
+    $VERSION = '1.26';
     @ISA     = ('DynaLoader');
 
     # Initialize errors
@@ -84,8 +84,7 @@ sub connect {
         if ( $^O eq 'cygwin' ) {
             if ( $] >= 5.010 ) {
                 $real = Cygwin::win_to_posix_path($real, 'absolute');
-            }
-            else {
+            } else {
                 require Filesys::CygwinPaths;
                 $real = Filesys::CygwinPaths::fullposixpath($real);
             }
@@ -244,7 +243,7 @@ sub primary_key_info {
     my($dbh, $catalog, $schema, $table) = @_;
 
     # This is a hack but much simpler than using pragma index_list etc
-    # also the pragma doesn't list 'INTEGER PRIMARK KEY' autoinc PKs!
+    # also the pragma doesn't list 'INTEGER PRIMARY KEY' autoinc PKs!
     my @pk_info;
     my $sth_tables = $dbh->table_info($catalog, $schema, $table, '');
     while ( my $row = $sth_tables->fetchrow_hashref ) {
@@ -324,6 +323,27 @@ sub type_info_all {
 #    ];
 }
 
+my @COLUMN_INFO = qw(
+    TABLE_CAT
+    TABLE_SCHEM
+    TABLE_NAME
+    COLUMN_NAME
+    DATA_TYPE
+    TYPE_NAME
+    COLUMN_SIZE
+    BUFFER_LENGTH
+    DECIMAL_DIGITS
+    NUM_PREC_RADIX
+    NULLABLE
+    REMARKS
+    COLUMN_DEF
+    SQL_DATA_TYPE
+    SQL_DATETIME_SUB
+    CHAR_OCTET_LENGTH
+    ORDINAL_POSITION
+    IS_NULLABLE
+);
+
 # Taken from Fey::Loader::SQLite
 sub column_info {
     my($dbh, $catalog, $schema, $table, $column) = @_;
@@ -332,24 +352,18 @@ sub column_info {
         $column = undef;
     }
 
-    my $sth_columns = $dbh->prepare( "PRAGMA table_info('$table')" );
+    my @cols        = ();
+    my $position    = 0;
+    my $sth_columns = $dbh->prepare("PRAGMA table_info('$table')");
     $sth_columns->execute;
-
-    my @names = qw(
-        TABLE_CAT TABLE_SCHEM TABLE_NAME COLUMN_NAME
-        DATA_TYPE TYPE_NAME COLUMN_SIZE BUFFER_LENGTH
-        DECIMAL_DIGITS NUM_PREC_RADIX NULLABLE
-        REMARKS COLUMN_DEF SQL_DATA_TYPE SQL_DATETIME_SUB
-        CHAR_OCTET_LENGTH ORDINAL_POSITION IS_NULLABLE
-    );
-
-    my @cols;
     while ( my $col_info = $sth_columns->fetchrow_hashref ) {
+        $position++;
         next if defined $column && $column ne $col_info->{name};
 
         my %col = (
-            TABLE_NAME  => $table,
-            COLUMN_NAME => $col_info->{name},
+            TABLE_NAME       => $table,
+            COLUMN_NAME      => $col_info->{name},
+            ORDINAL_POSITION => $position,
         );
 
         my $type = $col_info->{type};
@@ -372,20 +386,21 @@ sub column_info {
             $col{IS_NULLABLE} = 'YES';
         }
 
-        foreach my $key ( @names ) {
+        foreach my $key ( @COLUMN_INFO ) {
             next if exists $col{$key};
             $col{$key} = undef;
         }
 
         push @cols, \%col;
     }
+    $sth_columns->finish;
 
     my $sponge = DBI->connect("DBI:Sponge:", '','')
         or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
     my $sth = $sponge->prepare( "column_info $table", {
-        rows          => [ map { [ @{$_}{@names} ] } @cols ],
-        NUM_OF_FIELDS => scalar @names,
-        NAME          => \@names,
+        rows          => [ map { [ @{$_}{@COLUMN_INFO} ] } @cols ],
+        NUM_OF_FIELDS => scalar @COLUMN_INFO,
+        NAME          => [ @COLUMN_INFO ],
     } ) or return $dbh->DBI::set_err(
         $sponge->err,
         $sponge->errstr,
