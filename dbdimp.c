@@ -568,7 +568,6 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
                 } else {
                   SvUTF8_off(AvARRAY(av)[i]);
                 }
-                if (chopBlanks) Safefree(val);
                 break;
             case SQLITE_BLOB:
                 len = sqlite3_column_bytes(imp_sth->stmt, i);
