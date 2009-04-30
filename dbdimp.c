@@ -558,11 +558,9 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
                 val = (char*)sqlite3_column_text(imp_sth->stmt, i);
                 len = sqlite3_column_bytes(imp_sth->stmt, i);
                 if (chopBlanks) {
-                    val = savepv(val);
                     while((len > 0) && (val[len-1] == ' ')) {
                        len--;
                     }
-                    val[len] = '\0';
                 }
                 sv_setpvn(AvARRAY(av)[i], val, len);
                 if (imp_dbh->unicode) {
