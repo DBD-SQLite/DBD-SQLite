@@ -717,7 +717,7 @@ sqlite_st_STORE_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv, SV *valuesv)
     return FALSE;
 }
 
-int
+static int
 type_to_odbc_type (int type)
 {
     switch(type) {
@@ -1190,7 +1190,8 @@ sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_
 }
 
 
-int sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
+static int
+sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
                                                int len2, const void *string2)
 {
     dTHX;
@@ -1217,7 +1218,8 @@ int sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
     return cmp;
 }
 
-int sqlite_db_collation_dispatcher_utf8(
+static int
+sqlite_db_collation_dispatcher_utf8(
   void *func, int len1, const void *string1,
               int len2, const void *string2)
 {
@@ -1290,7 +1292,8 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 }
 
 
-int sqlite_db_progress_handler_dispatcher( void *handler )
+static int
+sqlite_db_progress_handler_dispatcher( void *handler )
 {
     dTHX;
     dSP;
