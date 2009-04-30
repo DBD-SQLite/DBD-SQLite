@@ -262,7 +262,7 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
-    if (strlen(statement) < 1) {
+    if (*statement == '\0') {
       sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "attempt to prepare empty statement");
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
