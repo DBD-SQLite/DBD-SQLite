@@ -772,7 +772,7 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
         AV *av = newAV();
         /* warn("Fetch NAME fields: %d\n", i); */
         av_extend(av, i);
-        retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
+        retsv = sv_2mortal(newRV_noinc((SV*)av));
         for (n = 0; n < i; n++) {
             /* warn("Fetch col name %d\n", n); */
             const char *fieldname = sqlite3_column_name(imp_sth->stmt, n);
@@ -787,12 +787,12 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
     }
     else if (strEQ(key, "PRECISION")) {
         AV *av = newAV();
-        retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
+        retsv = sv_2mortal(newRV_noinc((SV*)av));
     }
     else if (strEQ(key, "TYPE")) {
         AV *av = newAV();
         av_extend(av, i);
-        retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
+        retsv = sv_2mortal(newRV_noinc((SV*)av));
         for (n = 0; n < i; n++) {
             const char *fieldtype = sqlite3_column_decltype(imp_sth->stmt, n);
             int type = sqlite3_column_type(imp_sth->stmt, n);
@@ -808,7 +808,7 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
     else if (strEQ(key, "NULLABLE")) {
         AV *av = newAV();
         av_extend(av, i);
-        retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
+        retsv = sv_2mortal(newRV_noinc((SV*)av));
 #if defined(SQLITE_ENABLE_COLUMN_METADATA)
         for (n = 0; n < i; n++) {
             const char *database  = sqlite3_column_database_name(imp_sth->stmt, n);
@@ -830,7 +830,7 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
     }
     else if (strEQ(key, "SCALE")) {
         AV *av = newAV();
-        retsv = sv_2mortal(newRV(sv_2mortal((SV*)av)));
+        retsv = sv_2mortal(newRV_noinc((SV*)av));
     }
     else if (strEQ(key, "NUM_OF_FIELDS")) {
         retsv = sv_2mortal(newSViv(i));
