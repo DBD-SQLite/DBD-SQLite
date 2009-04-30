@@ -478,7 +478,7 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
         if(paramstring[len] == 0 && strlen(paramstring) == len) {
             pos = sqlite3_bind_parameter_index(imp_sth->stmt, paramstring);
             if (pos==0) {
-                const char* errmsg = form("Unknown named parameter: %s", paramstring);
+                char* const errmsg = form("Unknown named parameter: %s", paramstring);
                 sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, errmsg);
                 return FALSE; /* -> &sv_no in SQLite.xsi */
             }
@@ -969,7 +969,7 @@ sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
                                   NULL, NULL );
     if ( retval != SQLITE_OK )
     {
-        const char* errmsg = form("sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        char* const errmsg = form("sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db));
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
     }
 }
@@ -983,7 +983,7 @@ sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
     retval = sqlite3_enable_load_extension( imp_dbh->db, onoff );
     if ( retval != SQLITE_OK )
     {
-        const char* errmsg = form("sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        char* const errmsg = form("sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db));
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
     }
 }
@@ -1202,7 +1202,7 @@ sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_
 
     if ( retval != SQLITE_OK )
     {
-        const char* errmsg = form("sqlite_create_aggregate failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        char* const errmsg = form("sqlite_create_aggregate failed with error %s", sqlite3_errmsg(imp_dbh->db));
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
     }
 }
@@ -1303,7 +1303,7 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 
     if ( rv != SQLITE_OK )
     {
-        const char* errmsg = form("sqlite_create_collation failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        char* const errmsg = form("sqlite_create_collation failed with error %s", sqlite3_errmsg(imp_dbh->db));
     }
 }
 
