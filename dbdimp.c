@@ -1322,6 +1322,8 @@ int sqlite_db_progress_handler_dispatcher( void *handler )
     int n_retval;
     int retval;
 
+    ENTER;
+    SAVETMPS;
     PUSHMARK(SP);
     n_retval = call_sv( handler, G_SCALAR );
     if ( n_retval != 1 ) {
@@ -1330,6 +1332,8 @@ int sqlite_db_progress_handler_dispatcher( void *handler )
     SPAGAIN;
     retval = POPi;
     PUTBACK;
+    FREETMPS;
+    LEAVE;
 
     return retval;
 }
