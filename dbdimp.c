@@ -4,19 +4,7 @@
 
 DBISTATE_DECLARE;
 
-#ifndef SvPV_nolen
-#define SvPV_nolen(x) SvPV(x,PL_na)
-#endif
-
 #define SvPV_nolen_undef_ok(x) (SvOK(x) ? SvPV_nolen(x) : "undef")
-
-#ifndef call_method
-#define call_method(x,y) perl_call_method(x,y)
-#endif
-
-#ifndef call_sv
-#define call_sv(x,y) perl_call_sv(x,y)
-#endif
 
 #define sqlite_error(h,xxh,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, xxh, rc, what)
 
