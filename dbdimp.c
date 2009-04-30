@@ -864,7 +864,7 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
     PUSHMARK(SP);
     for ( i=0; i < argc; i++ ) {
         SV *arg;
-        STRLEN len = sqlite3_value_bytes(value[i]);
+        STRLEN len;
         int type = sqlite3_value_type(value[i]);
 
         /* warn("func dispatch type: %d, value: %s\n", type, sqlite3_value_text(value[i])); */
@@ -876,6 +876,7 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
                 arg = sv_2mortal(newSVnv(sqlite3_value_double(value[i])));
                 break;
             case SQLITE_TEXT:
+                len = sqlite3_value_bytes(value[i]);
                 arg = newSVpvn((const char *)sqlite3_value_text(value[i]), len);
                 if (is_unicode) {
                   SvUTF8_on(arg);
@@ -883,6 +884,7 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
                 arg = sv_2mortal(arg);
                 break;
             case SQLITE_BLOB:
+                len = sqlite3_value_bytes(value[i]);
                 arg = sv_2mortal(newSVpvn(sqlite3_value_blob(value[i]), len));
                 break;
             default:
