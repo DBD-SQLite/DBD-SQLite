@@ -272,7 +272,7 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
     imp_sth->retval    = SQLITE_OK;
     imp_sth->params    = newAV();
     imp_sth->col_types = newAV();
-    Newz(0, imp_sth->statement, strlen(statement)+1, char);
+    imp_sth->statement = savepv(statement); /* store the query for later re-use if required */
 
     if ((retval = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra))
         != SQLITE_OK)
@@ -283,9 +283,6 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
         sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, (char*)sqlite3_errmsg(imp_dbh->db));
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
-
-    /* store the query for later re-use if required */
-    Copy(statement, imp_sth->statement, strlen(statement)+1, char);
 
     DBIc_NUM_PARAMS(imp_sth) = sqlite3_bind_parameter_count(imp_sth->stmt);
     DBIc_NUM_FIELDS(imp_sth) = sqlite3_column_count(imp_sth->stmt);
