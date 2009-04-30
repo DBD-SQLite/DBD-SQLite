@@ -308,28 +308,6 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
     return TRUE;
 }
 
-char *
-sqlite_quote(imp_dbh_t *imp_dbh, SV *val)
-{
-    dTHX;
-    STRLEN len;
-    char *cval = SvPV(val, len);
-    SV *ret = sv_2mortal(NEWSV(0, SvCUR(val) + 2));
-    sv_setpvn(ret, "", 0);
-
-    while (len) {
-      switch (*cval) {
-        case '\'':
-          sv_catpvn(ret, "''", 2);
-          break;
-        default:
-          sv_catpvn(ret, cval, 1);
-      }
-      *cval++; len--;
-    }
-    return SvPV_nolen(ret);
-}
-
 void
 sqlite_st_reset (pTHX_ SV *sth)
 {
