@@ -731,7 +731,7 @@ int
 sqlite_st_STORE_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv, SV *valuesv)
 {
     dTHX;
-    char *key = SvPV_nolen(keysv);
+    /* char *key = SvPV_nolen(keysv); */
     return FALSE;
 }
 
