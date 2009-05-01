@@ -13,7 +13,7 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => 25 );
+		plan( tests => (($^O eq 'cygwin') ? 13 : 25) );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -30,6 +30,9 @@ die $@ if $@;
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
 foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿') {
+	if ($^O eq 'cygwin') {
+		next if (($subdir eq 'adatbázis') || ($subdir eq '¿¿¿ ¿¿¿¿¿¿'));
+	}
 	utf8::upgrade($subdir);
 	ok(
 		mkdir(catdir($dir, $subdir)),
@@ -75,7 +78,7 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 sub _path {  # copied from DBD::SQLite::connect
 	my $path = shift;
 
-	if ($^O =~ /MSWin32|cygwin/) {
+	if ($^O =~ /MSWin32/) {
 		require Win32;
 		require File::Basename;
 
@@ -86,15 +89,6 @@ sub _path {  # copied from DBD::SQLite::connect
 			$path = $short;
 		} elsif ( -d $dir ) {
 			$path = join '', grep { defined } Win32::GetShortPathName($dir), $file, $suffix;
-		}
-		if ($^O eq 'cygwin') {
-			if ($] >= 5.010) {
-				$path = Cygwin::win_to_posix_path($path, 'absolute');
-			}
-			else {
-				require Filesys::CygwinPaths;
-				$path = Filesys::CygwinPaths::fullposixpath($path);
-			}
 		}
 	}
 	return $path;

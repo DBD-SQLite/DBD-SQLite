@@ -212,9 +212,6 @@ WriteMakefile(
 		( WINLIKE ? (
 			'Win32' => '0.30',
 		) : () ),
-		( ($^O eq 'cygwin' && $] < 5.010) ? (
-			'Filesys::CygwinPaths' => '0',
-		) : () ),
 	},
 	OPTIONAL( '6.48',
 		MIN_PERL_VERSION => '5.006',
