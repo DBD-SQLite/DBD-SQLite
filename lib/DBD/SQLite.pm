@@ -764,6 +764,46 @@ On the command line to access the file F<foo.db>.
 Alternatively you can install SQLite from the link above without conflicting
 with B<DBD::SQLite> and use the supplied C<sqlite> command line tool.
 
+=head1 FUNCTIONS AND BIND PARAMETERS
+
+As of this writing, a SQL that compares a return value of a function with a numeric bind value like this doesn't work as you might expect.
+
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
+  });
+  $sth->execute(5);
+
+This is because DBD::SQLite assumes that all the bind values are text (and should be quoted) by default. Thus the above statement becomes like this while executing:
+
+  SELECT bar FROM foo GROUP BY bar HAVING count(*) > "5";
+
+There are two workarounds for this.
+
+=over 4
+
+=item Use bind_param() explicitly
+
+As shown above in the C<BLOB> section, you can always use C<bind_param()> to tell the type of a bind value.
+
+  use DBI qw(:sql_types);  # Don't forget this
+
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
+  });
+  $sth->bind_param(1, 5, SQL_INTEGER);
+  $sth->execute();
+
+=item Add zero to make it a number
+
+This is somewhat weird, but works anyway.
+
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > (? + 0);
+  });
+  $sth->execute(5);
+
+=back
+
 =head1 PERFORMANCE
 
 SQLite is fast, very fast. I recently processed my 72MB log file with it,
