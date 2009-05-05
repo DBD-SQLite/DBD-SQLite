@@ -24,13 +24,23 @@ BEGIN {
 
 __PACKAGE__->bootstrap($VERSION);
 
+my $methods_are_installed;
+
 sub driver {
-    $drh or
+    return $drh if $drh;
+
+    if (!$methods_are_installed && $DBI::VERSION >= 1.608) {
+        DBI->setup_driver('DBD::SQLite');
+        DBD::SQLite::db->install_method('sqlite_last_insert_rowid');
+        $methods_are_installed++;
+    }
+
     $drh = DBI::_new_drh( "$_[0]::dr", {
         Name        => 'SQLite',
         Version     => $VERSION,
         Attribution => 'DBD::SQLite by Matt Sergeant et al',
     } );
+    return $drh;
 }
 
 sub CLONE {

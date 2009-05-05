@@ -24,6 +24,8 @@ list_tables(dbh)
 IV
 last_insert_rowid(dbh)
     SV *dbh
+    ALIAS:
+        DBD::SQLite::db::sqlite_last_insert_rowid = 1
     CODE:
     {
         D_imp_dbh(dbh);
