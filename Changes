@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.26 to be released
+1.26_01 Tue  5 May 2009
     - Added ORDINAL_POSITION support for $dbh->column_info (ADAMK)
     - Applied several fixes from GFUJI to clean up code (#45578)
       (ISHIGAKI)

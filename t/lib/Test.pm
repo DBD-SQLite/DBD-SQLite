@@ -9,9 +9,9 @@ use Test::More ();
 
 use vars qw{$VERSION @ISA @EXPORT};
 BEGIN {
-	$VERSION = '1.26';
-	@ISA     = qw{ Exporter };
-	@EXPORT  = qw{ connect_ok };
+	$VERSION = '1.26_01';
+	@ISA     = 'Exporter';
+	@EXPORT  = 'connect_ok';
 
 	# Allow tests to load modules bundled in /inc
 	unshift @INC, 'inc';

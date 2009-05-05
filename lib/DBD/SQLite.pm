@@ -8,8 +8,8 @@ use DynaLoader ();
 use vars qw($VERSION @ISA);
 use vars qw{$err $errstr $drh $sqlite_version};
 BEGIN {
-    $VERSION = '1.26';
-    @ISA     = ('DynaLoader');
+    $VERSION = '1.26_01';
+    @ISA     = 'DynaLoader';
 
     # Initialize errors
     $err     = undef;
@@ -397,6 +397,7 @@ sub column_info {
         $sponge->err,
         $sponge->errstr,
     );
+
     return $sth;
 }
 
