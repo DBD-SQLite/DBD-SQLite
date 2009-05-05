@@ -253,7 +253,7 @@ WriteMakefile(
 	),
 	OPTIMIZE         => '-O2',
 	clean            => {
-		FILES => 'SQLite.xsi config.h tv.log',
+		FILES => 'SQLite.xsi config.h tv.log *.old',
 	},
 	PL_FILES         => {},
 	EXE_FILES        => [],
