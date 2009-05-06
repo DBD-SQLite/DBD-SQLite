@@ -47,7 +47,7 @@ create_function(dbh, name, argc, func)
         sqlite3_db_create_function(aTHX_ dbh, name, argc, func );
     }
 
-void
+static int
 enable_load_extension(dbh, onoff)
     SV *dbh
     int onoff
@@ -55,8 +55,10 @@ enable_load_extension(dbh, onoff)
         DBD::SQLite::db::sqlite_enable_load_extension = 1
     CODE:
     {
-        sqlite3_db_enable_load_extension(aTHX_ dbh, onoff );
+        RETVAL = sqlite3_db_enable_load_extension(aTHX_ dbh, onoff );
     }
+    OUTPUT:
+        RETVAL
 
 void
 create_aggregate(dbh, name, argc, aggr)

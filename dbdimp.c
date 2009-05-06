@@ -960,7 +960,7 @@ sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
     return TRUE;
 }
 
-void
+int
 sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
 {
     D_imp_dbh(dbh);
@@ -971,7 +971,9 @@ sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
     {
         char* const errmsg = form("sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db));
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        return FALSE;
     }
+    return TRUE;
 }
 
 static void
