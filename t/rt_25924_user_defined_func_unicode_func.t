@@ -9,8 +9,6 @@ BEGIN {
 use t::lib::Test;
 use Test::More;
 BEGIN {
-	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
-
 	if ( $] >= 5.008005 ) {
 		plan( tests => 15 );
 	} else {
@@ -23,7 +21,7 @@ eval "require utf8";
 die $@ if $@;
 
 my $dbh = connect_ok( unicode => 1 );
-$dbh->sqlite_create_function( "perl_uc", 1, \&perl_uc );
+$dbh->func( "perl_uc", 1, \&perl_uc, "create_function" );
 
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE foo (

@@ -32,8 +32,14 @@ sub driver {
     if (!$methods_are_installed && $DBI::VERSION >= 1.608) {
         DBI->setup_driver('DBD::SQLite');
         DBD::SQLite::db->install_method('sqlite_last_insert_rowid');
+        DBD::SQLite::db->install_method('sqlite_busy_timeout');
+        DBD::SQLite::db->install_method('sqlite_create_function');
+        DBD::SQLite::db->install_method('sqlite_create_aggregate');
+        DBD::SQLite::db->install_method('sqlite_create_collation');
+        DBD::SQLite::db->install_method('sqlite_progress_handler');
         DBD::SQLite::db->install_method('sqlite_backup_from_file');
         DBD::SQLite::db->install_method('sqlite_backup_to_file');
+        DBD::SQLite::db->install_method('sqlite_enable_load_extension');
         $methods_are_installed++;
     }
 

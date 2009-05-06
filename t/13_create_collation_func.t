@@ -9,8 +9,6 @@ BEGIN {
 use t::lib::Test;
 use Test::More;
 BEGIN {
-	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
-
 	if ( $] >= 5.008005 ) {
 		plan( tests => 9 );
 	} else {
@@ -57,7 +55,7 @@ sub no_accents ($$) {
 
 $dbh = connect_ok( RaiseError => 1 );
 
-$dbh->sqlite_create_collation( "no_accents", \&no_accents );
+$dbh->func( "no_accents", \&no_accents, "create_collation" );
 
 $dbh->do( 'CREATE TEMP TABLE collate_test ( txt )' );
 $dbh->do( "INSERT INTO collate_test VALUES ( '$_' )" ) foreach @words;
@@ -79,7 +77,7 @@ is_deeply(\@sorted, $db_sorted, "collate no_accents (@sorted // @$db_sorted)");
 $dbh->disconnect;
 
 $dbh = connect_ok( RaiseError => 1, unicode => 1 );
-$dbh->sqlite_create_collation( "no_accents", \&no_accents );
+$dbh->func( "no_accents", \&no_accents, "create_collation" );
 $dbh->do( 'CREATE TEMP TABLE collate_test ( txt )' );
 $dbh->do( "INSERT INTO collate_test VALUES ( '$_' )" ) foreach @words_utf8;
 
