@@ -3,6 +3,7 @@ Changes for Perl extension DBD-SQLite
 1.26_02 to be released
     - Started using install_method() suggested by TIMB (#44882)
       Ported last_insert_rowid as the first attempt (ISHIGAKI)
+    - Added access to Online Backup functionality. (TJC)
 
 1.26_01 Tue  5 May 2009
     - Added ORDINAL_POSITION support for $dbh->column_info (ADAMK)

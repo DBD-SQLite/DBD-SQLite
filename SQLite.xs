@@ -94,6 +94,29 @@ busy_timeout(dbh, timeout=0)
   OUTPUT:
     RETVAL
 
+static int
+backup_from_file(dbh, filename)
+  SV *dbh
+  char *filename
+  ALIAS:
+     DBD::SQLite::db::sqlite_backup_from_file = 1
+  CODE:
+    RETVAL = sqlite_db_backup_from_file(aTHX_ dbh, filename);
+  OUTPUT:
+    RETVAL
+
+static int
+backup_to_file(dbh, filename)
+  SV *dbh
+  char *filename
+  ALIAS:
+     DBD::SQLite::db::sqlite_backup_to_file = 1
+  CODE:
+    RETVAL = sqlite_db_backup_to_file(aTHX_ dbh, filename);
+  OUTPUT:
+    RETVAL
+
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE

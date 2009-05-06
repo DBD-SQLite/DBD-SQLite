@@ -1254,7 +1254,6 @@ sqlite_db_collation_dispatcher_utf8(
     return cmp;
 }
 
-
 void
 sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 {
@@ -1293,7 +1292,6 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     }
 }
 
-
 static int
 sqlite_db_progress_handler_dispatcher( void *handler )
 {
@@ -1318,8 +1316,6 @@ sqlite_db_progress_handler_dispatcher( void *handler )
     return retval;
 }
 
-
-
 void
 sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 {
@@ -1340,6 +1336,62 @@ sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
                                 sqlite_db_progress_handler_dispatcher,
                                 handler_sv );
     }
+}
+
+/* Accesses the SQLite Online Backup API, and fills the currently loaded
+ * database from the passed filename.
+ * Usual usage of this would be when you're operating on the :memory:
+ * special database connection and want to copy it in from a real db.
+ */
+int
+sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
+{
+    int rc;
+    sqlite3 *pFrom;
+    sqlite3_backup *pBackup;
+
+    D_imp_dbh(dbh);
+
+    rc = sqlite3_open(filename, &pFrom);
+    if (rc==SQLITE_OK) {
+
+        pBackup = sqlite3_backup_init(imp_dbh->db, "main", pFrom, "main");
+        if (pBackup) {
+            (void)sqlite3_backup_step(pBackup, -1);
+            (void)sqlite3_backup_finish(pBackup);
+        }
+        rc = sqlite3_errcode(imp_dbh->db);
+        (void)sqlite3_close(pFrom);
+    }
+    return rc;
+}
+
+/* Accesses the SQLite Online Backup API, and copies the currently loaded
+ * database into the passed filename.
+ * Usual usage of this would be when you're operating on the :memory:
+ * special database connection, and want to back it up to an on-disk file.
+ */
+int
+sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
+{
+    int rc;
+    sqlite3 *pTo;
+    sqlite3_backup *pBackup;
+
+    D_imp_dbh(dbh);
+
+    rc = sqlite3_open(filename, &pTo);
+    if (rc==SQLITE_OK) {
+
+        pBackup = sqlite3_backup_init(pTo, "main", imp_dbh->db, "main");
+        if (pBackup) {
+            (void)sqlite3_backup_step(pBackup, -1);
+            (void)sqlite3_backup_finish(pBackup);
+        }
+        rc = sqlite3_errcode(pTo);
+        (void)sqlite3_close(pTo);
+    }
+    return rc;
 }
 
 /* end */

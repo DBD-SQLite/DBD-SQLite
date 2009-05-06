@@ -32,6 +32,8 @@ sub driver {
     if (!$methods_are_installed && $DBI::VERSION >= 1.608) {
         DBI->setup_driver('DBD::SQLite');
         DBD::SQLite::db->install_method('sqlite_last_insert_rowid');
+        DBD::SQLite::db->install_method('sqlite_backup_from_file');
+        DBD::SQLite::db->install_method('sqlite_backup_to_file');
         $methods_are_installed++;
     }
 
@@ -733,6 +735,18 @@ Set this argument to C<undef> if you want to unregister a previous
 progress handler.
 
 =back
+
+=head2 $dbh->sqlite_backup_from_file( $filename )
+
+This method accesses the SQLite Online Backup API, and will take a backup of
+the named database file, copying it to, and overwriting, your current database
+connection. This can be particularly handy if your current connection is to the
+special :memory: database, and you wish to populate it from an existing DB.
+
+=head2 $dbh->sqlite_backup_to_file( $filename )
+
+This method accesses the SQLite Online Backup API, and will take a backup of
+the currently connected database, and write it out to the named file.
 
 =head1 BLOBS
 
