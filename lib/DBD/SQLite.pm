@@ -518,7 +518,11 @@ Defining the column type as C<BLOB> in the DDL is B<not> sufficient.
 
 =head1 DRIVER PRIVATE METHODS
 
-=head2 $dbh->func('last_insert_rowid')
+The following methods can be called via the func() method with a little tweak, but the use of func() method is now discouraged by the L<DBI> author for various reasons (see L<DBI's document|http://search.cpan.org/dist/DBI/lib/DBI/DBD.pm#Using_install_method()_to_expose_driver-private_methods> for details). So, if you're using L<DBI> >= 1.608, use these C<sqlite_> methods. If you need to use an older L<DBI>, you can call these like this:
+
+  $dbh->func( ..., "(method name without sqlite_ prefix)" );
+
+=head2 $dbh->sqlite_last_insert_rowid()
 
 This method returns the last inserted rowid. If you specify an INTEGER PRIMARY
 KEY as the first column in your table, that is the column that is returned.
@@ -530,17 +534,17 @@ method instead. The usage of this is:
   $h->last_insert_id($catalog, $schema, $table_name, $field_name [, \%attr ])
 
 Running C<$h-E<gt>last_insert_id("","","","")> is the equivalent of running
-C<$dbh-E<gt>func('last_insert_rowid')> directly.
+C<$dbh-E<gt>sqlite_last_insert_rowid()> directly.
 
-=head2 $dbh->func('busy_timeout')
+=head2 $dbh->sqlite_busy_timeout()
 
 Retrieve the current busy timeout.
 
-=head2 $dbh->func( $ms, 'busy_timeout' )
+=head2 $dbh->sqlite_busy_timeout( $ms )
 
 Set the current busy timeout. The timeout is in milliseconds.
 
-=head2 $dbh->func( $name, $argc, $code_ref, "create_function" )
+=head2 $dbh->sqlite_create_function( $name, $argc, $code_ref )
 
 This method will register a new function which will be useable in an SQL
 query. The method's parameters are:
@@ -566,13 +570,13 @@ This should be a reference to the function's implementation.
 For example, here is how to define a now() function which returns the
 current number of seconds since the epoch:
 
-  $dbh->func( 'now', 0, sub { return time }, 'create_function' );
+  $dbh->sqlite_create_function( 'now', 0, sub { return time } );
 
 After this, it could be use from SQL as:
 
   INSERT INTO mytable ( now() );
 
-=head2 $dbh->func( $name, $code_ref, "create_collation" )
+=head2 $dbh->sqlite_create_collation( $name, $code_ref )
 
 This method will register a new function which will be useable in an SQL
 query as a COLLATE option for sorting. The method's parameters are:
@@ -622,7 +626,7 @@ is to set the parameter at connection time :
       }
   );
 
-=head2 $dbh->func( $name, $argc, $pkg, 'create_aggregate' )
+=head2 $dbh->sqlite_create_aggregate( $name, $argc, $pkg )
 
 This method will register a new aggregate function which can then be used
 from SQL. The method's parameters are:
@@ -706,7 +710,7 @@ Here is a simple aggregate function which returns the variance
       return $sigma;
   }
   
-  $dbh->func( "variance", 1, 'variance', "create_aggregate" );
+  $dbh->sqlite_create_aggregate( "variance", 1, 'variance' );
 
 The aggregate function can then be used as:
 
@@ -716,7 +720,7 @@ The aggregate function can then be used as:
 
 For more examples, see the L<DBD::SQLite::Cookbook>.
 
-=head2 $dbh->func( $n_opcodes, $code_ref, 'progress_handler' )
+=head2 $dbh->sqlite_progress_handler( $n_opcodes, $code_ref )
 
 This method registers a handler to be invoked periodically during long
 running calls to SQLite.
