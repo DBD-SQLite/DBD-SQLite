@@ -1346,17 +1346,29 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
     D_imp_dbh(dbh);
 
     rc = sqlite3_open(filename, &pFrom);
-    if (rc==SQLITE_OK) {
-
-        pBackup = sqlite3_backup_init(imp_dbh->db, "main", pFrom, "main");
-        if (pBackup) {
-            (void)sqlite3_backup_step(pBackup, -1);
-            (void)sqlite3_backup_finish(pBackup);
-        }
-        rc = sqlite3_errcode(imp_dbh->db);
-        (void)sqlite3_close(pFrom);
+    if ( rc != SQLITE_OK )
+    {
+        char* const errmsg = form("sqlite_backup_from_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
+        return FALSE;
     }
-    return rc;
+
+    pBackup = sqlite3_backup_init(imp_dbh->db, "main", pFrom, "main");
+    if (pBackup) {
+        (void)sqlite3_backup_step(pBackup, -1);
+        (void)sqlite3_backup_finish(pBackup);
+    }
+    rc = sqlite3_errcode(imp_dbh->db);
+    (void)sqlite3_close(pFrom);
+
+    if ( rc != SQLITE_OK )
+    {
+        char* const errmsg = form("sqlite_backup_from_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 /* Accesses the SQLite Online Backup API, and copies the currently loaded
@@ -1374,17 +1386,29 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
     D_imp_dbh(dbh);
 
     rc = sqlite3_open(filename, &pTo);
-    if (rc==SQLITE_OK) {
-
-        pBackup = sqlite3_backup_init(pTo, "main", imp_dbh->db, "main");
-        if (pBackup) {
-            (void)sqlite3_backup_step(pBackup, -1);
-            (void)sqlite3_backup_finish(pBackup);
-        }
-        rc = sqlite3_errcode(pTo);
-        (void)sqlite3_close(pTo);
+    if ( rc != SQLITE_OK )
+    {
+        char* const errmsg = form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
+        return FALSE;
     }
-    return rc;
+
+    pBackup = sqlite3_backup_init(pTo, "main", imp_dbh->db, "main");
+    if (pBackup) {
+        (void)sqlite3_backup_step(pBackup, -1);
+        (void)sqlite3_backup_finish(pBackup);
+    }
+    rc = sqlite3_errcode(pTo);
+    (void)sqlite3_close(pTo);
+
+    if ( rc != SQLITE_OK )
+    {
+        char* const errmsg = form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
+        return FALSE;
+    }
+
+    return TRUE;
 }
 
 /* end */
