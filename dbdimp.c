@@ -1309,7 +1309,7 @@ sqlite_db_progress_handler_dispatcher( void *handler )
     return retval;
 }
 
-void
+int
 sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 {
     D_imp_dbh(dbh);
@@ -1329,6 +1329,7 @@ sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
                                 sqlite_db_progress_handler_dispatcher,
                                 handler_sv );
     }
+    return TRUE;
 }
 
 /* Accesses the SQLite Online Backup API, and fills the currently loaded

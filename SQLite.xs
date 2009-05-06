@@ -83,7 +83,7 @@ create_collation(dbh, name, func)
         sqlite3_db_create_collation(aTHX_ dbh, name, func );
     }
 
-void
+static int
 progress_handler(dbh, n_opcodes, handler)
     SV *dbh
     int n_opcodes
@@ -92,8 +92,10 @@ progress_handler(dbh, n_opcodes, handler)
         DBD::SQLite::db::sqlite_progress_handler = 1
     CODE:
     {
-        sqlite3_db_progress_handler(aTHX_ dbh, n_opcodes, handler );
+        RETVAL = sqlite3_db_progress_handler(aTHX_ dbh, n_opcodes, handler );
     }
+    OUTPUT:
+        RETVAL
 
 int
 busy_timeout(dbh, timeout=0)
