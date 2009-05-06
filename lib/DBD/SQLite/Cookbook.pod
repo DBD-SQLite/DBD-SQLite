@@ -47,7 +47,9 @@ adapted from an example implementation in pysqlite.
       return $sigma;
   }
   
-  $dbh->func( "variance", 1, 'variance', "create_aggregate" );
+  # NOTE: If you use an older DBI (< 1.608),
+  # use $dbh->func(..., "create_aggregate") instead.
+  $dbh->sqlite_create_aggregate( "variance", 1, 'variance' );
 
 The function can then be used as:
 
