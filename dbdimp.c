@@ -972,13 +972,6 @@ sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
     }
 }
 
-typedef struct aggrInfo aggrInfo;
-struct aggrInfo {
-  SV *aggr_inst;
-  SV *err;
-  int inited;
-};
-
 static void
 sqlite_db_aggr_new_dispatcher(pTHX_ sqlite3_context *context, aggrInfo *aggr_info )
 {

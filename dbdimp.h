@@ -71,6 +71,13 @@ struct imp_sth_st {
 #define dbd_bind_ph             sqlite_bind_ph
 #define dbd_st_bind_col         sqlite_bind_col
 
+typedef struct aggrInfo aggrInfo;
+struct aggrInfo {
+  SV *aggr_inst;
+  SV *err;
+  int inited;
+};
+
 void sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
 void sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
 void sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr );
