@@ -783,6 +783,14 @@ And then retrieval just works:
   
   # now $blobo == $blob
 
+=head2 $dbh->sqlite_enable_load_extension( $bool )
+
+Calling this method with a true value enables loading (external) sqlite3 extensions. After the call, you can load extensions like this:
+
+  $dbh->sqlite_enable_load_extension(1);
+  $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
+  or die "Cannot prepare: " . $dbh->errstr();
+
 =head1 NOTES
 
 Although the database is stored in a single file, the directory containing the
