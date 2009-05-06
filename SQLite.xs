@@ -97,37 +97,36 @@ progress_handler(dbh, n_opcodes, handler)
 
 int
 busy_timeout(dbh, timeout=0)
-  SV *dbh
-  int timeout
-  ALIAS:
-    DBD::SQLite::db::sqlite_busy_timeout = 1
-  CODE:
-    RETVAL = sqlite3_db_busy_timeout(aTHX_ dbh, timeout );
-  OUTPUT:
-    RETVAL
+    SV *dbh
+    int timeout
+    ALIAS:
+        DBD::SQLite::db::sqlite_busy_timeout = 1
+    CODE:
+        RETVAL = sqlite3_db_busy_timeout(aTHX_ dbh, timeout );
+    OUTPUT:
+        RETVAL
 
 static int
 backup_from_file(dbh, filename)
-  SV *dbh
-  char *filename
-  ALIAS:
-    DBD::SQLite::db::sqlite_backup_from_file = 1
-  CODE:
-    RETVAL = sqlite_db_backup_from_file(aTHX_ dbh, filename);
-  OUTPUT:
-    RETVAL
+    SV *dbh
+    char *filename
+    ALIAS:
+        DBD::SQLite::db::sqlite_backup_from_file = 1
+    CODE:
+        RETVAL = sqlite_db_backup_from_file(aTHX_ dbh, filename);
+    OUTPUT:
+        RETVAL
 
 static int
 backup_to_file(dbh, filename)
-  SV *dbh
-  char *filename
-  ALIAS:
-    DBD::SQLite::db::sqlite_backup_to_file = 1
-  CODE:
-    RETVAL = sqlite_db_backup_to_file(aTHX_ dbh, filename);
-  OUTPUT:
-    RETVAL
-
+    SV *dbh
+    char *filename
+    ALIAS:
+        DBD::SQLite::db::sqlite_backup_to_file = 1
+    CODE:
+        RETVAL = sqlite_db_backup_to_file(aTHX_ dbh, filename);
+    OUTPUT:
+        RETVAL
 
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
