@@ -935,7 +935,7 @@ sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3
   sqlite_db_func_dispatcher(0, context, argc, value);
 }
 
-void
+int
 sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
 {
     D_imp_dbh(dbh);
@@ -955,7 +955,9 @@ sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
     {
         char* const errmsg = form("sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db));
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        return FALSE;
     }
+    return TRUE;
 }
 
 void
@@ -1247,7 +1249,7 @@ sqlite_db_collation_dispatcher_utf8(
     return cmp;
 }
 
-void
+int
 sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 {
     D_imp_dbh(dbh);
@@ -1260,12 +1262,12 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     /* Check that this is a proper collation function */
     rv = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, aa);
     if (rv != 0) {
-      warn("improper collation function: %s(aa, aa) returns %d!", name, rv); 
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "improper collation function: %s(aa, aa) returns %d!", name, rv);
     }
     rv  = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, zz);
     rv2 = sqlite_db_collation_dispatcher(func_sv, 2, zz, 2, aa);
     if (rv2 != (rv * -1)) {
-      warn("improper collation function: '%s' is not symmetric", name); 
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "improper collation function: '%s' is not symmetric", name);
     }
 
     /* Copy the func reference so that it can be deallocated at disconnect */
@@ -1273,10 +1275,10 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 
     /* Register the func within sqlite3 */
     rv = sqlite3_create_collation( 
-      imp_dbh->db, name, SQLITE_UTF8,
-      func_sv, 
-      imp_dbh->unicode ? sqlite_db_collation_dispatcher_utf8 
-                       : sqlite_db_collation_dispatcher
+        imp_dbh->db, name, SQLITE_UTF8,
+        func_sv, 
+        imp_dbh->unicode ? sqlite_db_collation_dispatcher_utf8 
+                         : sqlite_db_collation_dispatcher
       );
 
     if ( rv != SQLITE_OK )

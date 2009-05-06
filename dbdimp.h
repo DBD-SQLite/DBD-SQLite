@@ -78,10 +78,10 @@ struct aggrInfo {
   int inited;
 };
 
-void sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
+int sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
 void sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
 void sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr );
-void sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func);
+int sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func);
 int sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler);
 void sqlite_st_reset(pTHX_ SV *sth );
 int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs );

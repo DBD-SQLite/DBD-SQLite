@@ -71,7 +71,7 @@ create_aggregate(dbh, name, argc, aggr)
         sqlite3_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
     }
 
-void
+static int
 create_collation(dbh, name, func)
     SV *dbh
     char *name
@@ -80,8 +80,10 @@ create_collation(dbh, name, func)
         DBD::SQLite::db::sqlite_create_collation = 1
     CODE:
     {
-        sqlite3_db_create_collation(aTHX_ dbh, name, func );
+        RETVAL = sqlite3_db_create_collation(aTHX_ dbh, name, func );
     }
+    OUTPUT:
+        RETVAL
 
 static int
 progress_handler(dbh, n_opcodes, handler)
