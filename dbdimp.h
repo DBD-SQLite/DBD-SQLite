@@ -78,7 +78,7 @@ void sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func);
 void sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler);
 void sqlite_st_reset(pTHX_ SV *sth );
 int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs );
-int dbd_set_sqlite3_busy_timeout (pTHX_ SV *dbh, int timeout );
+int sqlite3_db_busy_timeout (pTHX_ SV *dbh, int timeout );
 int sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename);
 int sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename);
 

@@ -90,7 +90,7 @@ busy_timeout(dbh, timeout=0)
   SV *dbh
   int timeout
   CODE:
-    RETVAL = dbd_set_sqlite3_busy_timeout(aTHX_ dbh, timeout );
+    RETVAL = sqlite3_db_busy_timeout(aTHX_ dbh, timeout );
   OUTPUT:
     RETVAL
 

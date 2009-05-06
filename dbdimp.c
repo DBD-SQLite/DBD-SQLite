@@ -129,7 +129,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 }
 
 int
-dbd_set_sqlite3_busy_timeout (pTHX_ SV *dbh, int timeout )
+sqlite3_db_busy_timeout (pTHX_ SV *dbh, int timeout )
 {
   D_imp_dbh(dbh);
   if (timeout) {
