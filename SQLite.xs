@@ -60,7 +60,7 @@ enable_load_extension(dbh, onoff)
     OUTPUT:
         RETVAL
 
-void
+static int
 create_aggregate(dbh, name, argc, aggr)
     SV *dbh
     char *name
@@ -70,8 +70,10 @@ create_aggregate(dbh, name, argc, aggr)
         DBD::SQLite::db::sqlite_create_aggregate = 1
     CODE:
     {
-        sqlite3_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
+        RETVAL = sqlite3_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
     }
+    OUTPUT:
+        RETVAL
 
 static int
 create_collation(dbh, name, func)
