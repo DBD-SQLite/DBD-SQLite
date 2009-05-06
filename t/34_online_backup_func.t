@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 4;
+use Test::More tests => 6;
 use t::lib::Test;
 use DBI;
 
@@ -25,7 +25,7 @@ my $dbh = DBI->connect(
     { RaiseError => 1 }
 );
 
-$dbh->func('foo', 'backup_from_file');
+ok($dbh->func('foo', 'backup_from_file'));
 
 {
     my ($count) = $dbh->selectrow_array(
@@ -41,7 +41,7 @@ $dbh->do(
 $dbh->do("INSERT INTO online_backup_test2 (foo) VALUES ($$)");
 
 # backup to file (foo):
-$dbh->func('foo', 'backup_to_file');
+ok($dbh->func('foo', 'backup_to_file'));
 
 $dbh->disconnect;
 

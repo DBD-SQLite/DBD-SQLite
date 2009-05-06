@@ -9,7 +9,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 11;
+use Test::More tests => 12;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
@@ -71,7 +71,7 @@ if (!defined($pid)) {
     my $line = <READER>;
     chomp($line);
     ok($line, "Ready");
-    $dbh->func(10000, 'busy_timeout');
+    ok($dbh->func(10000, 'busy_timeout'));
     ok($dbh->do("INSERT INTO Blah VALUES (4, 'Test4' )"));
     $dbh->commit;
     wait;

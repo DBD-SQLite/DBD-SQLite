@@ -10,7 +10,7 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => 15 );
+		plan( tests => 16 );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -21,7 +21,7 @@ eval "require utf8";
 die $@ if $@;
 
 my $dbh = connect_ok( unicode => 1 );
-$dbh->func( "perl_uc", 1, \&perl_uc, "create_function" );
+ok($dbh->func( "perl_uc", 1, \&perl_uc, "create_function" ));
 
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE foo (

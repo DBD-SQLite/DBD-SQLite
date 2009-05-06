@@ -11,7 +11,7 @@ BEGIN {
 	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
 }
 
-plan tests => 4;
+plan tests => 6;
 
 # Connect to the test db and add some stuff:
 my $foo = connect_ok( RaiseError => 1 );
@@ -31,7 +31,7 @@ my $dbh = DBI->connect(
     { RaiseError => 1 }
 );
 
-$dbh->sqlite_backup_from_file('foo');
+ok($dbh->sqlite_backup_from_file('foo'));
 
 {
     my ($count) = $dbh->selectrow_array(
@@ -47,7 +47,7 @@ $dbh->do(
 $dbh->do("INSERT INTO online_backup_test2 (foo) VALUES ($$)");
 
 # backup to file (foo):
-$dbh->sqlite_backup_to_file('foo');
+ok($dbh->sqlite_backup_to_file('foo'));
 
 $dbh->disconnect;
 

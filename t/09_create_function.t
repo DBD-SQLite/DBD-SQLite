@@ -15,7 +15,7 @@ BEGIN {
 	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
 }
 
-plan tests => 19;
+plan tests => 28;
 
 sub now {
     return time();
@@ -59,7 +59,7 @@ sub noop {
 
 my $dbh = connect_ok( PrintError => 0 );
 
-$dbh->sqlite_create_function( "now", 0, \&now );
+ok($dbh->sqlite_create_function( "now", 0, \&now ));
 my $result = $dbh->selectrow_arrayref( "SELECT now()" );
 
 ok( $result->[0], 'Got a result' );
@@ -68,35 +68,35 @@ $dbh->do( 'CREATE TEMP TABLE func_test ( a, b )' );
 $dbh->do( 'INSERT INTO func_test VALUES ( 1, 3 )' );
 $dbh->do( 'INSERT INTO func_test VALUES ( 0, 4 )' );
 
-$dbh->sqlite_create_function( "add2", 2, \&add2 );
+ok($dbh->sqlite_create_function( "add2", 2, \&add2 ));
 $result = $dbh->selectrow_arrayref( "SELECT add2(1,3)" );
 is($result->[0], 4, "SELECT add2(1,3)" );
 
 $result = $dbh->selectall_arrayref( "SELECT add2(a,b) FROM func_test" );
 is_deeply( $result, [ [4], [4] ], "SELECT add2(a,b) FROM func_test" );
 
-$dbh->sqlite_create_function( "my_sum", -1, \&my_sum );
+ok($dbh->sqlite_create_function( "my_sum", -1, \&my_sum ));
 $result = $dbh->selectrow_arrayref( "SELECT my_sum( '2', 3, 4, '5')" );
 is( $result->[0], 14, "SELECT my_sum( '2', 3, 4, '5')" );
 
-$dbh->sqlite_create_function( "error", -1, \&error );
+ok($dbh->sqlite_create_function( "error", -1, \&error ));
 $result = $dbh->selectrow_arrayref( "SELECT error( 'I died' )" );
 ok( !$result );
 like( $DBI::errstr, qr/function is dying: I died/ );
 
-$dbh->sqlite_create_function( "void_return", -1, \&void_return );
+ok($dbh->sqlite_create_function( "void_return", -1, \&void_return ));
 $result = $dbh->selectrow_arrayref( "SELECT void_return( 'I died' )" );
 is_deeply( $result, [ undef ], "SELECT void_return( 'I died' )" );
 
-$dbh->sqlite_create_function( "return_null", -1, \&return_null );
+ok($dbh->sqlite_create_function( "return_null", -1, \&return_null ));
 $result = $dbh->selectrow_arrayref( "SELECT return_null()" );
 is_deeply( $result, [ undef ], "SELECT return_null()" );
 
-$dbh->sqlite_create_function( "return2", -1, \&return2 );
+ok($dbh->sqlite_create_function( "return2", -1, \&return2 ));
 $result = $dbh->selectrow_arrayref( "SELECT return2()" );
 is_deeply( $result, [ 2 ], "SELECT return2()" );
 
-$dbh->sqlite_create_function( "my_defined", 1, \&my_defined );
+ok($dbh->sqlite_create_function( "my_defined", 1, \&my_defined ));
 $result = $dbh->selectrow_arrayref( "SELECT my_defined(1)" );
 is_deeply( $result, [ 1 ], "SELECT my_defined(1)" );
 
@@ -109,7 +109,7 @@ is_deeply( $result, [ 1 ], "SELECT my_defined('abc')" );
 $result = $dbh->selectrow_arrayref( "SELECT my_defined(NULL)" );
 is_deeply( $result, [ '0' ], "SELECT my_defined(NULL)" );
 
-$dbh->sqlite_create_function( "noop", 1, \&noop );
+ok($dbh->sqlite_create_function( "noop", 1, \&noop ));
 $result = $dbh->selectrow_arrayref( "SELECT noop(NULL)" );
 is_deeply( $result, [ undef ], "SELECT noop(NULL)" );
 

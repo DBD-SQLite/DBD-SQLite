@@ -34,7 +34,7 @@ last_insert_rowid(dbh)
     OUTPUT:
         RETVAL
 
-void
+static int
 create_function(dbh, name, argc, func)
     SV *dbh
     char *name
@@ -44,8 +44,10 @@ create_function(dbh, name, argc, func)
         DBD::SQLite::db::sqlite_create_function = 1
     CODE:
     {
-        sqlite3_db_create_function(aTHX_ dbh, name, argc, func );
+        RETVAL = sqlite3_db_create_function(aTHX_ dbh, name, argc, func );
     }
+    OUTPUT:
+        RETVAL
 
 static int
 enable_load_extension(dbh, onoff)

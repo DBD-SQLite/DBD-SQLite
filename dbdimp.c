@@ -1288,7 +1288,10 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     if ( rv != SQLITE_OK )
     {
         char* const errmsg = form("sqlite_create_collation failed with error %s", sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rv, errmsg);
+        return FALSE;
     }
+    return TRUE;
 }
 
 static int

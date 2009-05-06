@@ -10,7 +10,7 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => 9 );
+		plan( tests => 11 );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -55,7 +55,7 @@ sub no_accents ($$) {
 
 $dbh = connect_ok( RaiseError => 1 );
 
-$dbh->func( "no_accents", \&no_accents, "create_collation" );
+ok($dbh->func( "no_accents", \&no_accents, "create_collation" ));
 
 $dbh->do( 'CREATE TEMP TABLE collate_test ( txt )' );
 $dbh->do( "INSERT INTO collate_test VALUES ( '$_' )" ) foreach @words;
@@ -77,7 +77,7 @@ is_deeply(\@sorted, $db_sorted, "collate no_accents (@sorted // @$db_sorted)");
 $dbh->disconnect;
 
 $dbh = connect_ok( RaiseError => 1, unicode => 1 );
-$dbh->func( "no_accents", \&no_accents, "create_collation" );
+ok($dbh->func( "no_accents", \&no_accents, "create_collation" ));
 $dbh->do( 'CREATE TEMP TABLE collate_test ( txt )' );
 $dbh->do( "INSERT INTO collate_test VALUES ( '$_' )" ) foreach @words_utf8;
 

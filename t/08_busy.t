@@ -16,7 +16,7 @@ BEGIN {
 	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
 }
 
-plan tests => 11;
+plan tests => 12;
 
 my $dbh = connect_ok(
     RaiseError => 1,
@@ -77,7 +77,7 @@ if (!defined($pid)) {
     my $line = <READER>;
     chomp($line);
     ok($line, "Ready");
-    $dbh->sqlite_busy_timeout(10000);
+    ok($dbh->sqlite_busy_timeout(10000));
     ok($dbh->do("INSERT INTO Blah VALUES (4, 'Test4' )"));
     $dbh->commit;
     wait;

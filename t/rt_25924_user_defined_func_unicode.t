@@ -12,7 +12,7 @@ BEGIN {
 	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
 
 	if ( $] >= 5.008005 ) {
-		plan( tests => 15 );
+		plan( tests => 16 );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -23,7 +23,7 @@ eval "require utf8";
 die $@ if $@;
 
 my $dbh = connect_ok( unicode => 1 );
-$dbh->sqlite_create_function( "perl_uc", 1, \&perl_uc );
+ok($dbh->sqlite_create_function( "perl_uc", 1, \&perl_uc ));
 
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE foo (
