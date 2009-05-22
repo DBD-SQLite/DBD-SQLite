@@ -8,11 +8,12 @@ BEGIN {
 
 use t::lib::Test;
 use Test::More;
-use Test::NoWarnings;
 
 BEGIN {
 	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
 }
+
+use Test::NoWarnings;
 
 plan tests => 6;
 
