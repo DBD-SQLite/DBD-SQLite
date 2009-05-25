@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.26_02 to be released
-    - Updated to SQLite 3.6.14.1 (DUNCAND)
+    - Updated to SQLite 3.6.14.2 (DUNCAND)
     - Resolved #44882: Use of $h->func() should be deprecated and
       replaced with calls to driver-private 'installed methods'
       (ISHIGAKI)
