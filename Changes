@@ -9,7 +9,6 @@ Changes for Perl extension DBD-SQLite
     - Added enable_load_extension pod (ISHIGAKI)
     - Now private methods/functions return true after successful
       calls (#44871) (ISHIGAKI)
-    - Resolved #46380: enable FTS3 extended query syntax (ISHIGAKI)
 
 1.26_01 Tue  5 May 2009
     - Added ORDINAL_POSITION support for $dbh->column_info (ADAMK)
