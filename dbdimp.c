@@ -1192,13 +1192,13 @@ sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_
 
 
 static int
-sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
-                                               int len2, const void *string2)
+sqlite_db_collation_dispatcher(SV *func, int len1, const void *string1,
+                                         int len2, const void *string2)
 {
     dTHX;
     dSP;
-    int cmp;
-    int n_retval;
+    int cmp = 0;
+    int n_retval, i;
 
     ENTER;
     SAVETMPS;
@@ -1206,12 +1206,14 @@ sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
     XPUSHs( sv_2mortal ( newSVpvn( string1, len1) ) );
     XPUSHs( sv_2mortal ( newSVpvn( string2, len2) ) );
     PUTBACK;
-    n_retval = call_sv((void*)func, G_SCALAR);
-    if (n_retval != 1) {
-      croak("collation function returned %d arguments", n_retval);
-    }
+    n_retval = call_sv(func, G_SCALAR);
     SPAGAIN;
-    cmp = POPi;
+    if (n_retval != 1) {
+        warn("collation function returned %d arguments", n_retval);
+    }
+    for(i = 0; i < n_retval; i++) {
+        cmp = POPi;
+    }
     PUTBACK;
     FREETMPS;
     LEAVE;
@@ -1221,13 +1223,13 @@ sqlite_db_collation_dispatcher(void *func, int len1, const void *string1,
 
 static int
 sqlite_db_collation_dispatcher_utf8(
-  void *func, int len1, const void *string1,
-              int len2, const void *string2)
+  SV *func, int len1, const void *string1,
+            int len2, const void *string2)
 {
     dTHX;
     dSP;
-    int cmp;
-    int n_retval;
+    int cmp = 0;
+    int n_retval, i;
     SV *sv1, *sv2;
 
     ENTER;
@@ -1240,12 +1242,14 @@ sqlite_db_collation_dispatcher_utf8(
     XPUSHs( sv_2mortal ( sv1 ) );
     XPUSHs( sv_2mortal ( sv2 ) );
     PUTBACK;
-    n_retval = call_sv((void*)func, G_SCALAR);
-    if (n_retval != 1) {
-      croak("collation function returned %d arguments", n_retval);
-    }
+    n_retval = call_sv(func, G_SCALAR);
     SPAGAIN;
-    cmp = POPi;
+    if (n_retval != 1) {
+        warn("collation function returned %d arguments", n_retval);
+    }
+    for(i = 0; i < n_retval; i++) {
+        cmp = POPi;
+    }
     PUTBACK;
     FREETMPS;
     LEAVE;
@@ -1295,22 +1299,24 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 }
 
 static int
-sqlite_db_progress_handler_dispatcher( void *handler )
+sqlite_db_progress_handler_dispatcher( SV *handler )
 {
     dTHX;
     dSP;
-    int n_retval;
-    int retval;
+    int n_retval, i;
+    int retval = 0;
 
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
     n_retval = call_sv( handler, G_SCALAR );
-    if ( n_retval != 1 ) {
-      croak( "progress_handler returned %d arguments", n_retval );
-    }
     SPAGAIN;
-    retval = POPi;
+    if ( n_retval != 1 ) {
+        warn( "progress_handler returned %d arguments", n_retval );
+    }
+    for(i = 0; i < n_retval; i++) {
+        retval = POPi;
+    }
     PUTBACK;
     FREETMPS;
     LEAVE;
