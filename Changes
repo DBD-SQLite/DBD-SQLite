@@ -10,6 +10,8 @@ Changes for Perl extension DBD-SQLite
     - Now private methods/functions return true after successful
       calls (#44871) (ISHIGAKI)
     - Removed all of the "croak"s (#44871) (ISHIGAKI)
+    - Resolved #46831: table_info schema is incorrect and doesn't
+      work with attached databases (VLYON/ISHIGAKI)
 
 1.26_01 Tue  5 May 2009
     - Added ORDINAL_POSITION support for $dbh->column_info (ADAMK)
