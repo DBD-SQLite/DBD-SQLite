@@ -19,7 +19,7 @@ ok $dbh->do("create table meta2 (f1 varchar(2), f2 char(1), PRIMARY KEY (f1))");
 ok $dbh->do("create table meta3 (f2 char(1), f1 varchar(2) PRIMARY KEY)");
 $dbh->trace(0);
 $DBI::neat_maxlen = 4000;
-my $sth = $dbh->primary_key_info('', '', '%');
+my $sth = $dbh->primary_key_info(undef, undef, '%');
 ok $sth;
 my $pki = $sth->fetchall_hashref('TABLE_NAME');
 ok $pki;
@@ -28,7 +28,7 @@ ok keys %$pki == 3;
 ok $_->{COLUMN_NAME} eq 'f1' for values %$pki;
 
 ok $dbh->do("create table meta4 (f1 varchar(2), f2 char(1), PRIMARY KEY (f1,f2))");
-$sth = $dbh->primary_key_info('', '', 'meta4');
+$sth = $dbh->primary_key_info(undef, undef, 'meta4');
 ok $sth;
 $pki = $sth->fetchall_hashref('COLUMN_NAME');
 ok $pki;
@@ -37,7 +37,7 @@ ok keys %$pki == 2;
 ok $pki->{f1}->{KEY_SEQ} == 1;
 ok $pki->{f2}->{KEY_SEQ} == 2;
 
-my @pk = $dbh->primary_key('','','meta4');
+my @pk = $dbh->primary_key(undef, undef, 'meta4');
 ok @pk == 2;
 ok "@pk" eq "f1 f2";
 

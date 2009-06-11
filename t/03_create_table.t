@@ -25,7 +25,7 @@ END_SQL
 # Confirm fix for #34408: Primary key name wrong with newline in CREATE TABLE
 my $pkh = $dbh->primary_key_info( undef, undef, 'f' );
 my @pk  = $pkh->fetchall_arrayref();
-is_deeply( \@pk, [ [ [ undef, undef, 'f', 'f1', 1, 'PRIMARY KEY' ] ] ], '->primary_key_info ok' );
+is_deeply( \@pk, [ [ [ undef, 'main', 'f', 'f1', 1, 'PRIMARY KEY' ] ] ], '->primary_key_info ok' );
 
 my $sth = $dbh->prepare("SELECT f.f1, f.* FROM f");
 isa_ok( $sth, 'DBI::st' );

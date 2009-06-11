@@ -151,16 +151,28 @@ sub get_info {
     return $v;
 }
 
+sub _attached_database_list {
+    my $dbh = shift;
+    my @attached;
+
+    my $sth_databases = $dbh->prepare( 'PRAGMA database_list' );
+    $sth_databases->execute;
+    while ( my $db_info = $sth_databases->fetchrow_hashref ) {
+        push @attached, $db_info->{name} if $db_info->{seq} >= 2;
+    }
+    return @attached;
+}
+
 # SQL/CLI (ISO/IEC JTC 1/SC 32 N 0595), 6.63 Tables
 # Based on DBD::Oracle's
-# See also http://www.ch-werner.de/sqliteodbc/html/sqliteodbc_8c.html#a117
+# See also http://www.ch-werner.de/sqliteodbc/html/sqlite3odbc_8c.html#a213
 sub table_info {
     my ($dbh, $cat_val, $sch_val, $tbl_val, $typ_val) = @_;
 
     my @where = ();
     my $sql;
-    if (   defined($cat_val) && $cat_val eq '%'
-       && defined($sch_val) && $sch_val eq '' 
+    if (  defined($cat_val) && $cat_val eq '%'
+       && defined($sch_val) && $sch_val eq ''
        && defined($tbl_val) && $tbl_val eq '')  { # Rule 19a
             $sql = <<'END_SQL';
 SELECT NULL TABLE_CAT
@@ -170,21 +182,28 @@ SELECT NULL TABLE_CAT
      , NULL REMARKS
 END_SQL
     }
-    elsif (   defined($sch_val) && $sch_val eq '%' 
-          && defined($cat_val) && $cat_val eq '' 
+    elsif (  defined($cat_val) && $cat_val eq ''
+          && defined($sch_val) && $sch_val eq '%'
           && defined($tbl_val) && $tbl_val eq '') { # Rule 19b
             $sql = <<'END_SQL';
 SELECT NULL      TABLE_CAT
-     , NULL      TABLE_SCHEM
+     , t.tn      TABLE_SCHEM
      , NULL      TABLE_NAME
      , NULL      TABLE_TYPE
      , NULL      REMARKS
+FROM (
+     SELECT 'main' tn
+     UNION SELECT 'temp' tn
 END_SQL
+            for my $db_name (_attached_database_list($dbh)) {
+                $sql .= "     UNION SELECT '$db_name' tn\n";
+            }
+            $sql .= ") t\n";
     }
-    elsif (    defined($typ_val) && $typ_val eq '%' 
-           && defined($cat_val) && $cat_val eq '' 
-           && defined($sch_val) && $sch_val eq '' 
-           && defined($tbl_val) && $tbl_val eq '') { # Rule 19c
+    elsif (  defined($cat_val) && $cat_val eq ''
+          && defined($sch_val) && $sch_val eq ''
+          && defined($tbl_val) && $tbl_val eq ''
+          && defined($typ_val) && $typ_val eq '%') { # Rule 19c
             $sql = <<'END_SQL';
 SELECT NULL TABLE_CAT
      , NULL TABLE_SCHEM
@@ -205,26 +224,41 @@ SELECT *
 FROM
 (
 SELECT NULL         TABLE_CAT
-     , NULL         TABLE_SCHEM
+     ,              TABLE_SCHEM
      , tbl_name     TABLE_NAME
      ,              TABLE_TYPE
      , NULL         REMARKS
      , sql          sqlite_sql
 FROM (
-    SELECT tbl_name, upper(type) TABLE_TYPE, sql
+    SELECT 'main' TABLE_SCHEM, tbl_name, upper(type) TABLE_TYPE, sql
     FROM sqlite_master
     WHERE type IN ( 'table','view')
 UNION ALL
-    SELECT tbl_name, 'LOCAL TEMPORARY' TABLE_TYPE, sql
+    SELECT 'temp' TABLE_SCHEM, tbl_name, 'LOCAL TEMPORARY' TABLE_TYPE, sql
     FROM sqlite_temp_master
     WHERE type IN ( 'table','view')
+END_SQL
+
+            for my $db_name (_attached_database_list($dbh)) {
+                    $sql .= <<"END_SQL";
 UNION ALL
-    SELECT 'sqlite_master'      tbl_name, 'SYSTEM TABLE' TABLE_TYPE, NULL sql
+    SELECT '$db_name' TABLE_SCHEM, tbl_name, upper(type) TABLE_TYPE, sql
+    FROM "$db_name".sqlite_master
+    WHERE type IN ('table','view')
+END_SQL
+            }
+
+            $sql .= <<'END_SQL';
 UNION ALL
-    SELECT 'sqlite_temp_master' tbl_name, 'SYSTEM TABLE' TABLE_TYPE, NULL sql
+    SELECT 'main' TABLE_SCHEM, 'sqlite_master'      tbl_name, 'SYSTEM TABLE' TABLE_TYPE, NULL sql
+UNION ALL
+    SELECT 'temp' TABLE_SCHEM, 'sqlite_temp_master' tbl_name, 'SYSTEM TABLE' TABLE_TYPE, NULL sql
 )
 )
 END_SQL
+            if ( defined $sch_val ) {
+                    push @where, "TABLE_SCHEM LIKE '$sch_val'";
+            }
             if ( defined $tbl_val ) {
                     push @where, "TABLE_NAME LIKE '$tbl_val'";
             }
