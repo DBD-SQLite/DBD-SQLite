@@ -792,6 +792,14 @@ special :memory: database, and you wish to populate it from an existing DB.
 This method accesses the SQLite Online Backup API, and will take a backup of
 the currently connected database, and write it out to the named file.
 
+=head2 $dbh->sqlite_enable_load_extension( $bool )
+
+Calling this method with a true value enables loading (external) sqlite3 extensions. After the call, you can load extensions like this:
+
+  $dbh->sqlite_enable_load_extension(1);
+  $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
+  or die "Cannot prepare: " . $dbh->errstr();
+
 =head1 BLOBS
 
 As of version 1.11, blobs should "just work" in SQLite as text columns.
@@ -816,14 +824,6 @@ And then retrieval just works:
   my $blobo = $row->[1];
   
   # now $blobo == $blob
-
-=head2 $dbh->sqlite_enable_load_extension( $bool )
-
-Calling this method with a true value enables loading (external) sqlite3 extensions. After the call, you can load extensions like this:
-
-  $dbh->sqlite_enable_load_extension(1);
-  $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
-  or die "Cannot prepare: " . $dbh->errstr();
 
 =head1 NOTES
 
