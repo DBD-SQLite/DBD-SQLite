@@ -1,3 +1,4 @@
+^.gitignore$
 CVS/.*
 \.bak$
 \.sw[a-z]$
@@ -19,4 +20,3 @@ CVS/.*
 ^sqlite\-
 \.svn
 ^bugs/
-^util/
