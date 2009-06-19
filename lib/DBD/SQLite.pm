@@ -632,7 +632,7 @@ The driver will check that this is a proper sorting function.
 Collations C<binary> and C<nocase> are builtin within SQLite.
 Collations C<perl> and C<perllocale> are builtin within 
 the B<DBD::SQLite> driver, and correspond to the 
-Perl C<cmp> operator with or without the L<locale> pragma; 
+Perl C<cmp> operator without/with the L<locale> pragma respectively; 
 so you can write for example 
 
   CREATE TABLE foo(
