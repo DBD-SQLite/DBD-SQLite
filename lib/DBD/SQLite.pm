@@ -863,7 +863,7 @@ There are two workarounds for this.
 As shown above in the C<BLOB> section, you can always use C<bind_param()> to tell the type of a bind value.
 
   use DBI qw(:sql_types);  # Don't forget this
-
+  
   my $sth = $dbh->prepare(q{
     SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
   });
