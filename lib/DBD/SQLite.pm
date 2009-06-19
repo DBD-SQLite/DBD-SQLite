@@ -832,7 +832,7 @@ database file must be writable by SQLite because the library will create
 several temporary files there.
 
 To access the database from the command line, try using dbish which comes with
-the DBI module. Just type:
+the L<DBI::Shell> module. Just type:
 
   dbish dbi:SQLite:foo.db
 
