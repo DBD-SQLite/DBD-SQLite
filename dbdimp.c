@@ -1191,7 +1191,7 @@ sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_
 }
 
 
-static int
+int
 sqlite_db_collation_dispatcher(SV *func, int len1, const void *string1,
                                          int len2, const void *string2)
 {
@@ -1221,7 +1221,7 @@ sqlite_db_collation_dispatcher(SV *func, int len1, const void *string1,
     return cmp;
 }
 
-static int
+int
 sqlite_db_collation_dispatcher_utf8(
   SV *func, int len1, const void *string1,
             int len2, const void *string2)
@@ -1298,7 +1298,7 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     return TRUE;
 }
 
-static int
+int
 sqlite_db_progress_handler_dispatcher( SV *handler )
 {
     dTHX;
