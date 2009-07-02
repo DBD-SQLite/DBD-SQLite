@@ -13,12 +13,14 @@ use Test::More tests => 12;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
+    dbfile     => 'foo',
     RaiseError => 1,
     PrintError => 0,
     AutoCommit => 0,
 );
 
 my $dbh2 = connect_ok(
+    dbfile     => 'foo',
     RaiseError => 1,
     PrintError => 0,
     AutoCommit => 0,

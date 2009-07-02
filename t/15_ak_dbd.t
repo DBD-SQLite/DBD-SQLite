@@ -11,7 +11,7 @@ use Test::More tests => 37;
 use Test::NoWarnings;
 
 # Create a database
-my $dbh = connect_ok( RaiseError => 1, PrintError => 1, PrintWarn => 1 );
+my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1, PrintError => 1, PrintWarn => 1 );
 
 # Create the table
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
@@ -29,7 +29,7 @@ is( $quoted, "'test1'", '->quote(test1) ok' );
 ok( $dbh->disconnect, '->disconnect' );
 
 # Reconnect
-$dbh = connect_ok();
+$dbh = connect_ok( dbfile => 'foo' );
 
 # Delete the table and recreate it
 ok( $dbh->do('DROP TABLE one'), 'DROP' );

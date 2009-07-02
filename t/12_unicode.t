@@ -60,7 +60,7 @@ ok(
 ### Real DBD::SQLite testing starts here
 my ($textback, $bytesback);
 SCOPE: {
-	my $dbh = connect_ok( RaiseError => 1 );
+	my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1 );
 	is( $dbh->{unicode}, 0, 'Unicode is off' );
 	ok(
 		$dbh->do("CREATE TABLE table1 (a TEXT, b BLOB)"),
@@ -83,7 +83,7 @@ SCOPE: {
 
 # Start over but now activate Unicode support.
 SCOPE: {
-	my $dbh = connect_ok( unicode => 1 );
+	my $dbh = connect_ok( dbfile => 'foo', unicode => 1 );
 	is( $dbh->{unicode}, 1, 'Unicode is on' );
 
 	($textback, $bytesback) = database_roundtrip($dbh, $utfstring, $bytestring);

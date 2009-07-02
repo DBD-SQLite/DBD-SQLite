@@ -33,9 +33,11 @@ END   { clean() }
 
 # A simplified connect function for the most common case
 sub connect_ok {
-	my @params = ( 'dbi:SQLite:dbname=foo', '', '' );
-	if ( @_ ) {
-		push @params, { @_ };
+	my $attr = { @_ };
+	my $dbfile = delete $attr->{dbfile} || ':memory:';
+	my @params = ( "dbi:SQLite:dbname=$dbfile", '', '' );
+	if ( %$attr ) {
+		push @params, $attr;
 	}
 	my $dbh = DBI->connect( @params );
 	Test::More::isa_ok( $dbh, 'DBI::db' );

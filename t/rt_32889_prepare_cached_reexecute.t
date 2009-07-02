@@ -16,7 +16,7 @@ use Test::NoWarnings;
 
 # Create the table
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 	create table foo (
 		id integer primary key not null
@@ -50,7 +50,7 @@ sub fetchrow_1 {
 # A well-behaved non-cached statement
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare($sql);
 	}
@@ -59,7 +59,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare($sql);
 		$sth->execute;
@@ -69,7 +69,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare($sql);
 		$sth->execute;
@@ -88,7 +88,7 @@ SCOPE: {
 
 # Double execute, no warnings
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare($sql);
 		$sth->execute;
@@ -102,7 +102,7 @@ SCOPE: {
 
 # We expect a warnings from this one
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	my $sth = $dbh->prepare($sql);
 	$sth->execute;
 	fetchrow_1($sth);		
@@ -118,7 +118,7 @@ SCOPE: {
 # A well-behaved cached statement
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare_cached($sql);
 	}
@@ -127,7 +127,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare_cached($sql);
 		$sth->execute;
@@ -139,7 +139,7 @@ SCOPE: {
 }
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare_cached($sql);
 		$sth->execute;
@@ -164,7 +164,7 @@ SCOPE: {
 # Badly-behaved prepare_cached (but still acceptable)
 
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	SCOPE: {
 		my $sth = $dbh->prepare_cached($sql);
 		$sth->execute;

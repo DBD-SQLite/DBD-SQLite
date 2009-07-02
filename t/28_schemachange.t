@@ -19,7 +19,7 @@ my $drop2   = 'DROP TABLE table2';
 
 # diag("Parent connecting... ($$)\n");
 SCOPE: {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	ok( $dbh->do($create1), $create1 );
 	ok( $dbh->do($create2), $create2 );
 	ok( $dbh->disconnect, '->disconnect ok' );
@@ -48,7 +48,7 @@ if ( not defined( $pid = fork() ) ) {
 
 SCOPE: {
 	# Parent process
-	my $dbh = connect_ok();
+	my $dbh = connect_ok( dbfile => 'foo' );
 	# diag("Waiting for child... ($$)");
 	ok( waitpid($pid, 0) != -1, "waitpid" );
 

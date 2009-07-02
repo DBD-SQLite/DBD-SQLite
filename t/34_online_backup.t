@@ -14,7 +14,7 @@ BEGIN {
 plan tests => 6;
 
 # Connect to the test db and add some stuff:
-my $foo = connect_ok( RaiseError => 1 );
+my $foo = connect_ok( dbfile => 'foo', RaiseError => 1 );
 $foo->do(
     'CREATE TABLE online_backup_test( id INTEGER PRIMARY KEY, foo INTEGER )'
 );
@@ -53,7 +53,7 @@ $dbh->disconnect;
 
 # Reconnect to foo db and check data made it over:
 {
-    my $foo = connect_ok( RaiseError => 1 );
+    my $foo = connect_ok( dbfile => 'foo', RaiseError => 1 );
 
     my ($count) = $foo->selectrow_array(
         "SELECT count(foo) FROM online_backup_test2 WHERE foo=$$"

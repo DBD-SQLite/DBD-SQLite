@@ -45,7 +45,7 @@ sub rows {
 # Main Tests
 
 # Create a database
-my $dbh = connect_ok( RaiseError => 1 );
+my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1 );
 
 # Create the table
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
@@ -77,7 +77,7 @@ rows( $dbh, 0 );
 insert( $dbh );
 rows( $dbh, 1 );
 ok( $dbh->disconnect, '->disconnect ok' );
-$dbh = connect_ok();
+$dbh = connect_ok( dbfile => 'foo' );
 rows( $dbh, 0 );
 
 # Check that AutoCommit is back on again after the reconnect
@@ -87,7 +87,7 @@ is( $dbh->{AutoCommit}, 1, 'AutoCommit is on' );
 insert( $dbh );
 rows( $dbh, 1 );
 ok( $dbh->disconnect, '->disconnect ok' );
-$dbh = connect_ok();
+$dbh = connect_ok( dbfile => 'foo' );
 rows( $dbh, 1 );
 
 # Check whether commit issues a warning in AutoCommit mode

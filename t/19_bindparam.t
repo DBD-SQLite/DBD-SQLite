@@ -12,7 +12,7 @@ use Test::NoWarnings;
 use DBI ':sql_types';
 
 # Create a database
-my $dbh = connect_ok( RaiseError => 1, PrintError => 1, PrintWarn => 1 );
+my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1, PrintError => 1, PrintWarn => 1 );
 
 # Create the table
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
@@ -52,7 +52,7 @@ SCOPE: {
 
 # Reconnect
 ok( $dbh->disconnect, '->disconnect' );
-$dbh = connect_ok();
+$dbh = connect_ok( dbfile => 'foo' );
 SCOPE: {
 	my $sth = $dbh->prepare("SELECT * FROM one ORDER BY id");
 	isa_ok( $sth, 'DBI::st' );
