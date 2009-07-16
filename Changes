@@ -3,6 +3,7 @@ Changes for Perl extension DBD-SQLite
 1.26_03 to be released
     - Updated to SQLite 3.6.16 (ISHIGAKI)
     - Switched to use :memory: for most of the tests (ISHIGAKI)
+    - Fixed a memory leak when prepare should fail (ISHIGAKI)
 
 1.26_02 Fri 19 Jun 2009
     - Updated to SQLite 3.6.15 (DUNCAND)
