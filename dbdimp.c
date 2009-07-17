@@ -614,9 +614,9 @@ sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
     if (!DBIc_ACTIVE(imp_dbh))  /* no longer connected  */
         return 1;
 
-        if (is_destroy) {
-            return TRUE;
-        }
+    if (is_destroy) {
+        return TRUE;
+    }
 
     if ((imp_sth->retval = sqlite3_reset(imp_sth->stmt)) != SQLITE_OK) {
         char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
