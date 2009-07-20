@@ -7,11 +7,11 @@ use Exporter   ();
 use File::Spec ();
 use Test::More ();
 
-use vars qw{$VERSION @ISA @EXPORT};
+use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
 BEGIN {
 	$VERSION = '1.26_01';
 	@ISA     = 'Exporter';
-	@EXPORT  = 'connect_ok';
+	@EXPORT  = qw/connect_ok @CALL_FUNCS/;
 
 	# Allow tests to load modules bundled in /inc
 	unshift @INC, 'inc';
@@ -43,5 +43,56 @@ sub connect_ok {
 	Test::More::isa_ok( $dbh, 'DBI::db' );
 	return $dbh;
 }
+
+
+=head2 @CALL_FUNCS
+
+The exported array C<@CALL_FUNCS> contains a list of coderefs
+for testing several ways of calling driver-private methods.
+On DBI versions prior to 1.608, such methods were called
+through "func". Starting from 1.608, methods should be installed
+within the driver (see L<DBI::DBD>) and are called through
+C<< $dbh->sqlite_method_name(...) >>. This array helps to test
+both ways. Usage :
+
+  for my $call_func (@CALL_FUNCS) {
+    my $dbh = connect_ok();
+    ...
+    $dbh->$call_func(@args, 'method_to_call');
+    ...
+  }
+
+On DBI versions prior to 1.608, the loop will run only once
+and the method call will be equivalent to 
+C<< $dbh->func(@args, 'method_to_call') >>.
+On more recent versions, the loop will run twice;
+the second execution will call
+C<< $dbh->sqlite_method_to_call(@args) >>.
+
+The number of tests to plan should be adapted accordingly.
+It can be computed like this :
+
+  plan tests => $n_normal_tests * @CALL_FUNCS + 1;
+
+The additional C< + 1> is required when using
+L<Test::NoWarnings>, because that module adds 
+a final test in an END block outside of the loop.
+
+=cut
+
+
+# old_style way ("func")
+push @CALL_FUNCS, sub {
+  my $dbh = shift;
+  return $dbh->func(@_);
+};
+
+# new_style, using $dbh->sqlite_*(...) --- starting from DBI v1.608
+$DBI::VERSION >= 1.608 and push @CALL_FUNCS, sub {
+  my $dbh       = shift;
+  my $func_name = pop;
+  my $method    = "sqlite_" . $func_name;
+  return $dbh->$method(@_);
+};
 
 1;

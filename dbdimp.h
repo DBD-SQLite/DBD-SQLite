@@ -78,6 +78,12 @@ struct aggrInfo {
   int inited;
 };
 
+typedef struct collationNeededInfo collationNeededInfo;
+struct collationNeededInfo {
+  SV *dbh;
+  SV *callback;
+};
+
 int sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
 int sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
 int sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr );

@@ -4,6 +4,15 @@ Changes for Perl extension DBD-SQLite
     - Updated to SQLite 3.6.16 (ISHIGAKI)
     - Switched to use :memory: for most of the tests (ISHIGAKI)
     - Fixed a memory leak when prepare should fail (ISHIGAKI)
+    - Added support for commit/rollback/update hooks (DAMI)
+    - Added support for set_authorizer (DAMI)
+    - Added support for collation_needed(), and reorganised driver API
+      for user-defined collations (DAMI)
+    - Exported constants from sqlite3.h into DBD::SQLite namespace (DAMI)
+    - Added support in t/lib/Test.pm for checking both versions of
+      driver-private methods ("func" / "sqlite_*") (DAMI)
+    - Removed unused and obsolete "list_tables" from SQLite.xs (DAMI)
+    - Added a default implementation for the REGEXP infix operator (DAMI)
 
 1.26_02 Fri 19 Jun 2009
     - Updated to SQLite 3.6.15 (DUNCAND)

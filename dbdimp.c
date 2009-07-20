@@ -1302,8 +1302,63 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     return TRUE;
 }
 
+
+void
+sqlite3_db_collation_needed_dispatcher (
+    void *info,
+    sqlite3* db, /* unused, because we need the Perl dbh */
+    int eTextRep,
+    const char* collation_name
+)
+{
+    dTHX;
+    dSP;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs( sv_2mortal ( newSVsv( ((collationNeededInfo*)info)->dbh ) ) );
+    XPUSHs( sv_2mortal ( newSVpv( collation_name, 0) ) );
+    PUTBACK;
+
+    call_sv( ((collationNeededInfo*)info)->callback, G_VOID );
+    SPAGAIN;
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+}
+                                           
+
+
+
+void
+sqlite3_db_collation_needed(pTHX_ SV *dbh, SV *callback )
+{
+    D_imp_dbh(dbh);
+
+    SV *callback_sv = newSVsv(callback);
+    collationNeededInfo* info = sqlite3_malloc(sizeof(collationNeededInfo));
+    /* TODO: this struct should probably be freed at some point, not sure
+       how and when */
+      
+    /* Copy the handler ref so that it can be deallocated at disconnect */
+    av_push( imp_dbh->functions, callback_sv );
+
+    /* the dispatcher will need both the callback and dbh, so build a struct */
+    info->callback = callback_sv;
+    info->dbh      = dbh;
+
+    /* Register the func within sqlite3 */
+    (void) sqlite3_collation_needed( imp_dbh->db, 
+                                     (void*) info,
+                                     sqlite3_db_collation_needed_dispatcher );
+
+}
+
+
 int
-sqlite_db_progress_handler_dispatcher( void *handler )
+sqlite_db_generic_callback_dispatcher( void *callback )
 {
     dTHX;
     dSP;
@@ -1313,10 +1368,10 @@ sqlite_db_progress_handler_dispatcher( void *handler )
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    n_retval = call_sv( handler, G_SCALAR );
+    n_retval = call_sv( callback, G_SCALAR );
     SPAGAIN;
     if ( n_retval != 1 ) {
-        warn( "progress_handler returned %d arguments", n_retval );
+        warn( "callback returned %d arguments", n_retval );
     }
     for(i = 0; i < n_retval; i++) {
         retval = POPi;
@@ -1333,7 +1388,7 @@ sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 {
     D_imp_dbh(dbh);
 
-    if (handler == &PL_sv_undef) {
+    if (!SvOK(handler)) {
       /* remove previous handler */
       sqlite3_progress_handler( imp_dbh->db, 0, NULL, NULL);
     }
@@ -1345,11 +1400,194 @@ sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 
       /* Register the func within sqlite3 */
       sqlite3_progress_handler( imp_dbh->db, n_opcodes, 
-                                sqlite_db_progress_handler_dispatcher,
+                                sqlite_db_generic_callback_dispatcher,
                                 handler_sv );
     }
     return TRUE;
 }
+
+
+SV*
+sqlite3_db_commit_hook( pTHX_ SV *dbh, SV *hook )
+{
+    D_imp_dbh(dbh);
+    void *retval;
+
+    if (!SvOK(hook)) {
+      /* remove previous hook */
+      retval = sqlite3_commit_hook( imp_dbh->db, NULL, NULL );
+    }
+    else {
+      SV *hook_sv = newSVsv( hook );
+
+      /* Copy the handler ref so that it can be deallocated at disconnect */
+      av_push( imp_dbh->functions, hook_sv );
+
+      /* Register the hook within sqlite3 */
+      retval = sqlite3_commit_hook( imp_dbh->db, 
+                                    sqlite_db_generic_callback_dispatcher,
+                                    hook_sv );
+    }
+
+    return retval ? newSVsv(retval) : &PL_sv_undef;
+}
+
+
+SV*
+sqlite3_db_rollback_hook( pTHX_ SV *dbh, SV *hook )
+{
+    D_imp_dbh(dbh);
+    void *retval;
+
+    if (!SvOK(hook)) {
+      /* remove previous hook */
+      retval = sqlite3_rollback_hook( imp_dbh->db, NULL, NULL );
+    }
+    else {
+      SV *hook_sv = newSVsv( hook );
+
+      /* Copy the handler ref so that it can be deallocated at disconnect */
+      av_push( imp_dbh->functions, hook_sv );
+
+      /* Register the hook within sqlite3 */
+      retval = sqlite3_rollback_hook( imp_dbh->db, 
+                                      (void(*)(void *))
+                                        sqlite_db_generic_callback_dispatcher,
+                                      hook_sv );
+    }
+
+    return retval ? newSVsv(retval) : &PL_sv_undef;
+}
+
+
+
+void
+sqlite_db_update_dispatcher( void *callback, int op, 
+                             char const *database, char const *table,
+                             sqlite3_int64 rowid )
+{
+    dTHX;
+    dSP;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+
+    XPUSHs( sv_2mortal ( newSViv ( op          ) ) );
+    XPUSHs( sv_2mortal ( newSVpv ( database, 0 ) ) );
+    XPUSHs( sv_2mortal ( newSVpv ( table,    0 ) ) );
+    XPUSHs( sv_2mortal ( newSViv ( rowid       ) ) );
+    PUTBACK;
+
+    call_sv( callback, G_VOID );
+    SPAGAIN;
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+}
+
+
+SV*
+sqlite3_db_update_hook( pTHX_ SV *dbh, SV *hook )
+{
+    D_imp_dbh(dbh);
+    void *retval;
+
+    if (!SvOK(hook)) {
+      /* remove previous hook */
+      retval = sqlite3_update_hook( imp_dbh->db, NULL, NULL );
+    }
+    else {
+      SV *hook_sv = newSVsv( hook );
+
+      /* Copy the handler ref so that it can be deallocated at disconnect */
+      av_push( imp_dbh->functions, hook_sv );
+
+      /* Register the hook within sqlite3 */
+      retval = sqlite3_update_hook( imp_dbh->db, 
+                                    sqlite_db_update_dispatcher,
+                                    hook_sv );
+    }
+
+    return retval ? newSVsv(retval) : &PL_sv_undef;
+}
+
+
+int
+sqlite_db_authorizer_dispatcher (
+    void *authorizer,
+    int  action_code,
+    const char *details_1,
+    const char *details_2,
+    const char *details_3,
+    const char *details_4
+)
+{
+    dTHX;
+    dSP;
+    int retval = 0;
+    int n_retval, i;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+
+    XPUSHs( sv_2mortal ( newSViv ( action_code ) ) );
+    XPUSHs( sv_2mortal ( newSVpv ( details_1, 0 ) ) );
+    XPUSHs( sv_2mortal ( newSVpv ( details_2, 0 ) ) );
+    XPUSHs( sv_2mortal ( newSVpv ( details_3, 0 ) ) );
+    XPUSHs( sv_2mortal ( newSVpv ( details_4, 0 ) ) );
+    PUTBACK;
+
+    n_retval = call_sv(authorizer, G_SCALAR);
+    SPAGAIN;
+    if ( n_retval != 1 ) {
+        warn( "callback returned %d arguments", n_retval );
+    }
+    for(i = 0; i < n_retval; i++) {
+        retval = POPi;
+    }
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
+    return retval;
+}
+
+
+
+
+
+int
+sqlite3_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer )
+{
+    D_imp_dbh(dbh);
+    int retval;
+
+    if (!SvOK(authorizer)) {
+      /* remove previous hook */
+      retval = sqlite3_set_authorizer( imp_dbh->db, NULL, NULL );
+    }
+    else {
+      SV *authorizer_sv = newSVsv( authorizer );
+
+      /* Copy the coderef so that it can be deallocated at disconnect */
+      av_push( imp_dbh->functions, authorizer_sv );
+
+      /* Register the hook within sqlite3 */
+      retval = sqlite3_set_authorizer( imp_dbh->db, 
+                                       sqlite_db_authorizer_dispatcher,
+                                       authorizer_sv );
+    }
+
+    return retval;
+}
+
+
+
+
 
 /* Accesses the SQLite Online Backup API, and fills the currently loaded
  * database from the passed filename.
