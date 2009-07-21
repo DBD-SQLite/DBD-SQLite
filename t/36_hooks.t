@@ -112,7 +112,7 @@ foreach my $call_func (@CALL_FUNCS) {
                                                      : DBD::SQLite::OK;
     return $retval;
   };
-  unless ($^O =~ /MSWin32|freebsd/) {
+  unless ($] < 5.010) {
     # FIXME: this line may cause segfalut
     $dbh->$call_func($authorizer, "set_authorizer");
   }
