@@ -20,13 +20,12 @@ my @regexes = qw(  ^b\\w+ (?i:^b\\w+) );
 
 BEGIN {
 	if ($] < 5.008005) {
-		plan skip_all => 'Unicode is not supported before 5.8.5'
-	}
-	else {
-		plan tests => 2 * (1 + 2 * @regexes) * @CALL_FUNCS + 1 ;
+		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
 }
 use Test::NoWarnings;
+
+plan tests => 2 * (1 + 2 * @regexes) * @CALL_FUNCS + 1;
 
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang
