@@ -1524,25 +1524,25 @@ sqlite_db_authorizer_dispatcher (
 
     /* these ifs are ugly but without them, perl 5.8 segfaults */
     if (details_1 == NULL) {
-      XPUSHs( NULL );
+      XPUSHs( sv_2mortal( &PL_sv_undef ) );
     }
     else {
       XPUSHs( sv_2mortal ( newSVpv ( details_1, 0 ) ) );
     }
     if (details_2 == NULL) {
-      XPUSHs( NULL );
+      XPUSHs( sv_2mortal( &PL_sv_undef ) );
     }
     else {
       XPUSHs( sv_2mortal ( newSVpv ( details_2, 0 ) ) );
     }
     if (details_3 == NULL) {
-      XPUSHs( NULL );
+      XPUSHs( sv_2mortal( &PL_sv_undef ) );
     }
     else {
       XPUSHs( sv_2mortal ( newSVpv ( details_3, 0 ) ) );
     }
     if (details_4 == NULL) {
-      XPUSHs( NULL );
+      XPUSHs( sv_2mortal( &PL_sv_undef ) );
     }
     else {
       XPUSHs( sv_2mortal ( newSVpv ( details_4, 0 ) ) );
