@@ -13,6 +13,8 @@ Changes for Perl extension DBD-SQLite
       driver-private methods ("func" / "sqlite_*") (DAMI)
     - Removed unused and obsolete "list_tables" from SQLite.xs (DAMI)
     - Added a default implementation for the REGEXP infix operator (DAMI)
+    - Renamed several internal sqlite3_ functions to sqlite_
+      for clarity (ISHIGAKI)
 
 1.26_02 Fri 19 Jun 2009
     - Updated to SQLite 3.6.15 (DUNCAND)
