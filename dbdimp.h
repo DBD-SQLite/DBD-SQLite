@@ -95,6 +95,12 @@ int sqlite_db_busy_timeout (pTHX_ SV *dbh, int timeout );
 int sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename);
 int sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename);
 
+void sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback );
+SV* sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook );
+SV* sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook );
+SV* sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook );
+int sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer );
+
 #ifdef SvUTF8_on
 
 static SV *
