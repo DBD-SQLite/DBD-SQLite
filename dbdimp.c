@@ -1523,30 +1523,10 @@ sqlite_db_authorizer_dispatcher (
     XPUSHs( sv_2mortal ( newSViv ( action_code ) ) );
 
     /* these ifs are ugly but without them, perl 5.8 segfaults */
-    if (details_1 == NULL) {
-      XPUSHs( sv_2mortal( &PL_sv_undef ) );
-    }
-    else {
-      XPUSHs( sv_2mortal ( newSVpv ( details_1, 0 ) ) );
-    }
-    if (details_2 == NULL) {
-      XPUSHs( sv_2mortal( &PL_sv_undef ) );
-    }
-    else {
-      XPUSHs( sv_2mortal ( newSVpv ( details_2, 0 ) ) );
-    }
-    if (details_3 == NULL) {
-      XPUSHs( sv_2mortal( &PL_sv_undef ) );
-    }
-    else {
-      XPUSHs( sv_2mortal ( newSVpv ( details_3, 0 ) ) );
-    }
-    if (details_4 == NULL) {
-      XPUSHs( sv_2mortal( &PL_sv_undef ) );
-    }
-    else {
-      XPUSHs( sv_2mortal ( newSVpv ( details_4, 0 ) ) );
-    }
+    XPUSHs( sv_2mortal( details_1 ? newSVpv( details_1, 0 ) : &PL_sv_undef ) );
+    XPUSHs( sv_2mortal( details_2 ? newSVpv( details_2, 0 ) : &PL_sv_undef ) );
+    XPUSHs( sv_2mortal( details_3 ? newSVpv( details_3, 0 ) : &PL_sv_undef ) );
+    XPUSHs( sv_2mortal( details_4 ? newSVpv( details_4, 0 ) : &PL_sv_undef ) );
     PUTBACK;
 
     n_retval = call_sv(authorizer, G_SCALAR);
