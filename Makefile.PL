@@ -58,8 +58,6 @@ if ( $@ or DBI->VERSION < $DBI_required ) {
 	exit(0);
 }
 
-# 2005/6/19, by rjray@blackperl.com
-#
 # Determine if we are going to use the provided SQLite code, or an already-
 # installed copy. To this end, look for two command-line parameters:
 #
@@ -68,17 +66,13 @@ if ( $@ or DBI->VERSION < $DBI_required ) {
 #
 # In absense of either of those, expect SQLite 3.X.X libs and headers in the
 # common places known to Perl or the C compiler.
-
-# 2009/04/02
-# But why do we need to use an older, system-installed library?
-# Let's always use the bundled one. -- ISHIGAKI
-# 2009/04/03
-# For the moment, while we're fixing things, this is reasonable.
-# However, logic in the form "I lack knowledge, thereforce lets do
-# it this way" is not a sufficiently robust decision making process. 
-# Let's find out the full story first, so we can make an informed
-# decision to whether to do this. -- ADAMK
-my ($force_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
+# 
+# Note to Downstream Packagers:
+# This block is if ( 0 ) to discourage casual users building against
+# the system SQLite. We expect that anyone sophisticated enough to use
+# a system sqlite is also sophisticated enough to have a patching system
+# that can change the if ( 0 ) to if ( 1 )
+my ($sqlite_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
 if ( 0 ) {
 	require File::Spec;
 	if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
@@ -87,10 +81,10 @@ if ( 0 ) {
 		$sqlite_lib = File::Spec->catdir( $sqlite_base, 'lib'     );
 		$sqlite_inc = File::Spec->catdir( $sqlite_base, 'include' );
 	}
-	if ( $force_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
-		$force_local =~ /=(.*)/;
-		$force_local = "$1" ? 1 : 0;
-		if ( $force_local ) {
+	if ( $sqlite_local = (grep(/USE_LOCAL_SQLITE=.*/, @ARGV))[0] ) {
+		$sqlite_local =~ /=(.*)/;
+		$sqlite_local = "$1" ? 1 : 0;
+		if ( $sqlite_local ) {
 			# Keep these from making into CFLAGS/LDFLAGS
 			undef $sqlite_lib;
 			undef $sqlite_inc;
@@ -98,7 +92,7 @@ if ( 0 ) {
 	}
 
 	# Now check for a compatible sqlite3
-	unless ( $force_local ) {
+	unless ( $sqlite_local ) {
 		my ($dir, $file, $fh, $version);
 		print "Checking installed SQLite version...\n" if $ENV{AUTOMATED_TESTING};
 		if ( $sqlite_inc ) {
@@ -130,19 +124,19 @@ if ( 0 ) {
 		unless ( $version && ($version >= 3006000) ) {
 			warn "SQLite version must be at least 3.6.0. No header file at that\n";
 			warn "version or higher was found. Using the local version instead.\n";
-			$force_local = 1;
+			$sqlite_local = 1;
 			undef $sqlite_lib;
 			undef $sqlite_inc;
 		} else {
 			print "Looks good\n" if $ENV{AUTOMATED_TESTING};
 		}
 	}
+} else {
+	# Always the bundled one.
+	# XXX: ... and this message should be more informative.
+	$sqlite_local = 1;
+	print "We're using the bundled sqlite library.\n" if $ENV{AUTOMATED_TESTING};
 }
-
-# Use always the bundled one.
-# XXX: ... and this message should be more informative.
-$force_local = 1;
-print "We're using the bundled sqlite library.\n" if $ENV{AUTOMATED_TESTING};
 
 @ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
@@ -157,7 +151,7 @@ my @CC_LIBS = ();
 if ( $sqlite_lib ) {
 	push @CC_LIBS, "-L$sqlite_lib";
 }
-unless ( $force_local ) {
+unless ( $sqlite_local ) {
 	push @CC_LIBS, '-lsqlite3';
 }
 
@@ -249,7 +243,7 @@ WriteMakefile(
 			}
 		},
 	),
-	OBJECT           => ( $force_local
+	OBJECT           => ( $sqlite_local
 		? '$(O_FILES)'
 		: 'SQLite.o dbdimp.o'
 	),
