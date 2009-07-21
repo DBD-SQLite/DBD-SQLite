@@ -337,7 +337,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 
         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params));
         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value));
-        
+
         if (!SvOK(value)) {
             sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "binding null");
             retval = sqlite3_bind_null(imp_sth->stmt, i+1);
@@ -624,7 +624,7 @@ sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
         sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, errmsg);
         return FALSE; /* -> &sv_no (or void) in SQLite.xsi */
     }
-    
+
     return TRUE;
 }
 
@@ -745,7 +745,7 @@ sqlite_st_FETCH_attrib (SV *sth, imp_sth_t *imp_sth, SV *keysv)
     if (!DBIc_ACTIVE(imp_sth)) {
         return NULL;
     }
-    
+
     /* warn("fetch: %s\n", key); */
 
     i = DBIc_NUM_FIELDS(imp_sth);
@@ -899,7 +899,7 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
     PUTBACK;
 
     count = call_sv(func, G_SCALAR|G_EVAL);
-    
+
     SPAGAIN;
 
     /* Check for an error */
@@ -924,7 +924,6 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
     FREETMPS;
     LEAVE;
 }
-
 
 static void
 sqlite_db_func_dispatcher_unicode(sqlite3_context *context, int argc, sqlite3_value **value)
@@ -968,7 +967,7 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
 {
     D_imp_dbh(dbh);
     int retval;
-    
+
     retval = sqlite3_enable_load_extension( imp_dbh->db, onoff );
     if ( retval != SQLITE_OK )
     {
@@ -988,14 +987,14 @@ sqlite_db_aggr_new_dispatcher(pTHX_ sqlite3_context *context, aggrInfo *aggr_inf
 
     aggr_info->err = NULL;
     aggr_info->aggr_inst = NULL;
-    
+
     pkg = sqlite3_user_data(context);
     if ( !pkg )
         return;
 
     ENTER;
     SAVETMPS;
-    
+
     PUSHMARK(SP);
     XPUSHs( sv_2mortal( newSVsv(pkg) ) );
     PUTBACK;
@@ -1011,7 +1010,7 @@ sqlite_db_aggr_new_dispatcher(pTHX_ sqlite3_context *context, aggrInfo *aggr_inf
         POPs;
     } else if ( count != 1 ) {
         int i;
-        
+
         aggr_info->err = newSVpvf( "new() should return one value, got %d", 
                                   count );
         /* Clear the stack */
@@ -1065,7 +1064,7 @@ sqlite_db_aggr_step_dispatcher (sqlite3_context *context,
         SV *arg;
         int len = sqlite3_value_bytes(value[i]);
         int type = sqlite3_value_type(value[i]);
-        
+
         switch(type) {
             case SQLITE_INTEGER:
                 arg = sv_2mortal(newSViv(sqlite3_value_int(value[i])));
@@ -1148,7 +1147,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
         }
         PUTBACK;
     }
-    
+
     if ( aggr->err ) {
         warn( "DBD::SQLite: error in aggregator cannot be reported to SQLite: %s",
             SvPV_nolen( aggr->err ) );
@@ -1192,7 +1191,6 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
     }
     return TRUE;
 }
-
 
 int
 sqlite_db_collation_dispatcher(
@@ -1302,7 +1300,6 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     return TRUE;
 }
 
-
 void
 sqlite_db_collation_needed_dispatcher (
     void *info,
@@ -1328,9 +1325,6 @@ sqlite_db_collation_needed_dispatcher (
     FREETMPS;
     LEAVE;
 }
-                                           
-
-
 
 void
 sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback )
@@ -1341,7 +1335,7 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback )
     collationNeededInfo* info = sqlite3_malloc(sizeof(collationNeededInfo));
     /* TODO: this struct should probably be freed at some point, not sure
        how and when */
-      
+
     /* Copy the handler ref so that it can be deallocated at disconnect */
     av_push( imp_dbh->functions, callback_sv );
 
@@ -1355,7 +1349,6 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback )
                                      sqlite_db_collation_needed_dispatcher );
 
 }
-
 
 int
 sqlite_db_generic_callback_dispatcher( void *callback )
@@ -1406,7 +1399,6 @@ sqlite_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
     return TRUE;
 }
 
-
 SV*
 sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook )
 {
@@ -1431,7 +1423,6 @@ sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook )
 
     return retval ? newSVsv(retval) : &PL_sv_undef;
 }
-
 
 SV*
 sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook )
@@ -1459,8 +1450,6 @@ sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook )
     return retval ? newSVsv(retval) : &PL_sv_undef;
 }
 
-
-
 void
 sqlite_db_update_dispatcher( void *callback, int op, 
                              char const *database, char const *table,
@@ -1487,7 +1476,6 @@ sqlite_db_update_dispatcher( void *callback, int op,
     LEAVE;
 }
 
-
 SV*
 sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook )
 {
@@ -1512,7 +1500,6 @@ sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook )
 
     return retval ? newSVsv(retval) : &PL_sv_undef;
 }
-
 
 int
 sqlite_db_authorizer_dispatcher (
@@ -1556,10 +1543,6 @@ sqlite_db_authorizer_dispatcher (
     return retval;
 }
 
-
-
-
-
 int
 sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer )
 {
@@ -1584,10 +1567,6 @@ sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer )
 
     return retval;
 }
-
-
-
-
 
 /* Accesses the SQLite Online Backup API, and fills the currently loaded
  * database from the passed filename.
