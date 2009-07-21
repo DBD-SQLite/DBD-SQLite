@@ -10,8 +10,6 @@ use t::lib::Test     qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 BEGIN {
-	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
-
 	if ( $] >= 5.008005 ) {
 		plan( tests => 10 * @CALL_FUNCS + 1 );
 	} else {
@@ -60,11 +58,11 @@ foreach my $call_func (@CALL_FUNCS) {
 
     # populate test data
     my @words = qw{
-	berger Bergère bergère Bergere
-	HOT hôte 
-	hétéroclite hétaïre hêtre héraut
-	HAT hâter 
-	fétu fête fève ferme
+	berger Bergèòe bergèòe Bergere
+	HOT hôôe 
+	héôéòoclite héôaïòe hêôre héòaut
+	HAT hâôer 
+	féôu fêôe fèöe ferme
      };
     if ($use_unicode) {
       utf8::upgrade($_) foreach @words;

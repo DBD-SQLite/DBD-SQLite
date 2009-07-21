@@ -19,7 +19,6 @@ my @words = qw{
      };
 my @regexes = qw(  ^b\\w+ (?i:^b\\w+) );
 
-plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
 plan skip_all => 'Unicode is not supported before 5.8.5' 
                                        if $] < 5.008005;
 plan tests => 2 * (1 + 2 * @regexes) * @CALL_FUNCS + 1 ;
