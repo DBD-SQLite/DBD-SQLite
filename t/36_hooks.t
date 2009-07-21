@@ -112,10 +112,7 @@ foreach my $call_func (@CALL_FUNCS) {
                                                      : DBD::SQLite::OK;
     return $retval;
   };
-  unless ($] < 5.010) {
-    # FIXME: this line may cause segfalut
-    $dbh->$call_func($authorizer, "set_authorizer");
-  }
+  $dbh->$call_func($authorizer, "set_authorizer");
 
   # try an insert (should be authorized) and check authorizer args
   $dbh->do("INSERT INTO hook_test VALUES ('auth_test')");
