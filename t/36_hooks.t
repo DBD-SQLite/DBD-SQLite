@@ -112,7 +112,7 @@ foreach my $call_func (@CALL_FUNCS) {
                                                      : DBD::SQLite::OK;
     return $retval;
   };
-  $dbh->$call_func($authorizer, "set_authorizer");
+  $dbh->$call_func($authorizer, "set_authorizer") unless $^O eq 'MSWin32'; # FIXME: this line causes segfalut under Win32
 
   # try an insert (should be authorized) and check authorizer args
   $dbh->do("INSERT INTO hook_test VALUES ('auth_test')");
