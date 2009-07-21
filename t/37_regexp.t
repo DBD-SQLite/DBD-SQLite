@@ -8,7 +8,6 @@ BEGIN {
 
 use t::lib::Test     qw/connect_ok @CALL_FUNCS/;
 use Test::More;
-use Test::NoWarnings;
 
 my @words = qw{
 	berger Bergère bergère Bergere
@@ -19,10 +18,15 @@ my @words = qw{
      };
 my @regexes = qw(  ^b\\w+ (?i:^b\\w+) );
 
-plan skip_all => 'Unicode is not supported before 5.8.5' 
-                                       if $] < 5.008005;
-plan tests => 2 * (1 + 2 * @regexes) * @CALL_FUNCS + 1 ;
-
+BEGIN {
+	if ($] < 5.008005) {
+		plan skip_all => 'Unicode is not supported before 5.8.5'
+	}
+	else {
+		plan tests => 2 * (1 + 2 * @regexes) * @CALL_FUNCS + 1 ;
+	}
+}
+use Test::NoWarnings;
 
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang

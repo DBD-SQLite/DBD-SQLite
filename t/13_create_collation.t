@@ -8,7 +8,6 @@ BEGIN {
 
 use t::lib::Test     qw/connect_ok @CALL_FUNCS/;
 use Test::More;
-use Test::NoWarnings;
 BEGIN {
 	if ( $] >= 5.008005 ) {
 		plan( tests => 10 * @CALL_FUNCS + 1 );
@@ -16,6 +15,7 @@ BEGIN {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
+use Test::NoWarnings;
 use Encode qw/decode/;
 use DBD::SQLite;
 
