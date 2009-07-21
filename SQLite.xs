@@ -34,7 +34,7 @@ create_function(dbh, name, argc, func)
         DBD::SQLite::db::sqlite_create_function = 1
     CODE:
     {
-        RETVAL = sqlite3_db_create_function(aTHX_ dbh, name, argc, func );
+        RETVAL = sqlite_db_create_function(aTHX_ dbh, name, argc, func );
     }
     OUTPUT:
         RETVAL
@@ -47,7 +47,7 @@ enable_load_extension(dbh, onoff)
         DBD::SQLite::db::sqlite_enable_load_extension = 1
     CODE:
     {
-        RETVAL = sqlite3_db_enable_load_extension(aTHX_ dbh, onoff );
+        RETVAL = sqlite_db_enable_load_extension(aTHX_ dbh, onoff );
     }
     OUTPUT:
         RETVAL
@@ -62,7 +62,7 @@ create_aggregate(dbh, name, argc, aggr)
         DBD::SQLite::db::sqlite_create_aggregate = 1
     CODE:
     {
-        RETVAL = sqlite3_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
+        RETVAL = sqlite_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
     }
     OUTPUT:
         RETVAL
@@ -76,7 +76,7 @@ create_collation(dbh, name, func)
         DBD::SQLite::db::sqlite_create_collation = 1
     CODE:
     {
-        RETVAL = sqlite3_db_create_collation(aTHX_ dbh, name, func );
+        RETVAL = sqlite_db_create_collation(aTHX_ dbh, name, func );
     }
     OUTPUT:
         RETVAL
@@ -90,7 +90,7 @@ collation_needed(dbh, callback)
         DBD::SQLite::db::sqlite_collation_needed = 1
     CODE:
     {
-        sqlite3_db_collation_needed(aTHX_ dbh, callback );
+        sqlite_db_collation_needed(aTHX_ dbh, callback );
     }
 
 
@@ -103,7 +103,7 @@ progress_handler(dbh, n_opcodes, handler)
         DBD::SQLite::db::sqlite_progress_handler = 1
     CODE:
     {
-        RETVAL = sqlite3_db_progress_handler(aTHX_ dbh, n_opcodes, handler );
+        RETVAL = sqlite_db_progress_handler(aTHX_ dbh, n_opcodes, handler );
     }
     OUTPUT:
         RETVAL
@@ -116,7 +116,7 @@ commit_hook(dbh, hook)
         DBD::SQLite::db::sqlite_commit_hook = 1
     CODE:
     {
-        RETVAL = (SV*) sqlite3_db_commit_hook( aTHX_ dbh, hook );
+        RETVAL = (SV*) sqlite_db_commit_hook( aTHX_ dbh, hook );
     }
     OUTPUT:
         RETVAL
@@ -129,7 +129,7 @@ rollback_hook(dbh, hook)
         DBD::SQLite::db::sqlite_rollback_hook = 1
     CODE:
     {
-        RETVAL = (SV*) sqlite3_db_rollback_hook( aTHX_ dbh, hook );
+        RETVAL = (SV*) sqlite_db_rollback_hook( aTHX_ dbh, hook );
     }
     OUTPUT:
         RETVAL
@@ -142,7 +142,7 @@ update_hook(dbh, hook)
         DBD::SQLite::db::sqlite_update_hook = 1
     CODE:
     {
-        RETVAL = (SV*) sqlite3_db_update_hook( aTHX_ dbh, hook );
+        RETVAL = (SV*) sqlite_db_update_hook( aTHX_ dbh, hook );
     }
     OUTPUT:
         RETVAL
@@ -156,7 +156,7 @@ set_authorizer(dbh, authorizer)
         DBD::SQLite::db::sqlite_set_authorizer = 1
     CODE:
     {
-        RETVAL = (SV*) sqlite3_db_set_authorizer( aTHX_ dbh, authorizer );
+        RETVAL = (SV*) sqlite_db_set_authorizer( aTHX_ dbh, authorizer );
     }
     OUTPUT:
         RETVAL
@@ -169,7 +169,7 @@ busy_timeout(dbh, timeout=0)
     ALIAS:
         DBD::SQLite::db::sqlite_busy_timeout = 1
     CODE:
-        RETVAL = sqlite3_db_busy_timeout(aTHX_ dbh, timeout );
+        RETVAL = sqlite_db_busy_timeout(aTHX_ dbh, timeout );
     OUTPUT:
         RETVAL
 

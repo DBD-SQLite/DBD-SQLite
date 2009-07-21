@@ -129,7 +129,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 }
 
 int
-sqlite3_db_busy_timeout (pTHX_ SV *dbh, int timeout )
+sqlite_db_busy_timeout (pTHX_ SV *dbh, int timeout )
 {
   D_imp_dbh(dbh);
   if (timeout) {
@@ -939,7 +939,7 @@ sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3
 }
 
 int
-sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
+sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
 {
     D_imp_dbh(dbh);
     int retval;
@@ -964,7 +964,7 @@ sqlite3_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func )
 }
 
 int
-sqlite3_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
+sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff )
 {
     D_imp_dbh(dbh);
     int retval;
@@ -1168,7 +1168,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
 }
 
 int
-sqlite3_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_pkg )
+sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_pkg )
 {
     D_imp_dbh(dbh);
     int retval;
@@ -1262,7 +1262,7 @@ sqlite_db_collation_dispatcher_utf8(
 }
 
 int
-sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
+sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 {
     D_imp_dbh(dbh);
     int rv, rv2;
@@ -1304,7 +1304,7 @@ sqlite3_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 
 
 void
-sqlite3_db_collation_needed_dispatcher (
+sqlite_db_collation_needed_dispatcher (
     void *info,
     sqlite3* db, /* unused, because we need the Perl dbh */
     int eTextRep,
@@ -1333,7 +1333,7 @@ sqlite3_db_collation_needed_dispatcher (
 
 
 void
-sqlite3_db_collation_needed(pTHX_ SV *dbh, SV *callback )
+sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback )
 {
     D_imp_dbh(dbh);
 
@@ -1352,7 +1352,7 @@ sqlite3_db_collation_needed(pTHX_ SV *dbh, SV *callback )
     /* Register the func within sqlite3 */
     (void) sqlite3_collation_needed( imp_dbh->db, 
                                      (void*) info,
-                                     sqlite3_db_collation_needed_dispatcher );
+                                     sqlite_db_collation_needed_dispatcher );
 
 }
 
@@ -1384,7 +1384,7 @@ sqlite_db_generic_callback_dispatcher( void *callback )
 }
 
 int
-sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
+sqlite_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 {
     D_imp_dbh(dbh);
 
@@ -1408,7 +1408,7 @@ sqlite3_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler )
 
 
 SV*
-sqlite3_db_commit_hook( pTHX_ SV *dbh, SV *hook )
+sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook )
 {
     D_imp_dbh(dbh);
     void *retval;
@@ -1434,7 +1434,7 @@ sqlite3_db_commit_hook( pTHX_ SV *dbh, SV *hook )
 
 
 SV*
-sqlite3_db_rollback_hook( pTHX_ SV *dbh, SV *hook )
+sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook )
 {
     D_imp_dbh(dbh);
     void *retval;
@@ -1489,7 +1489,7 @@ sqlite_db_update_dispatcher( void *callback, int op,
 
 
 SV*
-sqlite3_db_update_hook( pTHX_ SV *dbh, SV *hook )
+sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook )
 {
     D_imp_dbh(dbh);
     void *retval;
@@ -1561,7 +1561,7 @@ sqlite_db_authorizer_dispatcher (
 
 
 int
-sqlite3_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer )
+sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer )
 {
     D_imp_dbh(dbh);
     int retval;
