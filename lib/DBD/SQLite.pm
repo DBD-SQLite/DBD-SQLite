@@ -98,7 +98,7 @@ sub connect {
 
     # To avoid unicode and long file name problems on Windows,
     # convert to the shortname if the file (or parent directory) exists.
-    if ( $^O =~ /MSWin32/ and $real ne ':memory:' ) {
+    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '') {
         require Win32;
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);
@@ -505,7 +505,7 @@ DBD::SQLite - Self-contained RDBMS in a DBI Driver
 =head1 SYNOPSIS
 
   use DBI;
-  my $dbh = DBI->connect("dbi:SQLite:dbname=dbfile","","");
+  my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile","","");
 
 =head1 DESCRIPTION
 
@@ -553,6 +553,29 @@ details about core features.
 
 Currently many statement attributes are not implemented or are
 limited by the typeless nature of the SQLite database.
+
+=head1 CONNECTING
+
+The name of the database file is passed in the the DBI connection 
+string :
+
+  my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile","","");
+
+The file is opened in read/write mode, and will be created if
+it does not exist yet. 
+
+If the filename C<$dbfile> is ":memory:", then a private, temporary
+in-memory database is created for the connection. This in-memory
+database will vanish when the database connection is closed. Future
+versions of SQLite might make use of additional special filenames that
+begin with the ":" character. It is recommended that when a database
+filename actually does begin with a ":" character you should prefix
+the filename with a pathname such as "./" to avoid ambiguity.
+
+If the filename C<$dbfile> is an empty string, then a private,
+temporary on-disk database will be created. This private database will
+be automatically deleted as soon as the database connection is closed.
+
 
 =head1 DRIVER PRIVATE ATTRIBUTES
 
@@ -1289,6 +1312,11 @@ code we work with leaks.
 =head2 Stream API for Blobs
 
 Reading/writing into blobs using C<sqlite2_blob_open> / C<sqlite2_blob_close>.
+
+=head2 Flags for sqlite3_open_v2
+
+Support the full API of sqlite3_open_v2 (flags for opening the file).
+
 
 =head1 SUPPORT
 

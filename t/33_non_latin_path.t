@@ -13,7 +13,7 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => (($^O eq 'cygwin') ? 13 : 25) );
+		plan( tests => (($^O eq 'cygwin') ? 15 : 27) );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -74,6 +74,21 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 	ok(!$@, "Could connect to database in $dbfilex") or diag $@;
 	unlink(_path($dbfilex))  if -e _path($dbfilex);
 }
+
+
+# connect to an empty filename - sqlite will create a tempfile
+eval {
+	my $dbh = DBI->connect("dbi:SQLite:dbname=", undef, undef, {
+		RaiseError => 1,
+		PrintError => 0,
+	} );
+	isa_ok( $dbh, 'DBI::db' );
+};
+is( $@, '', "Could connect to temp database (empty filename)" );
+diag( $@ ) if $@;
+
+
+
 
 sub _path {  # copied from DBD::SQLite::connect
 	my $path = shift;
