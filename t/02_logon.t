@@ -8,40 +8,38 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test;
+use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
-
-BEGIN {
-	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
-}
-
 use Test::NoWarnings;
 
-plan tests => 10;
+plan tests => 9 * @CALL_FUNCS + 1;
 
-# Ordinary connect
-SCOPE: {
-	my $dbh = connect_ok();
-	ok( $dbh->{sqlite_version}, '->{sqlite_version} ok' );
-	is( $dbh->{AutoCommit}, 1, 'AutoCommit is on by default' );
-	diag("sqlite_version=$dbh->{sqlite_version}");
-	ok( $dbh->sqlite_busy_timeout, 'Found initial busy_timeout' );
-	ok( $dbh->sqlite_busy_timeout(5000) );
-	is( $dbh->sqlite_busy_timeout, 5000, 'Set busy_timeout to new value' );
-}
+foreach my $call_func (@CALL_FUNCS) {
 
-# Attributes in the connect string
-SKIP: {
-	unless ( $] >= 5.008005 ) {
-		skip( 'Unicode is not supported before 5.8.5', 2 );
+	# Ordinary connect
+	SCOPE: {
+		my $dbh = connect_ok();
+		ok( $dbh->{sqlite_version}, '->{sqlite_version} ok' );
+		is( $dbh->{AutoCommit}, 1, 'AutoCommit is on by default' );
+		diag("sqlite_version=$dbh->{sqlite_version}");
+		ok( $dbh->$call_func('busy_timeout'), 'Found initial busy_timeout' );
+		ok( $dbh->$call_func(5000, 'busy_timeout') );
+		is( $dbh->$call_func('busy_timeout'), 5000, 'Set busy_timeout to new value' );
 	}
-	my $dbh = DBI->connect( 'dbi:SQLite:dbname=foo;unicode=1', '', '' );
-	isa_ok( $dbh, 'DBI::db' );
-	is( $dbh->{unicode}, 1, 'Unicode is on' );
-}
 
-# Connect to a memory database
-SCOPE: {
-	my $dbh = DBI->connect( 'dbi:SQLite:dbname=:memory:', '', '' );
-	isa_ok( $dbh, 'DBI::db' );	
+	# Attributes in the connect string
+	SKIP: {
+		unless ( $] >= 5.008005 ) {
+			skip( 'Unicode is not supported before 5.8.5', 2 );
+		}
+		my $dbh = DBI->connect( 'dbi:SQLite:dbname=foo;unicode=1', '', '' );
+		isa_ok( $dbh, 'DBI::db' );
+		is( $dbh->{unicode}, 1, 'Unicode is on' );
+	}
+
+	# Connect to a memory database
+	SCOPE: {
+		my $dbh = DBI->connect( 'dbi:SQLite:dbname=:memory:', '', '' );
+		isa_ok( $dbh, 'DBI::db' );	
+	}
 }

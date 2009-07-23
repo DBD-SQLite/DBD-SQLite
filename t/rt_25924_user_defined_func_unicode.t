@@ -6,13 +6,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test;
+use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 BEGIN {
-	plan skip_all => 'requires DBI v1.608' if $DBI::VERSION < 1.608;
-
 	if ( $] >= 5.008005 ) {
-		plan( tests => 16 );
+		plan( tests => 15 * @CALL_FUNCS + 1);
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -22,22 +20,25 @@ use Test::NoWarnings;
 eval "require utf8";
 die $@ if $@;
 
-my $dbh = connect_ok( unicode => 1 );
-ok($dbh->sqlite_create_function( "perl_uc", 1, \&perl_uc ));
+foreach my $call_func (@CALL_FUNCS) {
+	my $dbh = connect_ok( unicode => 1 );
+	ok($dbh->$call_func( "perl_uc", 1, \&perl_uc, "create_function" ));
 
-ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
+	ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE foo (
 	bar varchar(255)
 )
 END_SQL
 
-my @words = qw{Bergère hôte hétaïre hêtre};
-foreach my $word (@words) {
-	utf8::upgrade($word);
-	ok( $dbh->do("INSERT INTO foo VALUES ( ? )", {}, $word), 'INSERT' );
-	my $foo = $dbh->selectall_arrayref("SELECT perl_uc(bar) FROM foo");
-	is_deeply( $foo, [ [ perl_uc($word) ] ], 'unicode upcase ok' );
-	ok( $dbh->do("DELETE FROM foo"), 'DELETE ok' );
+	my @words = qw{Bergère hôte hétaïre hêtre};
+	foreach my $word (@words) {
+		utf8::upgrade($word);
+		ok( $dbh->do("INSERT INTO foo VALUES ( ? )", {}, $word), 'INSERT' );
+		my $foo = $dbh->selectall_arrayref("SELECT perl_uc(bar) FROM foo");
+		is_deeply( $foo, [ [ perl_uc($word) ] ], 'unicode upcase ok' );
+		ok( $dbh->do("DELETE FROM foo"), 'DELETE ok' );
+	}
+	$dbh->disconnect;
 }
 
 sub perl_uc {
