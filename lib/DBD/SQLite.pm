@@ -46,7 +46,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_create_function');
         DBD::SQLite::db->install_method('sqlite_create_aggregate');
         DBD::SQLite::db->install_method('sqlite_create_collation');
-        DBD::SQLite::db->install_method('sqlite_collation_needed');
+#        DBD::SQLite::db->install_method('sqlite_collation_needed');
         DBD::SQLite::db->install_method('sqlite_progress_handler');
         DBD::SQLite::db->install_method('sqlite_commit_hook');
         DBD::SQLite::db->install_method('sqlite_rollback_hook');
@@ -120,9 +120,15 @@ sub connect {
     DBD::SQLite::db::_login($dbh, $real, $user, $auth) or return undef;
 
     # Register the on-demand collation installer
-    $DBI::VERSION >= 1.608 
-      ? $dbh->sqlite_collation_needed(\&install_collation)
-      : $dbh->func(\&install_collation, "collation_needed");
+    # $DBI::VERSION >= 1.608 
+    #   ? $dbh->sqlite_collation_needed(\&install_collation)
+    #   : $dbh->func(\&install_collation, "collation_needed");
+
+    # XXX: Current collation_needed implementation is leaking badly.
+    #      Don't use it before we fix the leak.
+    foreach my $collation_name(keys %DBD::SQLite::COLLATION) {
+        install_collation($dbh, $collation_name);
+    }
 
     # Register the REGEXP function 
     $DBI::VERSION >= 1.608 

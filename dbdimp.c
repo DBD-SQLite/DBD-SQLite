@@ -1300,6 +1300,7 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     return TRUE;
 }
 
+#if 0
 void
 sqlite_db_collation_needed_dispatcher (
     void *info,
@@ -1349,6 +1350,7 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback )
                                      sqlite_db_collation_needed_dispatcher );
 
 }
+#endif
 
 int
 sqlite_db_generic_callback_dispatcher( void *callback )
