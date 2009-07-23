@@ -99,6 +99,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     {
         /*  warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        if (errmsg)
+            sqlite3_free(errmsg);
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
@@ -108,6 +110,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     {
         /*  warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        if (errmsg)
+            sqlite3_free(errmsg);
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
@@ -200,6 +204,8 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
             != SQLITE_OK)
         {
             sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+            if (errmsg)
+                sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
         imp_dbh->in_tran = FALSE;
@@ -227,6 +233,8 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
             != SQLITE_OK)
         {
             sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+            if (errmsg)
+                sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
         imp_dbh->in_tran = FALSE;
@@ -402,6 +410,8 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             != SQLITE_OK)
         {
             sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, errmsg);
+            if (errmsg)
+                sqlite3_free(errmsg);
             return -2; /* -> undef in SQLite.xsi */
         }
         imp_dbh->in_tran = TRUE;
@@ -671,6 +681,8 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
                     != SQLITE_OK)
                 {
                     sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+                    if (errmsg)
+                        sqlite3_free(errmsg);
                     return TRUE; /* XXX: is this correct? */
                 }
                 imp_dbh->in_tran = FALSE;
