@@ -84,12 +84,13 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     }
     DBIc_IMPSET_on(imp_dbh);
 
-    imp_dbh->in_tran             = FALSE;
-    imp_dbh->unicode             = FALSE;
-    imp_dbh->functions           = newAV();
-    imp_dbh->aggregates          = newAV();
-    imp_dbh->timeout             = SQL_TIMEOUT;
-    imp_dbh->handle_binary_nulls = FALSE;
+    imp_dbh->in_tran                   = FALSE;
+    imp_dbh->unicode                   = FALSE;
+    imp_dbh->functions                 = newAV();
+    imp_dbh->aggregates                = newAV();
+    imp_dbh->collation_needed_callback = newSVsv( &PL_sv_undef );
+    imp_dbh->timeout                   = SQL_TIMEOUT;
+    imp_dbh->handle_binary_nulls       = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
@@ -171,6 +172,10 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
     av_undef(imp_dbh->aggregates);
     SvREFCNT_dec(imp_dbh->aggregates);
     imp_dbh->aggregates = (AV *)NULL;
+
+    sv_setsv(imp_dbh->collation_needed_callback, &PL_sv_undef);
+    SvREFCNT_dec(imp_dbh->collation_needed_callback);
+    imp_dbh->collation_needed_callback = (SV *)NULL;
 
     return TRUE;
 }
@@ -1312,26 +1317,27 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
     return TRUE;
 }
 
-#if 0
 void
 sqlite_db_collation_needed_dispatcher (
-    void *info,
-    sqlite3* db, /* unused, because we need the Perl dbh */
-    int eTextRep,
+    SV *dbh,
+    sqlite3* db,               /* unused */
+    int eTextRep,              /* unused */
     const char* collation_name
 )
 {
     dTHX;
     dSP;
 
+    D_imp_dbh(dbh);
+
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    XPUSHs( sv_2mortal ( newSVsv( ((collationNeededInfo*)info)->dbh ) ) );
+    XPUSHs( sv_2mortal ( newSVsv(dbh ) ) );
     XPUSHs( sv_2mortal ( newSVpv( collation_name, 0) ) );
     PUTBACK;
 
-    call_sv( ((collationNeededInfo*)info)->callback, G_VOID );
+    call_sv( imp_dbh->collation_needed_callback, G_VOID );
     SPAGAIN;
 
     PUTBACK;
@@ -1344,25 +1350,14 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback )
 {
     D_imp_dbh(dbh);
 
-    SV *callback_sv = newSVsv(callback);
-    collationNeededInfo* info = sqlite3_malloc(sizeof(collationNeededInfo));
-    /* TODO: this struct should probably be freed at some point, not sure
-       how and when */
-
-    /* Copy the handler ref so that it can be deallocated at disconnect */
-    av_push( imp_dbh->functions, callback_sv );
-
-    /* the dispatcher will need both the callback and dbh, so build a struct */
-    info->callback = callback_sv;
-    info->dbh      = dbh;
+    /* remember the callback within the dbh */
+    sv_setsv(imp_dbh->collation_needed_callback, callback);
 
     /* Register the func within sqlite3 */
     (void) sqlite3_collation_needed( imp_dbh->db, 
-                                     (void*) info,
+                                     (void*) SvOK(callback) ? dbh : NULL,
                                      sqlite_db_collation_needed_dispatcher );
-
 }
-#endif
 
 int
 sqlite_db_generic_callback_dispatcher( void *callback )

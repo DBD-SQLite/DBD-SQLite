@@ -81,7 +81,6 @@ create_collation(dbh, name, func)
     OUTPUT:
         RETVAL
 
-#if 0
 
 static void
 collation_needed(dbh, callback)
@@ -94,7 +93,6 @@ collation_needed(dbh, callback)
         sqlite_db_collation_needed(aTHX_ dbh, callback );
     }
 
-#endif
 
 static int
 progress_handler(dbh, n_opcodes, handler)

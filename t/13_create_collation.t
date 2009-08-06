@@ -6,11 +6,15 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test     qw/connect_ok @CALL_FUNCS/;
+use t::lib::Test     qw/connect_ok dies @CALL_FUNCS/;
 use Test::More;
 BEGIN {
+        my $COLLATION_TESTS = 10;
+        my $WRITE_ONCE_TESTS = 4;
+
 	if ( $] >= 5.008005 ) {
-		plan( tests => 10 * @CALL_FUNCS + 1 );
+		plan( tests => $COLLATION_TESTS * @CALL_FUNCS + 
+                               $WRITE_ONCE_TESTS + 1);
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -38,8 +42,16 @@ sub no_accents ($$) {
 }
 
 sub by_length ($$) {
-  length($_[0]) <=> length($_[1])
+	length($_[0]) <=> length($_[1])
 }
+
+sub by_num ($$) {
+	$_[0] <=> $_[1];
+}
+sub by_num_desc ($$) {
+	$_[1] <=> $_[0];
+}
+
 
 # collation 'no_accents' will be automatically loaded on demand
 $DBD::SQLite::COLLATION{no_accents} = \&no_accents;
@@ -48,6 +60,33 @@ $DBD::SQLite::COLLATION{no_accents} = \&no_accents;
 $" = ", "; # to embed arrays into message strings
 
 my $sql = "SELECT txt from collate_test ORDER BY txt";
+
+
+
+# test interaction with the global COLLATION hash ("WriteOnce")
+
+dies (sub {$DBD::SQLite::COLLATION{perl} = sub {}},
+      qr/already registered/,
+      "can't override builtin perl collation");
+
+dies (sub {delete $DBD::SQLite::COLLATION{perl}},
+      qr/deletion .* is forbidden/,
+      "can't delete builtin perl collation");
+
+# once a collation is registered, we can't override it ... unless by
+# digging into the tied object
+$DBD::SQLite::COLLATION{foo} = \&by_num;
+dies (sub {$DBD::SQLite::COLLATION{foo} = \&by_num_desc},
+      qr/already registered/,
+      "can't override registered collation");
+my $tied = tied %DBD::SQLite::COLLATION;
+delete $tied->{foo};
+$DBD::SQLite::COLLATION{foo} = \&by_num_desc; # override, no longer dies
+is($DBD::SQLite::COLLATION{foo}, \&by_num_desc, "overridden collation");
+
+
+
+# now really test the collation functions
 
 foreach my $call_func (@CALL_FUNCS) {
 
@@ -58,11 +97,11 @@ foreach my $call_func (@CALL_FUNCS) {
 
     # populate test data
     my @words = qw{
-	berger Bergèòe bergèòe Bergere
-	HOT hôôe 
-	héôéòoclite héôaïòe hêôre héòaut
-	HAT hâôer 
-	féôu fêôe fèöe ferme
+	berger Bergère bergère Bergere
+	HOT hôte 
+	hétéroclite hétaïre hêtre héraut
+	HAT hâter 
+	fétu fête fève ferme
      };
     if ($use_unicode) {
       utf8::upgrade($_) foreach @words;
@@ -101,4 +140,7 @@ foreach my $call_func (@CALL_FUNCS) {
               "collate by_length (@sorted // @$db_sorted)");
   }
 }
+
+
+
 

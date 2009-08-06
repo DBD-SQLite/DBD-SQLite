@@ -27,10 +27,10 @@ BEGIN {
 
 __PACKAGE__->bootstrap($VERSION);
 
-%COLLATION = (
-  perl       => sub { $_[0] cmp $_[1] },
-  perllocale => sub { use locale; $_[0] cmp $_[1] },
- );
+tie  %COLLATION, 'DBD::SQLite::_WriteOnceHash';
+$COLLATION{perl}       = sub { $_[0] cmp $_[1] };
+$COLLATION{perllocale} = sub { use locale; $_[0] cmp $_[1] };
+
 
 
 my $methods_are_installed;
@@ -46,7 +46,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_create_function');
         DBD::SQLite::db->install_method('sqlite_create_aggregate');
         DBD::SQLite::db->install_method('sqlite_create_collation');
-#        DBD::SQLite::db->install_method('sqlite_collation_needed');
+        DBD::SQLite::db->install_method('sqlite_collation_needed');
         DBD::SQLite::db->install_method('sqlite_progress_handler');
         DBD::SQLite::db->install_method('sqlite_commit_hook');
         DBD::SQLite::db->install_method('sqlite_rollback_hook');
@@ -69,6 +69,8 @@ sub driver {
 sub CLONE {
     undef $drh;
 }
+
+
 
 package DBD::SQLite::dr;
 
@@ -120,21 +122,14 @@ sub connect {
     DBD::SQLite::db::_login($dbh, $real, $user, $auth) or return undef;
 
     # Register the on-demand collation installer
-    # $DBI::VERSION >= 1.608 
-    #   ? $dbh->sqlite_collation_needed(\&install_collation)
-    #   : $dbh->func(\&install_collation, "collation_needed");
-
-    # XXX: Current collation_needed implementation is leaking badly.
-    #      Don't use it before we fix the leak.
-    foreach my $collation_name(keys %DBD::SQLite::COLLATION) {
-        install_collation($dbh, $collation_name);
-    }
+    $DBI::VERSION >= 1.608 
+      ? $dbh->sqlite_collation_needed(\&install_collation)
+      : $dbh->func(\&install_collation, "collation_needed");
 
     # Register the REGEXP function 
     $DBI::VERSION >= 1.608 
       ? $dbh->sqlite_create_function("REGEXP", 2, \&regexp)
       : $dbh->func("REGEXP", 2, \&regexp, "create_function");
-
 
     # HACK: Since PrintWarn = 0 doesn't seem to actually prevent warnings
     # in DBD::SQLite we set Warn to false if PrintWarn is false.
@@ -498,7 +493,33 @@ sub column_info {
     return $sth;
 }
 
+
+#======================================================================
+# An internal tied hash package used for %DBD::SQLite::COLLATION, to
+# prevent people from unintentionally overriding globally registered collations.
+
+package DBD::SQLite::_WriteOnceHash;
+require Tie::Hash;
+
+our @ISA = qw(Tie::StdHash);
+
+sub TIEHASH {
+  bless {}, $_[0];
+}
+
+sub STORE {
+  ! exists $_[0]->{$_[1]} or die "entry $_[1] already registered";
+  $_[0]->{$_[1]} = $_[2];
+}
+
+sub DELETE {
+  die "deletion of entry $_[1] is forbidden";
+}
+
 1;
+
+
+
 
 __END__
 
@@ -725,8 +746,8 @@ The driver will check that this is a proper sorting function.
 =head2 $dbh->sqlite_collation_needed( $code_ref )
 
 This method manually registers a callback function that will
-be invoked whenever an undefined collation sequence is required.
-The callback is invoked as 
+be invoked whenever an undefined collation sequence is required
+from an SQL statement. The callback is invoked as 
 
   $code_ref->($dbh, $collation_name)
 
@@ -1148,7 +1169,7 @@ is to set the parameter at connection time :
   );
 
 
-=head2 Adding user-defined collation
+=head2 Adding user-defined collations
 
 The native SQLite API for adding user-defined collations is 
 exposed through methods L</"sqlite_create_collation"> and
@@ -1175,8 +1196,24 @@ characters :
   my $rows = $dbh->selectall_arrayref($sql);
 
 
-The builtin C<perl> or C<perllocale> collations are also in
-the same hash and therefore could be overridden if needed.
+The builtin C<perl> or C<perllocale> collations are predefined
+in that same hash.
+
+The COLLATION hash is a global registry within the current process;
+ hence there is a risk of undesired side-effects. Therefore, to
+ prevent action at distance, the hash is implemented as a "write-only"
+ hash, that will happily accept new entries, but will raise an
+ exception if any attempt is made to override or delete a existing
+ entry (including the builtin C<perl> and C<perllocale>).  
+
+If you really, really need to change or delete an entry, you can
+ always grab the tied object underneath C<%DBD::SQLite::COLLATION> ---
+ but don't do that unless you really know what you are doing. Also
+observe that changes in the global hash will not modify existing
+collations in existing database handles: it will only affect new
+I<requests> for collations. In other words, if you want to change
+the behaviour of a collation within an existing C<$dbh>, you 
+need to call the L</create_collation> method directly.
 
 
 =head1 BLOBS

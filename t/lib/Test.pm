@@ -11,7 +11,7 @@ use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
 BEGIN {
 	$VERSION = '1.26_01';
 	@ISA     = 'Exporter';
-	@EXPORT  = qw/connect_ok @CALL_FUNCS/;
+	@EXPORT  = qw/connect_ok dies @CALL_FUNCS/;
 
 	# Allow tests to load modules bundled in /inc
 	unshift @INC, 'inc';
@@ -43,6 +43,24 @@ sub connect_ok {
 	Test::More::isa_ok( $dbh, 'DBI::db' );
 	return $dbh;
 }
+
+=head2 dies
+
+  dies(sub {...}, $regex_expected_error, $msg)
+
+Tests that the given coderef (most probably a closure) dies with the
+expected error message.
+
+=cut
+
+sub dies {
+	my ($coderef, $regex, $msg) = @_;
+        eval {$coderef->()};
+        my $exception = $@;
+	Test::More::ok($exception =~ $regex, 
+                       $msg || "dies with exception: $exception");
+}
+
 
 
 =head2 @CALL_FUNCS

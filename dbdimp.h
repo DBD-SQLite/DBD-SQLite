@@ -25,6 +25,7 @@ struct imp_dbh_st {
     int timeout;
     AV *functions;
     AV *aggregates;
+    SV *collation_needed_callback;
 };
 
 /* Statement Handle */
@@ -78,13 +79,6 @@ struct aggrInfo {
   int inited;
 };
 
-#if 0
-typedef struct collationNeededInfo collationNeededInfo;
-struct collationNeededInfo {
-  SV *dbh;
-  SV *callback;
-};
-#endif
 
 int sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
 int sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
@@ -96,10 +90,7 @@ int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type,
 int sqlite_db_busy_timeout (pTHX_ SV *dbh, int timeout );
 int sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename);
 int sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename);
-
-#if 0
 void sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback );
-#endif
 SV* sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook );
 SV* sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook );
 SV* sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook );
