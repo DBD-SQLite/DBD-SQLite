@@ -1319,7 +1319,7 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func )
 
 void
 sqlite_db_collation_needed_dispatcher (
-    SV *dbh,
+    void *dbh,
     sqlite3* db,               /* unused */
     int eTextRep,              /* unused */
     const char* collation_name
@@ -1333,7 +1333,7 @@ sqlite_db_collation_needed_dispatcher (
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
-    XPUSHs( sv_2mortal ( newSVsv(dbh ) ) );
+    XPUSHs( dbh );
     XPUSHs( sv_2mortal ( newSVpv( collation_name, 0) ) );
     PUTBACK;
 
