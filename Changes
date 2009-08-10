@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.26_03 to be released
-    - Updated to SQLite 3.6.16 (ISHIGAKI)
+    - Updated to SQLite 3.6.17 (ISHIGAKI)
     - Switched to use :memory: for most of the tests (ISHIGAKI)
     - Fixed a memory leak when prepare should fail (ISHIGAKI)
     - Added support for commit/rollback/update hooks (DAMI)
