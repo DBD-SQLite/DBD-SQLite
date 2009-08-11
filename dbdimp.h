@@ -19,7 +19,6 @@ struct imp_dbh_st {
     dbih_dbc_t com;
     /* sqlite specific bits */
     sqlite3 *db;
-    bool in_tran;
     bool unicode;
     bool handle_binary_nulls;
     int timeout;
