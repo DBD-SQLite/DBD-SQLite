@@ -641,7 +641,7 @@ Defining the column type as C<BLOB> in the DDL is B<not> sufficient.
 
 =head1 DRIVER PRIVATE METHODS
 
-The following methods can be called via the func() method with a little tweak, but the use of func() method is now discouraged by the L<DBI> author for various reasons (see L<DBI's document|http://search.cpan.org/dist/DBI/lib/DBI/DBD.pm#Using_install_method()_to_expose_driver-private_methods> for details). So, if you're using L<DBI> >= 1.608, use these C<sqlite_> methods. If you need to use an older L<DBI>, you can call these like this:
+The following methods can be called via the func() method with a little tweak, but the use of func() method is now discouraged by the L<DBI> author for various reasons (see DBI's document L<http://search.cpan.org/dist/DBI/lib/DBI/DBD.pm#Using_install_method()_to_expose_driver-private_methods> for details). So, if you're using L<DBI> >= 1.608, use these C<sqlite_> methods. If you need to use an older L<DBI>, you can call these like this:
 
   $dbh->func( ..., "(method name without sqlite_ prefix)" );
 
