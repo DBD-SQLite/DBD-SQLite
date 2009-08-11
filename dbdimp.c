@@ -84,7 +84,6 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     }
     DBIc_IMPSET_on(imp_dbh);
 
-    imp_dbh->in_tran                   = FALSE;
     imp_dbh->unicode                   = FALSE;
     imp_dbh->functions                 = newAV();
     imp_dbh->aggregates                = newAV();
@@ -202,7 +201,7 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
     int retval;
     char *errmsg;
 
-    if (imp_dbh->in_tran) {
+    if (!sqlite3_get_autocommit(imp_dbh->db)) {
         sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "ROLLBACK TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION",
             NULL, NULL, &errmsg))
@@ -213,7 +212,6 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
                 sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
-        imp_dbh->in_tran = FALSE;
     }
 
     return TRUE;
@@ -231,7 +229,7 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
         return TRUE;
     }
 
-    if (imp_dbh->in_tran) {
+    if (!sqlite3_get_autocommit(imp_dbh->db)) {
         sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "COMMIT TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION",
             NULL, NULL, &errmsg))
@@ -242,7 +240,6 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
                 sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
-        imp_dbh->in_tran = FALSE;
     }
     return TRUE;
 }
@@ -408,7 +405,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
         }
     }
 
-    if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!imp_dbh->in_tran) ) {
+    if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (sqlite3_get_autocommit(imp_dbh->db)) ) {
         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 2, "BEGIN TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION",
             NULL, NULL, &errmsg))
@@ -419,7 +416,6 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
                 sqlite3_free(errmsg);
             return -2; /* -> undef in SQLite.xsi */
         }
-        imp_dbh->in_tran = TRUE;
     }
 
     imp_sth->nrow = 0;
@@ -679,7 +675,7 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
     if (strEQ(key, "AutoCommit")) {
         if (SvTRUE(valuesv)) {
             /* commit tran? */
-            if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (imp_dbh->in_tran) ) {
+            if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
                 sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "COMMIT TRAN");
                 if ((retval = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION",
                     NULL, NULL, &errmsg))
@@ -690,7 +686,6 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
                         sqlite3_free(errmsg);
                     return TRUE; /* XXX: is this correct? */
                 }
-                imp_dbh->in_tran = FALSE;
             }
         }
         DBIc_set(imp_dbh, DBIcf_AutoCommit, SvTRUE(valuesv));
