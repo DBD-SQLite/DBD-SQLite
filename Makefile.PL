@@ -202,6 +202,7 @@ WriteMakefile(
 	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM     => 'lib/DBD/SQLite.pm',
 	PREREQ_PM        => {
+		'Tie::Hash'        => 0,
 		'File::Spec'       => (WINLIKE ? '3.27' : '0.82'),
 		'DBI'              => $DBI_required,
 		'Test::More'       => '0.42',
@@ -216,19 +217,32 @@ WriteMakefile(
 		LICENSE => 'perl',	
 	),
 	OPTIONAL( '6.11',
-		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>', # Release manager (can this be an array?)
+		# Release manager (can this be an array?)
+		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
 	),
 	OPTIONAL( '6.46',
-		META_MERGE => {
+		# Use META_ADD instead of META_MERGE so that we can remove
+		# any build-time dependencies that MakeMaker will put into
+		# the requires field.
+		META_ADD => {
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
-				'File::Spec'          => '0.82', # This is not allowed to be computed
+				# This is not allowed to be computed
+				'File::Spec'          => '0.82',
 				'DBI'                 => $DBI_required,
 			},
 			build_requires => {
 				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
 				'Test::More'          => '0.42',
-				# 'Test::NoWarnings'    => '0.081', # Bundled in /inc
+				# Bundled in /inc
+				# 'Test::NoWarnings'  => '0.081',
+			},
+			requires => {
+				'Tie::Hash' => 0,
+				'DBI'       => $DBI_required,
+				( WINLIKE ? (
+					'Win32' => '0.30',
+				) : () ),
 			},
 			resources => {
 				license     => 'http://dev.perl.org/licenses/',

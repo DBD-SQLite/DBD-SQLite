@@ -22,16 +22,13 @@ BEGIN {
 
     # sqlite_version cache
     $sqlite_version = undef;
-
 }
 
 __PACKAGE__->bootstrap($VERSION);
 
-tie  %COLLATION, 'DBD::SQLite::_WriteOnceHash';
+tie %COLLATION, 'DBD::SQLite::_WriteOnceHash';
 $COLLATION{perl}       = sub { $_[0] cmp $_[1] };
 $COLLATION{perllocale} = sub { use locale; $_[0] cmp $_[1] };
-
-
 
 my $methods_are_installed;
 
@@ -69,8 +66,6 @@ sub driver {
 sub CLONE {
     undef $drh;
 }
-
-
 
 package DBD::SQLite::dr;
 
@@ -617,8 +612,9 @@ e.g., "2.8.0". Can only be read.
 
 =item unicode
 
-If set to a true value, B<DBD::SQLite> will turn the UTF-8 flag on for all text
-strings coming out of the database (this feature is currently disabled for perl < 5.8.5). For more details on the UTF-8 flag see
+If set to a true value, B<DBD::SQLite> will turn the UTF-8 flag on for all
+text strings coming out of the database (this feature is currently disabled
+for perl < 5.8.5). For more details on the UTF-8 flag see
 L<perlunicode>. The default is for the UTF-8 flag to be turned off.
 
 Also note that due to some bizarreness in SQLite's type system (see
@@ -641,7 +637,12 @@ Defining the column type as C<BLOB> in the DDL is B<not> sufficient.
 
 =head1 DRIVER PRIVATE METHODS
 
-The following methods can be called via the func() method with a little tweak, but the use of func() method is now discouraged by the L<DBI> author for various reasons (see DBI's document L<http://search.cpan.org/dist/DBI/lib/DBI/DBD.pm#Using_install_method()_to_expose_driver-private_methods> for details). So, if you're using L<DBI> >= 1.608, use these C<sqlite_> methods. If you need to use an older L<DBI>, you can call these like this:
+The following methods can be called via the func() method with a little
+tweak, but the use of func() method is now discouraged by the L<DBI> author
+for various reasons (see DBI's document
+L<http://search.cpan.org/dist/DBI/lib/DBI/DBD.pm#Using_install_method()_to_expose_driver-private_methods>
+for details). So, if you're using L<DBI> >= 1.608, use these C<sqlite_>
+methods. If you need to use an older L<DBI>, you can call these like this:
 
   $dbh->func( ..., "(method name without sqlite_ prefix)" );
 
@@ -1259,14 +1260,17 @@ with B<DBD::SQLite> and use the supplied C<sqlite> command line tool.
 
 =head1 FUNCTIONS AND BIND PARAMETERS
 
-As of this writing, a SQL that compares a return value of a function with a numeric bind value like this doesn't work as you might expect.
+As of this writing, a SQL that compares a return value of a function with a
+numeric bind value like this doesn't work as you might expect.
 
   my $sth = $dbh->prepare(q{
     SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
   });
   $sth->execute(5);
 
-This is because DBD::SQLite assumes that all the bind values are text (and should be quoted) by default. Thus the above statement becomes like this while executing:
+This is because DBD::SQLite assumes that all the bind values are text (and
+should be quoted) by default. Thus the above statement becomes like this
+while executing:
 
   SELECT bar FROM foo GROUP BY bar HAVING count(*) > "5";
 
@@ -1276,7 +1280,8 @@ There are two workarounds for this.
 
 =item Use bind_param() explicitly
 
-As shown above in the C<BLOB> section, you can always use C<bind_param()> to tell the type of a bind value.
+As shown above in the C<BLOB> section, you can always use C<bind_param()> to
+tell the type of a bind value.
 
   use DBI qw(:sql_types);  # Don't forget this
   

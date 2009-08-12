@@ -20,6 +20,8 @@ Changes for Perl extension DBD-SQLite
     - Replaced imp_dbh->in_tran with sqlite3_get_autocommit(), hoping
       this would fix the annoying rollback issues, including #48393
       (ISHIGAKI)
+    - META.yml requires is now generated instead of being derived from the
+      (incorrect) PREREQ_PM values by ExtUtils::MakeMaker (ADAMK)
 
 1.26_02 Fri 19 Jun 2009
     - Updated to SQLite 3.6.15 (DUNCAND)
