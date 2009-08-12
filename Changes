@@ -18,7 +18,8 @@ Changes for Perl extension DBD-SQLite
     - Accept empty filename at connect (sqlite will open a tempfile) (DAMI)
     - Documented the connect() method (DAMI)
     - Replaced imp_dbh->in_tran with sqlite3_get_autocommit(), hoping
-      this would fix the annoying rollback issues (ISHIGAKI)
+      this would fix the annoying rollback issues, including #48393
+      (ISHIGAKI)
 
 1.26_02 Fri 19 Jun 2009
     - Updated to SQLite 3.6.15 (DUNCAND)
