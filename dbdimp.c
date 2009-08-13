@@ -74,7 +74,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     char *errmsg = NULL;
 
     if ( DBIc_TRACE_LEVEL(imp_dbh) >= 3 ) {
-        PerlIO_printf(DBILOGFP, "    login '%s' (version %s)\n",
+        PerlIO_printf(DBIc_LOGPIO(imp_dbh), "    login '%s' (version %s)\n",
             dbname, sqlite3_version);
     }
 
