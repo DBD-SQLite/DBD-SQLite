@@ -25,7 +25,12 @@ open my $fh, '>', $file;
 print $fh <DATA>;
 close $fh;
 
-ok !system("$^X -Mblib -d $file");
+if ($^O eq 'MSWin32') {
+	ok !system(qq{set PERLDB_OPTS="NonStop"; $^X -Mblib -d $file});
+}
+else {
+	ok !system(qq{PERLDB_OPTS="NonStop" $^X -Mblib -d $file});
+}
 
 END {
 	unlink $file if $file && -f $file;
