@@ -201,6 +201,11 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
     int retval;
     char *errmsg;
 
+    if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        DBIc_off(imp_dbh, DBIcf_BegunWork);
+        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+    }
+
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
         sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "ROLLBACK TRAN");
         if ((retval = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION",
@@ -227,6 +232,11 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
 	/* We don't need to warn, because the DBI layer will do it for us */
         return TRUE;
+    }
+
+    if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        DBIc_off(imp_dbh, DBIcf_BegunWork);
+        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
     }
 
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
