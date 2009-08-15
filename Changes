@@ -6,6 +6,8 @@ Changes for Perl extension DBD-SQLite
     - Replaced last DBILOGFP with DBIc_LOGPIO(imp_xxh) (ISHIGAKI)
     - Tweaked t/08_busy.t not to fail just because it is tested
       under a very, very slow (virtual) machine. (ISHIGAKI)
+    - Added a code to look for a compiler from Module::Install::Can.
+      (ISHIGAKI)
 
 1.26_03 Wed 12 Aug 2009
     - Updated to SQLite 3.6.17 (ISHIGAKI)
