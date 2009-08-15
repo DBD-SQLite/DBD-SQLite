@@ -97,8 +97,15 @@ foreach my $call_func (@CALL_FUNCS) {
 	    chomp($line);
 	    ok($line, "Ready");
 	    ok($dbh->$call_func(100000, 'busy_timeout'));
-	    ok($dbh->do("INSERT INTO Blah VALUES (4, 'Test4' )"));
-	    $dbh->commit;
+	    eval { $dbh->do("INSERT INTO Blah VALUES (4, 'Test4' )") };
+	    ok !$@;
+	    if ($@) {
+	        print "# Your testing environment might be too slow to pass this test: $@";
+	        $dbh->rollback;
+	    }
+	    else {
+	        $dbh->commit;
+	    }
 	    wait;
 	    $dbh->disconnect;
 	    unlink 'foo';
