@@ -35,7 +35,6 @@ foreach my $call_func (@CALL_FUNCS) {
 	ok($dbh->do("CREATE TABLE Blah ( id INTEGER, val VARCHAR )"));
 	ok($dbh->commit);
 	ok($dbh->do("INSERT INTO Blah VALUES ( 1, 'Test1' )"));
-	my $start = time;
 	eval {
 	    $dbh2->do("INSERT INTO Blah VALUES ( 2, 'Test2' )");
 	};
