@@ -58,6 +58,56 @@ if ( $@ or DBI->VERSION < $DBI_required ) {
 	exit(0);
 }
 
+# See if we have a C compiler
+# The following code is adapted from Module::Install::Can
+{
+	# Fix Cygwin bug on maybe_command();
+	if ( $^O eq 'cygwin' ) {
+		require ExtUtils::MM_Cygwin;
+		require ExtUtils::MM_Win32;
+		if ( ! defined(&ExtUtils::MM_Cygwin::maybe_command) ) {
+			*ExtUtils::MM_Cygwin::maybe_command = sub {
+				my ($self, $file) = @_;
+				if ($file =~ m{^/cygdrive/}i and ExtUtils::MM_Win32->can('maybe_command')) {
+					ExtUtils::MM_Win32->maybe_command($file);
+				} else {
+					ExtUtils::MM_Unix->maybe_command($file);
+				}
+			}
+		}
+	}
+
+	sub can_run {
+		my $cmd = shift;
+		my $_cmd = $cmd;
+		return $_cmd if (-x $_cmd or $_cmd = MM->maybe_command($_cmd));
+
+		for my $dir ((split /$Config::Config{path_sep}/, $ENV{PATH}), '.') {
+			next if $dir eq '';
+			my $abs = File::Spec->catfile($dir, $_[1]);
+			return $abs if (-x $abs or $abs = MM->maybe_command($abs));
+		}
+
+		return;
+	}
+
+	sub can_cc {
+		my @chunks = split(/ /, $Config::Config{cc}) or return;
+
+		# $Config{cc} may contain args; try to find out the program part
+		while (@chunks) {
+			return can_run("@chunks") || (pop(@chunks), next);
+		}
+
+		return;
+	}
+
+	unless (can_cc()) {
+		print "We can't locate a C compiler from your Config.pm.\n";
+		exit(0);
+	}
+}
+
 # Determine if we are going to use the provided SQLite code, or an already-
 # installed copy. To this end, look for two command-line parameters:
 #
