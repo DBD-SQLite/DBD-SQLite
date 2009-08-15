@@ -30,7 +30,14 @@ foreach my $call_func (@CALL_FUNCS) {
 	    AutoCommit => 0,
 	);
 
-	ok($dbh2->$call_func(3000, 'busy_timeout'));
+	# NOTE: Let's make it clear what we're doing here.
+	# $dbh starts locking with the first INSERT statement.
+	# $dbh2 tries to INSERT, but as the database is locked,
+	# it starts waiting. However, $dbh won't release the lock.
+	# Eventually $dbh2 gets timed out, and spits an error, saying
+	# the database is locked. So, we don't need to let $dbh2 wait
+	# too much here. It should be timed out anyway.
+	ok($dbh2->$call_func(300, 'busy_timeout'));
 
 	ok($dbh->do("CREATE TABLE Blah ( id INTEGER, val VARCHAR )"));
 	ok($dbh->commit);
