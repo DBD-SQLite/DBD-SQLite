@@ -47,7 +47,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	};
 	ok($@);
 	if ($@) {
-	    print "# insert failed : $@";
+	    print "# expected insert failure : $@";
 	    $dbh2->rollback;
 	}
 
