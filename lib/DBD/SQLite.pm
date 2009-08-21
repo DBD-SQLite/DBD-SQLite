@@ -1372,24 +1372,6 @@ Bugs should be reported via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
 
-=head1 TO DO
-
-There're several pended RT bugs/patches at the moment
-(mainly due to the lack of tests/patches or segfaults on tests).
-
-Here's the list.
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=35449>
-(breaks tests)
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=29629>
-(requires a patch)
-
-L<http://rt.cpan.org/Public/Bug/Display.html?id=29058>
-(requires a patch)
-
-Switch tests to L<Test::More> to support more advanced testing behaviours
-
 =head1 AUTHOR
 
 Matt Sergeant E<lt>matt@sergeant.orgE<gt>
