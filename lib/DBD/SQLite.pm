@@ -1372,6 +1372,8 @@ Bugs should be reported via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
 
+Note that bugs of bundled sqlite library (i.e. bugs in C<sqlite3.[ch]>) should be reported to the sqlite developers at sqlite.org via their bug tracker or via their mailing list.
+
 =head1 AUTHOR
 
 Matt Sergeant E<lt>matt@sergeant.orgE<gt>
