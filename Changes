@@ -1,6 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.26_04 to be released
+    - Updated to SQLite 3.6.18 (DUNCAND)
     - Resolved #48393: previous effort was not enough; BegunWork
       should also be handled properly (ISHIGAKI)
     - Replaced last DBILOGFP with DBIc_LOGPIO(imp_xxh) (ISHIGAKI)
