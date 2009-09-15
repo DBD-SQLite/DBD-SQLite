@@ -267,11 +267,11 @@ SELECT NULL         TABLE_CAT
 FROM (
     SELECT 'main' TABLE_SCHEM, tbl_name, upper(type) TABLE_TYPE, sql
     FROM sqlite_master
-    WHERE type IN ( 'table','view')
+    WHERE type IN ('table','view')
 UNION ALL
     SELECT 'temp' TABLE_SCHEM, tbl_name, 'LOCAL TEMPORARY' TABLE_TYPE, sql
     FROM sqlite_temp_master
-    WHERE type IN ( 'table','view')
+    WHERE type IN ('table','view')
 END_SQL
 
             for my $db_name (_attached_database_list($dbh)) {
@@ -306,8 +306,8 @@ END_SQL
                             if ($table_type !~ /^'.*'$/) {
                                     $table_type = "'" . $table_type . "'";
                             }
-                            $table_type_list = join(", ", @ttype_list);
                     }
+                    $table_type_list = join(', ', @ttype_list);
                     push @where, "TABLE_TYPE IN (\U$table_type_list)" if $table_type_list;
             }
             $sql .= ' WHERE ' . join("\n   AND ", @where ) . "\n" if @where;
@@ -324,7 +324,7 @@ sub primary_key_info {
     # This is a hack but much simpler than using pragma index_list etc
     # also the pragma doesn't list 'INTEGER PRIMARY KEY' autoinc PKs!
     my @pk_info;
-    my $sth_tables = $dbh->table_info($catalog, $schema, $table, '');
+    my $sth_tables = $dbh->table_info($catalog, $schema, $table, undef);
     while ( my $row = $sth_tables->fetchrow_hashref ) {
         my $sql = $row->{sqlite_sql} or next;
         next unless $sql =~ /(.*?)\s*PRIMARY\s+KEY\s*(?:\(\s*(.*?)\s*\))?/si;
@@ -423,60 +423,105 @@ my @COLUMN_INFO = qw(
     IS_NULLABLE
 );
 
-# Taken from Fey::Loader::SQLite
 sub column_info {
-    my($dbh, $catalog, $schema, $table, $column) = @_;
+    my ($dbh, $cat_val, $sch_val, $tbl_val, $col_val) = @_;
 
-    if ( defined $column and $column eq '%' ) {
-        $column = undef;
+    if ( defined $col_val and $col_val eq '%' ) {
+        $col_val = undef;
     }
 
-    my @cols        = ();
-    my $position    = 0;
-    my $sth_columns = $dbh->prepare("PRAGMA table_info('$table')");
-    $sth_columns->execute;
-    while ( my $col_info = $sth_columns->fetchrow_hashref ) {
-        $position++;
-        next if defined $column && $column ne $col_info->{name};
+    # Get a list of all tables ordered by TABLE_SCHEM, TABLE_NAME
+    my $sql = <<'END_SQL';
+SELECT TABLE_SCHEM, tbl_name TABLE_NAME
+FROM (
+    SELECT 'main' TABLE_SCHEM, tbl_name
+    FROM sqlite_master
+    WHERE type IN ('table','view')
+UNION ALL
+    SELECT 'temp' TABLE_SCHEM, tbl_name
+    FROM sqlite_temp_master
+    WHERE type IN ('table','view')
+END_SQL
 
-        my %col = (
-            TABLE_NAME       => $table,
-            COLUMN_NAME      => $col_info->{name},
-            ORDINAL_POSITION => $position,
-        );
-
-        my $type = $col_info->{type};
-        if ( $type =~ s/(\w+)\((\d+)(?:,(\d+))?\)/$1/ ) {
-            $col{COLUMN_SIZE}    = $2;
-            $col{DECIMAL_DIGITS} = $3;
-        }
-
-        $col{TYPE_NAME} = $type;
-
-        if ( defined $col_info->{dflt_value} ) {
-            $col{COLUMN_DEF} = $col_info->{dflt_value}
-        }
-
-        if ( $col_info->{notnull} ) {
-            $col{NULLABLE}    = 0;
-            $col{IS_NULLABLE} = 'NO';
-        } else {
-            $col{NULLABLE}    = 1;
-            $col{IS_NULLABLE} = 'YES';
-        }
-
-        foreach my $key ( @COLUMN_INFO ) {
-            next if exists $col{$key};
-            $col{$key} = undef;
-        }
-
-        push @cols, \%col;
+    for my $db_name (_attached_database_list($dbh)) {
+        $sql .= <<"END_SQL";
+UNION ALL
+    SELECT '$db_name' TABLE_SCHEM, tbl_name
+    FROM "$db_name".sqlite_master
+    WHERE type IN ('table','view')
+END_SQL
     }
-    $sth_columns->finish;
+
+    $sql .= <<'END_SQL';
+UNION ALL
+    SELECT 'main' TABLE_SCHEM, 'sqlite_master' tbl_name
+UNION ALL
+    SELECT 'temp' TABLE_SCHEM, 'sqlite_temp_master' tbl_name
+)
+END_SQL
+
+    my @where;
+    if ( defined $sch_val ) {
+        push @where, "TABLE_SCHEM LIKE '$sch_val'";
+    }
+    if ( defined $tbl_val ) {
+        push @where, "TABLE_NAME LIKE '$tbl_val'";
+    }
+    $sql .= ' WHERE ' . join("\n   AND ", @where ) . "\n" if @where;
+    $sql .= " ORDER BY TABLE_SCHEM, TABLE_NAME\n";
+    my $sth_tables = $dbh->prepare($sql) or return undef;
+    $sth_tables->execute or return undef;
+
+    # Taken from Fey::Loader::SQLite
+    my @cols;
+    while ( my ($schema, $table) = $sth_tables->fetchrow_array ) {
+        my $sth_columns = $dbh->prepare(qq{PRAGMA "$schema".table_info("$table")});
+        $sth_columns->execute;
+
+        for ( my $position = 0; my $col_info = $sth_columns->fetchrow_hashref; $position++ ) {
+            if ( defined $col_val ) {
+                # This must do a LIKE comparison
+                my $sth = $dbh->prepare("SELECT '$col_info->{name}' LIKE '$col_val'") or return undef;
+                $sth->execute or return undef;
+                # Skip columns that don't match $col_val
+                next unless ($sth->fetchrow_array)[0];
+            }
+
+            my %col = (
+                TABLE_NAME       => $table,
+                COLUMN_NAME      => $col_info->{name},
+                ORDINAL_POSITION => $position,
+            );
+
+            my $type = $col_info->{type};
+            if ( $type =~ s/(\w+)\((\d+)(?:,(\d+))?\)/$1/ ) {
+                $col{COLUMN_SIZE}    = $2;
+                $col{DECIMAL_DIGITS} = $3;
+            }
+
+            $col{TYPE_NAME} = $type;
+
+            if ( defined $col_info->{dflt_value} ) {
+                $col{COLUMN_DEF} = $col_info->{dflt_value}
+            }
+
+            if ( $col_info->{notnull} ) {
+                $col{NULLABLE}    = 0;
+                $col{IS_NULLABLE} = 'NO';
+            } else {
+                $col{NULLABLE}    = 1;
+                $col{IS_NULLABLE} = 'YES';
+            }
+
+            push @cols, \%col;
+        }
+        $sth_columns->finish;
+    }
+    $sth_tables->finish;
 
     my $sponge = DBI->connect("DBI:Sponge:", '','')
         or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
-    my $sth = $sponge->prepare( "column_info $table", {
+    $sponge->prepare( "column_info", {
         rows          => [ map { [ @{$_}{@COLUMN_INFO} ] } @cols ],
         NUM_OF_FIELDS => scalar @COLUMN_INFO,
         NAME          => [ @COLUMN_INFO ],
@@ -484,8 +529,6 @@ sub column_info {
         $sponge->err,
         $sponge->errstr,
     );
-
-    return $sth;
 }
 
 
