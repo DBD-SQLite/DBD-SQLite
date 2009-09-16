@@ -9,8 +9,8 @@ Changes for Perl extension DBD-SQLite
       under a very, very slow (virtual) machine. (ISHIGAKI)
     - Added a code to look for a compiler from Module::Install::Can.
       (ISHIGAKI)
-    - Fixed $dbh->column_info to work according to the spec in DBI and
-      added support for attached databases. (VLYON)
+    - Resolved #49716: Fixed $dbh->column_info to work according to
+      the spec in DBI and added support for attached databases. (VLYON)
 
 1.26_03 Wed 12 Aug 2009
     - Updated to SQLite 3.6.17 (ISHIGAKI)
