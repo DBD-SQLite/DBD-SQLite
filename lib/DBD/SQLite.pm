@@ -488,13 +488,14 @@ END_SQL
             }
 
             my %col = (
+                TABLE_SCHEM      => $schema,
                 TABLE_NAME       => $table,
                 COLUMN_NAME      => $col_info->{name},
                 ORDINAL_POSITION => $position,
             );
 
             my $type = $col_info->{type};
-            if ( $type =~ s/(\w+)\((\d+)(?:,(\d+))?\)/$1/ ) {
+            if ( $type =~ s/(\w+) ?\((\d+)(?:,(\d+))?\)/$1/ ) {
                 $col{COLUMN_SIZE}    = $2;
                 $col{DECIMAL_DIGITS} = $3;
             }
@@ -513,7 +514,7 @@ END_SQL
                 $col{IS_NULLABLE} = 'YES';
             }
 
-            push @cols, \%col;
++            push @cols, \%col;
         }
         $sth_columns->finish;
     }
