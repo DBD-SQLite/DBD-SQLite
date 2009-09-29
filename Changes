@@ -11,6 +11,8 @@ Changes for Perl extension DBD-SQLite
       (ISHIGAKI)
     - Resolved #49716: Fixed $dbh->column_info to work according to
       the spec in DBI and added support for attached databases. (VLYON)
+    - Added documentation and an 'Escape' attribute for $sth->table_info.
+      (VLYON)
 
 1.26_03 Wed 12 Aug 2009
     - Updated to SQLite 3.6.17 (ISHIGAKI)

@@ -202,7 +202,7 @@ sub _attached_database_list {
 # Based on DBD::Oracle's
 # See also http://www.ch-werner.de/sqliteodbc/html/sqlite3odbc_8c.html#a213
 sub table_info {
-    my ($dbh, $cat_val, $sch_val, $tbl_val, $typ_val) = @_;
+    my ($dbh, $cat_val, $sch_val, $tbl_val, $typ_val, $attr) = @_;
 
     my @where = ();
     my $sql;
@@ -267,11 +267,9 @@ SELECT NULL         TABLE_CAT
 FROM (
     SELECT 'main' TABLE_SCHEM, tbl_name, upper(type) TABLE_TYPE, sql
     FROM sqlite_master
-    WHERE type IN ('table','view')
 UNION ALL
     SELECT 'temp' TABLE_SCHEM, tbl_name, 'LOCAL TEMPORARY' TABLE_TYPE, sql
     FROM sqlite_temp_master
-    WHERE type IN ('table','view')
 END_SQL
 
             for my $db_name (_attached_database_list($dbh)) {
@@ -279,7 +277,6 @@ END_SQL
 UNION ALL
     SELECT '$db_name' TABLE_SCHEM, tbl_name, upper(type) TABLE_TYPE, sql
     FROM "$db_name".sqlite_master
-    WHERE type IN ('table','view')
 END_SQL
             }
 
@@ -291,11 +288,13 @@ UNION ALL
 )
 )
 END_SQL
+            $attr = {} unless ref $attr eq 'HASH';
+            my $escape = defined $attr->{Escape} ? " ESCAPE '$attr->{Escape}'" : '';
             if ( defined $sch_val ) {
-                    push @where, "TABLE_SCHEM LIKE '$sch_val'";
+                    push @where, "TABLE_SCHEM LIKE '$sch_val'$escape";
             }
             if ( defined $tbl_val ) {
-                    push @where, "TABLE_NAME LIKE '$tbl_val'";
+                    push @where, "TABLE_NAME LIKE '$tbl_val'$escape";
             }
             if ( defined $typ_val ) {
                     my $table_type_list;
@@ -619,6 +618,30 @@ details about core features.
 
 Currently many statement attributes are not implemented or are
 limited by the typeless nature of the SQLite database.
+
+=head3 B<table_info>
+
+  $sth = $dbh->table_info(undef, $schema, $table, $type, \%attr);
+
+Returns all tables and schemas (databases) as specified in L<DBI/table_info>.
+The schema and table arguments will do a C<LIKE> search. You can specify an
+ESCAPE character by including an 'Escape' attribute in \%attr. The C<$type>
+argument accepts a comma seperated list of the following types 'TABLE',
+'VIEW', 'LOCAL TEMPORARY' and 'SYSTEM TABLE' (by default all are returned).
+Note that a statement handle is returned, and not a direct list of tables.
+
+The following fields are returned:
+
+B<TABLE_CAT>: Always NULL, as SQLite does not have the concept of catalogs.
+
+B<TABLE_SCHEM>: The name of the schema (database) that the table or view is
+in. The default schema is 'main', temporary tables are in 'temp' and other
+databases will be in the name given when the database was attached.
+
+B<TABLE_NAME>: The name of the table or view.
+
+B<TABLE_TYPE>: The type of object returned. Will be one of 'TABLE', 'VIEW',
+'LOCAL TEMPORARY' or 'SYSTEM TABLE'.
 
 =head1 CONNECTING
 
