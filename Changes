@@ -13,6 +13,8 @@ Changes for Perl extension DBD-SQLite
       the spec in DBI and added support for attached databases. (VLYON)
     - Added documentation and an 'Escape' attribute for $sth->table_info.
       (VLYON)
+    - Fixed $sth->primary_key_info to work according to the spec in DBI
+      and changed the tests in t/27_metadata.t to reflect this. (VLYON)
 
 1.26_03 Wed 12 Aug 2009
     - Updated to SQLite 3.6.17 (ISHIGAKI)

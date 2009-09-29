@@ -318,12 +318,17 @@ END_SQL
 }
 
 sub primary_key_info {
-    my($dbh, $catalog, $schema, $table) = @_;
+    my ($dbh, $catalog, $schema, $table) = @_;
+
+    # Escape the schema and table name
+    $schema =~ s/([\\_%])/\\$1/g if defined $schema;
+    my $escaped = $table;
+    $escaped =~ s/([\\_%])/\\$1/g;
+    my $sth_tables = $dbh->table_info($catalog, $schema, $escaped, undef, {Escape => '\\'});
 
     # This is a hack but much simpler than using pragma index_list etc
     # also the pragma doesn't list 'INTEGER PRIMARY KEY' autoinc PKs!
     my @pk_info;
-    my $sth_tables = $dbh->table_info($catalog, $schema, $table, undef);
     while ( my $row = $sth_tables->fetchrow_hashref ) {
         my $sql = $row->{sqlite_sql} or next;
         next unless $sql =~ /(.*?)\s*PRIMARY\s+KEY\s*(?:\(\s*(.*?)\s*\))?/si;
