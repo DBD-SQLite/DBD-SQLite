@@ -32,23 +32,23 @@ is( $sth->fetchrow_arrayref->[0], 17, 'select length result' );
 my $statement = 'select count(*) from artist where length(name) > ?';
 
 # ...not with bind args
+$sth = $dbh->prepare($statement);
+ok( $sth->execute(2), "execute: $statement : [2]" );
 TODO: {
 	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds.';
-	$sth = $dbh->prepare($statement);
-	ok( $sth->execute(2), "execute: $statement : [2]" );
 	is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement : [2]" );
 }
+
+### it does work, however, from the sqlite3 CLI...
+# require Shell;
+# $Shell::raw = 1;
+# is( sqlite3($db, "'$statement;'"), "1\n", 'sqlite3 CLI' );
 
 # ...works without bind args, though!
 $statement =~ s/\?/2/;
 $sth = $dbh->prepare($statement);
 ok( $sth->execute, "execute: $statement" );
 is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement" );
-
-### it does work, however, from the sqlite3 CLI...
-# require Shell;
-# $Shell::raw = 1;
-# is( sqlite3($db, "'$statement;'"), "1\n", 'sqlite3 CLI' );
 
 # (Jess Robinson discovered that it passes with an arg of 1)
 $statement =~ s/2/1/;
@@ -57,11 +57,11 @@ ok( $sth->execute, "execute: $statement" );
 is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement" );
 
 # (...but still not with bind args)
+$statement =~ s/1/?/;
+$sth = $dbh->prepare($statement);
+ok( $sth->execute(1), "execute: $statement : [1]" );
 TODO: {
 	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds.';
-	$statement =~ s/1/?/;
-	$sth = $dbh->prepare($statement);
-	ok( $sth->execute(1), "execute: $statement : [1]" );
 	is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement [1]" );
 }
 
