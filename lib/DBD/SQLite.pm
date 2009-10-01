@@ -354,7 +354,7 @@ sub primary_key_info {
     my $sponge = DBI->connect("DBI:Sponge:", '','')
         or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
     my @names = qw(TABLE_CAT TABLE_SCHEM TABLE_NAME COLUMN_NAME KEY_SEQ PK_NAME);
-    my $sth = $sponge->prepare( "column_info $table", {
+    my $sth = $sponge->prepare( "primary_key_info $table", {
         rows          => [ map { [ @{$_}{@names} ] } @pk_info ],
         NUM_OF_FIELDS => scalar @names,
         NAME          => \@names,
@@ -482,7 +482,7 @@ END_SQL
         my $sth_columns = $dbh->prepare(qq{PRAGMA "$schema".table_info("$table")});
         $sth_columns->execute;
 
-        for ( my $position = 0; my $col_info = $sth_columns->fetchrow_hashref; $position++ ) {
+        for ( my $position = 1; my $col_info = $sth_columns->fetchrow_hashref; $position++ ) {
             if ( defined $col_val ) {
                 # This must do a LIKE comparison
                 my $sth = $dbh->prepare("SELECT '$col_info->{name}' LIKE '$col_val'") or return undef;
