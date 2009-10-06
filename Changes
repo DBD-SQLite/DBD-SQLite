@@ -1,6 +1,14 @@
 Changes for Perl extension DBD-SQLite
 
 1.26_04 to be released
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Resolved #49716: Fixed $dbh->column_info to work according to
+      the spec in DBI and added support for attached databases. (VLYON)
+    - Tweaked not to hide a real error by a "not an error" issued
+      by another sqlite3 function between the failed sqlite3 function
+      and the sqlite_error to report. Note that this change makes
+      some failures issue two relevant errors at a time. (ISHIGAKI)
+
     - Updated to SQLite 3.6.18 (DUNCAND)
     - Resolved #48393: previous effort was not enough; BegunWork
       should also be handled properly (ISHIGAKI)
@@ -9,8 +17,6 @@ Changes for Perl extension DBD-SQLite
       under a very, very slow (virtual) machine. (ISHIGAKI)
     - Added a code to look for a compiler from Module::Install::Can.
       (ISHIGAKI)
-    - Resolved #49716: Fixed $dbh->column_info to work according to
-      the spec in DBI and added support for attached databases. (VLYON)
     - Added documentation and an 'Escape' attribute for $sth->table_info.
       (VLYON)
     - Fixed $sth->primary_key_info to work according to the spec in DBI
@@ -40,6 +46,10 @@ Changes for Perl extension DBD-SQLite
       (incorrect) PREREQ_PM values by ExtUtils::MakeMaker (ADAMK)
 
 1.26_02 Fri 19 Jun 2009
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Resolved #46831: table_info schema is incorrect and doesn't
+      work with attached databases (VLYON/ISHIGAKI)
+
     - Updated to SQLite 3.6.15 (DUNCAND)
     - Resolved #44882: Use of $h->func() should be deprecated and
       replaced with calls to driver-private 'installed methods'
@@ -49,8 +59,6 @@ Changes for Perl extension DBD-SQLite
     - Now private methods/functions return true after successful
       calls (#44871) (ISHIGAKI)
     - Removed all of the "croak"s (#44871) (ISHIGAKI)
-    - Resolved #46831: table_info schema is incorrect and doesn't
-      work with attached databases (VLYON/ISHIGAKI)
 
 1.26_01 Tue  5 May 2009
     - Added ORDINAL_POSITION support for $dbh->column_info (ADAMK)

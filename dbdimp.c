@@ -296,10 +296,12 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
     if ((retval = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra))
         != SQLITE_OK)
     {
-        if (imp_sth->stmt) {
-            sqlite3_finalize(imp_sth->stmt);
-        }
         sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+        if (imp_sth->stmt) {
+            if ((retval = sqlite3_finalize(imp_sth->stmt)) != SQLITE_OK) {
+                sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+            }
+        }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
@@ -436,8 +438,10 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             if (imp_sth->retval == SQLITE_ROW) {
                 continue;
             }
-            sqlite3_reset(imp_sth->stmt);
             sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+            if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
+                sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+            }
             return -5; /* -> undef in SQLite.xsi */
         }
         /* warn("Finalize\n"); */
@@ -455,9 +459,11 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
         case SQLITE_DONE: DBIc_ACTIVE_on(imp_sth);
                           sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "exec ok - %d rows, %d cols\n", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth));
                           return 0; /* -> '0E0' in SQLite.xsi */
-        default:          sqlite3_reset(imp_sth->stmt);
+        default:          sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+                          if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
+                              sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+                          }
                           imp_sth->stmt = NULL;
-                          sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
                           return -6; /* -> undef in SQLite.xsi */
     }
 }
@@ -549,8 +555,8 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
 
     if (imp_sth->retval != SQLITE_ROW) {
         /* error */
-        sqlite_st_finish(sth, imp_sth);
         sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+        sqlite_st_finish(sth, imp_sth);
         return Nullav; /* -> undef in SQLite.xsi */
     }
 

@@ -28,4 +28,4 @@ eval {
 };
 ok($@, 'Statement 2 generated an error');
 is( $DBI::err, 19, '$DBI::err ok' );
-is( $DBI::errstr, 'column a is not unique', '$DBI::errstr ok' );
+like( $DBI::errstr, qr/column a is not unique/, '$DBI::errstr ok' );
