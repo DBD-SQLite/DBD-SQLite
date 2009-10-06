@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.26_04 to be released
+1.26_04 Tue 6 Oct 2009
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #49716: Fixed $dbh->column_info to work according to
       the spec in DBI and added support for attached databases. (VLYON)
