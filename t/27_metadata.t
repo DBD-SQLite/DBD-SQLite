@@ -46,7 +46,7 @@ $sth->execute;
 $sth->fetch;
 my $types = $sth->{TYPE};
 my $names = $sth->{NAME};
-diag "Types: @$types\nNames: @$names";
+# diag "Types: @$types\nNames: @$names";
 is scalar @$types, scalar @$names, '$sth->{TYPE} array is same length as $sth->{NAME} array';
 # FIXME: This is wrong! $sth->{TYPE} should return an array of integers see: rt #46873
 TODO: {

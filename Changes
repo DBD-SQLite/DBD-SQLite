@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.26_05 to be released
+1.26_05 Thu 15 Oct 2009
     - Updated to SQLite 3.6.19 (ISHIGAKI)
 
 1.26_04 Tue 6 Oct 2009
