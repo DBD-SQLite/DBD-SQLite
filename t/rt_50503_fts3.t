@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More skip_all => 'Temporarily skipping known-bad test (FOR 1.26_05 ONLY!)';
+use Test::More;
 use Test::NoWarnings;
 
 plan tests => 6;
