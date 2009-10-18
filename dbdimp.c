@@ -96,8 +96,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
     rc = sqlite3_exec(imp_dbh->db, "PRAGMA empty_result_callbacks = ON", NULL, NULL, &errmsg);
-    if (rc != SQLITE_OK) {
-        /*  warn("failed to set pragma: %s\n", errmsg); */
+    if ( rc != SQLITE_OK ) {
+        /* warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
         if (errmsg)
             sqlite3_free(errmsg);
@@ -106,8 +106,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     }
 
     rc = sqlite3_exec(imp_dbh->db, "PRAGMA show_datatypes = ON", NULL, NULL, &errmsg);
-    if (rc != SQLITE_OK) {
-        /*  warn("failed to set pragma: %s\n", errmsg); */
+    if ( rc != SQLITE_OK ) {
+        /* warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
         if (errmsg)
             sqlite3_free(errmsg);
@@ -133,20 +133,21 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 }
 
 int
-sqlite_db_busy_timeout (pTHX_ SV *dbh, int timeout )
+sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
 {
-  D_imp_dbh(dbh);
-  if (timeout) {
-    imp_dbh->timeout = timeout;
-    sqlite3_busy_timeout(imp_dbh->db, timeout);
-  }
-  return imp_dbh->timeout;
+    D_imp_dbh(dbh);
+    if (timeout) {
+        imp_dbh->timeout = timeout;
+        sqlite3_busy_timeout(imp_dbh->db, timeout);
+    }
+    return imp_dbh->timeout;
 }
 
 int
-sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
+sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
+    int rc;
     sqlite3_stmt *pStmt;
     DBIc_ACTIVE_off(imp_dbh);
 
@@ -154,11 +155,12 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
         sqlite_db_rollback(dbh, imp_dbh);
     }
 
-    while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0))!=0 ) {
+    while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != SQLITE_OK ) {
         sqlite3_finalize(pStmt);
     }
 
-    if (sqlite3_close(imp_dbh->db) == SQLITE_BUSY) {
+    rc = sqlite3_close(imp_dbh->db);
+    if (rc == SQLITE_BUSY) {
         /* active statements! */
         warn("closing dbh with active statement handles");
     }
@@ -180,7 +182,7 @@ sqlite_db_disconnect (SV *dbh, imp_dbh_t *imp_dbh)
 }
 
 void
-sqlite_db_destroy (SV *dbh, imp_dbh_t *imp_dbh)
+sqlite_db_destroy(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     if (DBIc_ACTIVE(imp_dbh)) {
@@ -198,7 +200,7 @@ int
 sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
-    int retval;
+    int rc;
     char *errmsg;
 
     if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
@@ -207,12 +209,12 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
     }
 
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
+
         sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "ROLLBACK TRAN");
-        if ((retval = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION",
-            NULL, NULL, &errmsg))
-            != SQLITE_OK)
-        {
-            sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+
+        rc = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION", NULL, NULL, &errmsg);
+        if (rc != SQLITE_OK) {
+            sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
             if (errmsg)
                 sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
@@ -226,11 +228,11 @@ int
 sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
-    int retval;
+    int rc;
     char *errmsg;
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
-	/* We don't need to warn, because the DBI layer will do it for us */
+        /* We don't need to warn, because the DBI layer will do it for us */
         return TRUE;
     }
 
@@ -241,16 +243,16 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
         sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "COMMIT TRAN");
-        if ((retval = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION",
-            NULL, NULL, &errmsg))
-            != SQLITE_OK)
-        {
-            sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+
+        rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
+        if (rc != SQLITE_OK) {
+            sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
             if (errmsg)
                 sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
+
     return TRUE;
 }
 
@@ -269,13 +271,12 @@ sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, S
 }
 
 int
-sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
-                char *statement, SV *attribs)
+sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
 {
     dTHX;
-    D_imp_dbh_from_sth;
+    int rc = 0;
     const char *extra;
-    int retval = 0;
+    D_imp_dbh_from_sth;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
       sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "attempt to prepare on inactive database handle");
@@ -293,13 +294,13 @@ sqlite_st_prepare (SV *sth, imp_sth_t *imp_sth,
     imp_sth->params    = newAV();
     imp_sth->col_types = newAV();
 
-    if ((retval = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra))
-        != SQLITE_OK)
-    {
-        sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+    rc = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra);
+    if (rc != SQLITE_OK) {
+        sqlite_error(sth, (imp_xxh_t*)imp_sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
         if (imp_sth->stmt) {
-            if ((retval = sqlite3_finalize(imp_sth->stmt)) != SQLITE_OK) {
-                sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+            rc = sqlite3_finalize(imp_sth->stmt);
+            if (rc != SQLITE_OK) {
+                sqlite_error(sth, (imp_xxh_t*)imp_sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
             }
         }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
