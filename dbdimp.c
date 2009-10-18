@@ -80,6 +80,10 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     if ((retval = sqlite3_open(dbname, &(imp_dbh->db))) != SQLITE_OK ) {
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+        if (imp_dbh->db) {
+            /* close the handle anyway */
+            sqlite3_close(imp_dbh->db);
+        }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
     DBIc_IMPSET_on(imp_dbh);
