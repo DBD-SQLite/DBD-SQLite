@@ -73,10 +73,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     int retval;
     char *errmsg = NULL;
 
-    if ( DBIc_TRACE_LEVEL(imp_dbh) >= 3 ) {
-        PerlIO_printf(DBIc_LOGPIO(imp_dbh), "    login '%s' (version %s)\n",
-            dbname, sqlite3_version);
-    }
+    sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 3, "login '%s' (version %s)\n", dbname, sqlite3_version);
 
     if ((retval = sqlite3_open(dbname, &(imp_dbh->db))) != SQLITE_OK ) {
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, (char*)sqlite3_errmsg(imp_dbh->db));
