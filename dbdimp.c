@@ -646,7 +646,7 @@ sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
 }
 
 void
-sqlite_st_destroy (SV *sth, imp_sth_t *imp_sth)
+sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
 {
     dTHX;
 
@@ -664,30 +664,28 @@ sqlite_st_destroy (SV *sth, imp_sth_t *imp_sth)
 }
 
 int
-sqlite_st_blob_read (SV *sth, imp_sth_t *imp_sth,
-                int field, long offset, long len, SV *destrv, long destoffset)
+sqlite_st_blob_read(SV *sth, imp_sth_t *imp_sth,
+                    int field, long offset, long len, SV *destrv, long destoffset)
 {
     return 0;
 }
 
 int
-sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
+sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
 {
     dTHX;
     char *key = SvPV_nolen(keysv);
     char *errmsg;
-    int retval;
+    int rc;
 
     if (strEQ(key, "AutoCommit")) {
         if (SvTRUE(valuesv)) {
             /* commit tran? */
             if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
                 sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "COMMIT TRAN");
-                if ((retval = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION",
-                    NULL, NULL, &errmsg))
-                    != SQLITE_OK)
-                {
-                    sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+                rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
+                if (rc != SQLITE_OK) {
+                    sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
                     if (errmsg)
                         sqlite3_free(errmsg);
                     return TRUE; /* XXX: is this correct? */
@@ -698,32 +696,32 @@ sqlite_db_STORE_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         return TRUE;
     }
     if (strEQ(key, "unicode")) {
-#if (PERL_REVISION <= 5) && ((PERL_VERSION < 8) || (PERL_VERSION == 8 && PERL_SUBVERSION < 5))
-      sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
-      imp_dbh->unicode = 0;
+#if PERL_UNICODE_DOES_NOT_WORK_WELL
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
+        imp_dbh->unicode = 0;
 #else
-      imp_dbh->unicode = !(! SvTRUE(valuesv));
+        imp_dbh->unicode = !(! SvTRUE(valuesv));
 #endif
-      return TRUE;
+        return TRUE;
     }
     return FALSE;
 }
 
 SV *
-sqlite_db_FETCH_attrib (SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
+sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
 {
     dTHX;
     char *key = SvPV_nolen(keysv);
 
     if (strEQ(key, "sqlite_version")) {
-        return newSVpv(sqlite3_version,0);
+        return newSVpv(sqlite3_version, 0);
     }
    if (strEQ(key, "unicode")) {
-#if (PERL_REVISION <= 5) && ((PERL_VERSION < 8) || (PERL_VERSION == 8 && PERL_SUBVERSION < 5))
-      sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
-     return newSViv(0);
+#if PERL_UNICODE_DOES_NOT_WORK_WELL
+       sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
+       return newSViv(0);
 #else
-     return newSViv(imp_dbh->unicode ? 1 : 0);
+       return newSViv(imp_dbh->unicode ? 1 : 0);
 #endif
    }
 
