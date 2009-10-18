@@ -102,6 +102,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
         if (errmsg)
             sqlite3_free(errmsg);
+        sqlite3_close(imp_dbh->db); / * we don't use this handle */
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
@@ -113,6 +114,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
         if (errmsg)
             sqlite3_free(errmsg);
+        sqlite3_close(imp_dbh->db); / * we don't use this handle */
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
