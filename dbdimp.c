@@ -322,14 +322,12 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 {
     dTHX;
     D_imp_dbh_from_sth;
+    int rc = 0;
     char *errmsg;
     int num_params = DBIc_NUM_PARAMS(imp_sth);
     int i;
-    int retval = 0;
 
     sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "execute");
-
-    /* warn("execute\n"); */
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, "attempt to execute on inactive database handle");
@@ -338,7 +336,8 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 
     if (DBIc_ACTIVE(imp_sth)) {
          sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "execute still active, reset");
-         if ((imp_sth->retval = sqlite3_reset(imp_sth->stmt)) != SQLITE_OK) {
+         imp_sth->retval = sqlite3_reset(imp_sth->stmt);
+         if (imp_sth->retval != SQLITE_OK) {
              char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
              sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, errmsg);
              return -2; /* -> undef in SQLite.xsi */
@@ -346,31 +345,31 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
     }
 
     for (i = 0; i < num_params; i++) {
-        SV *value = av_shift(imp_sth->params);
+        SV *value       = av_shift(imp_sth->params);
         SV *sql_type_sv = av_shift(imp_sth->params);
-        int sql_type = SvIV(sql_type_sv);
+        int sql_type    = SvIV(sql_type_sv);
 
         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params));
         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value));
 
         if (!SvOK(value)) {
             sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "binding null");
-            retval = sqlite3_bind_null(imp_sth->stmt, i+1);
+            rc = sqlite3_bind_null(imp_sth->stmt, i+1);
         }
         else if (sql_type >= SQL_NUMERIC && sql_type <= SQL_SMALLINT) {
 #if defined(USE_64_BIT_INT)
-            retval = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
+            rc = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
 #else
-            retval = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
+            rc = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
 #endif
         }
         else if (sql_type >= SQL_FLOAT && sql_type <= SQL_DOUBLE) {
-            retval = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
+            rc = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
         }
         else if (sql_type == SQL_BLOB) {
             STRLEN len;
             char * data = SvPV(value, len);
-            retval = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+            rc = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
         }
         else {
 #if 0
@@ -378,13 +377,13 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             const int numtype = looks_like_number(value);
             if ((numtype & (IS_NUMBER_IN_UV|IS_NUMBER_NOT_INT)) == IS_NUMBER_IN_UV) {
 #if defined(USE_64_BIT_INT)
-                retval = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
+                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
 #else
-                retval = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
+                rc = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
 #endif
             }
             else if ((numtype & (IS_NUMBER_NOT_INT|IS_NUMBER_INFINITY|IS_NUMBER_NAN)) == IS_NUMBER_NOT_INT) {
-                retval = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
+                rc = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
             }
             else {
 #endif
@@ -394,7 +393,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
                     sv_utf8_upgrade(value);
                 }
                 data = SvPV(value, len);
-                retval = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+                rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
 #if 0
             }
 #endif
@@ -404,19 +403,17 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
             SvREFCNT_dec(value);
         }
         SvREFCNT_dec(sql_type_sv);
-        if (retval != SQLITE_OK) {
-            sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+        if (rc != SQLITE_OK) {
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
             return -4; /* -> undef in SQLite.xsi */
         }
     }
 
     if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (sqlite3_get_autocommit(imp_dbh->db)) ) {
         sqlite_trace(sth, (imp_xxh_t*)imp_sth, 2, "BEGIN TRAN");
-        if ((retval = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION",
-            NULL, NULL, &errmsg))
-            != SQLITE_OK)
-        {
-            sqlite_error(sth, (imp_xxh_t*)imp_sth, retval, errmsg);
+        rc = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
+        if (rc != SQLITE_OK) {
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, rc, errmsg);
             if (errmsg)
                 sqlite3_free(errmsg);
             return -2; /* -> undef in SQLite.xsi */
@@ -462,7 +459,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 }
 
 int
-sqlite_st_rows (SV *sth, imp_sth_t *imp_sth)
+sqlite_st_rows(SV *sth, imp_sth_t *imp_sth)
 {
     return imp_sth->nrow;
 }
@@ -473,9 +470,9 @@ sqlite_st_rows (SV *sth, imp_sth_t *imp_sth)
  *     and so we can't lose these params
  */
 int
-sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
-                SV *param, SV *value, IV sql_type, SV *attribs,
-                                int is_inout, IV maxlen)
+sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
+               SV *param, SV *value, IV sql_type, SV *attribs,
+               int is_inout, IV maxlen)
 {
     dTHX;
     int pos;
@@ -485,7 +482,7 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
         paramstring = SvPV(param, len);
         if(paramstring[len] == 0 && strlen(paramstring) == len) {
             pos = sqlite3_bind_parameter_index(imp_sth->stmt, paramstring);
-            if (pos==0) {
+            if (pos == 0) {
                 char* const errmsg = form("Unknown named parameter: %s", paramstring);
                 sqlite_error(sth, (imp_xxh_t*)imp_sth, -2, errmsg);
                 return FALSE; /* -> &sv_no in SQLite.xsi */
@@ -505,7 +502,7 @@ sqlite_bind_ph (SV *sth, imp_sth_t *imp_sth,
     }
     pos = 2 * (SvIV(param) - 1);
     sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "bind into 0x%p: %d => %s (%d) pos %d\n",
-      imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos);
+        imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos);
     av_store(imp_sth->params, pos, SvREFCNT_inc(value));
     av_store(imp_sth->params, pos+1, newSViv(sql_type));
 
@@ -525,7 +522,7 @@ sqlite_bind_col(SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *
 }
 
 AV *
-sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
+sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 {
     dTHX;
 
@@ -582,14 +579,14 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
                 len = sqlite3_column_bytes(imp_sth->stmt, i);
                 if (chopBlanks) {
                     while((len > 0) && (val[len-1] == ' ')) {
-                       len--;
+                        len--;
                     }
                 }
                 sv_setpvn(AvARRAY(av)[i], val, len);
                 if (imp_dbh->unicode) {
-                  SvUTF8_on(AvARRAY(av)[i]);
+                    SvUTF8_on(AvARRAY(av)[i]);
                 } else {
-                  SvUTF8_off(AvARRAY(av)[i]);
+                    SvUTF8_off(AvARRAY(av)[i]);
                 }
                 break;
             case SQLITE_BLOB:
@@ -611,13 +608,13 @@ sqlite_st_fetch (SV *sth, imp_sth_t *imp_sth)
 }
 
 int
-sqlite_st_finish (SV *sth, imp_sth_t *imp_sth)
+sqlite_st_finish(SV *sth, imp_sth_t *imp_sth)
 {
     return sqlite_st_finish3(sth, imp_sth, 0);
 }
 
 int
-sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
+sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
 {
     dTHX;
 
@@ -625,14 +622,14 @@ sqlite_st_finish3 (SV *sth, imp_sth_t *imp_sth, int is_destroy)
 
     /* warn("finish statement\n"); */
     if (!DBIc_ACTIVE(imp_sth))
-        return 1;
+        return TRUE;
 
     DBIc_ACTIVE_off(imp_sth);
 
     av_clear(imp_sth->col_types);
 
     if (!DBIc_ACTIVE(imp_dbh))  /* no longer connected  */
-        return 1;
+        return TRUE;
 
     if (is_destroy) {
         return TRUE;
