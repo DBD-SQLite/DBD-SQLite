@@ -70,13 +70,14 @@ int
 sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass)
 {
     dTHX;
-    int retval;
+    int rc;
     char *errmsg = NULL;
 
     sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 3, "login '%s' (version %s)\n", dbname, sqlite3_version);
 
-    if ((retval = sqlite3_open(dbname, &(imp_dbh->db))) != SQLITE_OK ) {
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, (char*)sqlite3_errmsg(imp_dbh->db));
+    rc = sqlite3_open(dbname, &(imp_dbh->db));
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
         if (imp_dbh->db) {
             /* close the handle anyway */
             sqlite3_close(imp_dbh->db);
@@ -94,27 +95,23 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
-    if ((retval = sqlite3_exec(imp_dbh->db, "PRAGMA empty_result_callbacks = ON",
-        NULL, NULL, &errmsg))
-        != SQLITE_OK)
-    {
+    rc = sqlite3_exec(imp_dbh->db, "PRAGMA empty_result_callbacks = ON", NULL, NULL, &errmsg);
+    if (rc != SQLITE_OK) {
         /*  warn("failed to set pragma: %s\n", errmsg); */
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
         if (errmsg)
             sqlite3_free(errmsg);
-        sqlite3_close(imp_dbh->db); / * we don't use this handle */
+        sqlite3_close(imp_dbh->db); /* we don't use this handle */
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
-    if ((retval = sqlite3_exec(imp_dbh->db, "PRAGMA show_datatypes = ON",
-        NULL, NULL, &errmsg))
-        != SQLITE_OK)
-    {
+    rc = sqlite3_exec(imp_dbh->db, "PRAGMA show_datatypes = ON", NULL, NULL, &errmsg);
+    if (rc != SQLITE_OK) {
         /*  warn("failed to set pragma: %s\n", errmsg); */
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, retval, errmsg);
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
         if (errmsg)
             sqlite3_free(errmsg);
-        sqlite3_close(imp_dbh->db); / * we don't use this handle */
+        sqlite3_close(imp_dbh->db); /* we don't use this handle */
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
