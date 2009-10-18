@@ -317,14 +317,6 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
     return TRUE;
 }
 
-void
-sqlite_st_reset (pTHX_ SV *sth)
-{
-    D_imp_sth(sth);
-    if (DBIc_IMPSET(imp_sth))
-        sqlite3_reset(imp_sth->stmt);
-}
-
 int
 sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
 {

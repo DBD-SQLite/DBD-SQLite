@@ -199,14 +199,6 @@ MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE
 
-void
-reset(sth)
-    SV *sth
-    CODE:
-    {
-        sqlite_st_reset(aTHX_ sth);
-    }
-
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite
 
 # a couple of constants exported from sqlite3.h

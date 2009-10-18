@@ -1,6 +1,12 @@
 Changes for Perl extension DBD-SQLite
 
 1.26_06 (not released yet)
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Removed undocumented (and most probably unused) reset method
+      from a statement handle. This violated the DBI spec (driver-
+      specific methods must have names that begin with the registered
+      prefix) and was not useful as it didn't return any result.
+      (ISHIGAKI)
 
 1.26_05 Thu 15 Oct 2009
     - Updated to SQLite 3.6.19 (ISHIGAKI)
