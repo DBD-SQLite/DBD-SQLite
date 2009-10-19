@@ -3,6 +3,7 @@
 #define _DBDIMP_H   1
 
 #include "SQLiteXS.h"
+#include "sqlite3.h"
 
 #define PERL_UNICODE_DOES_NOT_WORK_WELL           \
     (PERL_REVISION <= 5) && ((PERL_VERSION < 8)   \
