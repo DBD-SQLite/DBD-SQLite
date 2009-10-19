@@ -8,6 +8,9 @@ Changes for Perl extension DBD-SQLite
       prefix) and was not useful as it didn't return any result.
       (ISHIGAKI)
 
+    - You can see file/line info while tracing even if you compile
+      with a non-gcc compiler. (ISHIGAKI)
+
 1.26_05 Thu 15 Oct 2009
     - Updated to SQLite 3.6.19 (ISHIGAKI)
 
