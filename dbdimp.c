@@ -155,7 +155,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
         sqlite_db_rollback(dbh, imp_dbh);
     }
 
-    while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != SQLITE_OK ) {
+    while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
         sqlite3_finalize(pStmt);
     }
 
