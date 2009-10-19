@@ -146,7 +146,9 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     int rc;
+#if 0
     sqlite3_stmt *pStmt;
+#endif
     DBIc_ACTIVE_off(imp_dbh);
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit) == FALSE) {
