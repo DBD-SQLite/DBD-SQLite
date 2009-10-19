@@ -9,11 +9,13 @@ BEGIN {
 use Test::More tests => 4;
 use t::lib::Test;
 
-my $dbh = connect_ok( PrintError => 1, RaiseError => 0 );
+my $dbh = connect_ok( PrintError => 0, RaiseError => 0 );
 
 my $sth = $dbh->prepare('CREATE TABLE foo (f)');
 
 $dbh->disconnect;
+
+$sth->{PrintError} = 1;
 
 # attempt to execute on inactive database handle
 my @warning = ();
