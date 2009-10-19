@@ -9,7 +9,7 @@ BEGIN {
 use Test::More tests => 4;
 use t::lib::Test;
 
-my $dbh = connect_ok( PrintError => 1, RaiseError => 1 );
+my $dbh = connect_ok( PrintError => 1, RaiseError => 0 );
 
 my $sth = $dbh->prepare('CREATE TABLE foo (f)');
 
