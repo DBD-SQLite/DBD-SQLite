@@ -7,19 +7,22 @@ DBISTATE_DECLARE;
 #define SvPV_nolen_undef_ok(x) (SvOK(x) ? SvPV_nolen(x) : "undef")
 
 #define sqlite_error(h,xxh,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, xxh, rc, what)
-
-/* XXX: is there any good way to use pTHX_/aTHX_ here like above? */
-#if defined(__GNUC__) && (__GNUC__ > 2)
-#  define sqlite_trace(h,xxh,level,fmt...) _sqlite_tracef(__FILE__, __LINE__, h, xxh, level, fmt)
-#else
-#  define sqlite_trace _sqlite_tracef_noline
-#endif
+#define sqlite_trace(h,xxh,level,what) if ( DBIc_TRACE_LEVEL(xxh) >= level ) _sqlite_trace(aTHX_ __FILE__, __LINE__, h, xxh, what)
 
 void
 sqlite_init(dbistate_t *dbistate)
 {
     dTHX;
     DBISTATE_INIT; /* Initialize the DBI macros  */
+}
+
+static void
+_sqlite_trace(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, char *what)
+{
+    PerlIO_printf(
+        DBIc_LOGPIO(imp_xxh),
+        "sqlite trace: %s at %s line %d\n", what, file, line
+    );
 }
 
 static void
@@ -38,34 +41,6 @@ _sqlite_error(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, int rc, cha
     }
 }
 
-static void
-_sqlite_tracef(char *file, int line, SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
-{
-    dTHX;
-
-    if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
-        va_list ap;
-        const char* format = form("sqlite trace: %s at %s line %d\n", fmt, file, line);
-        va_start(ap, fmt);
-        PerlIO_vprintf(DBIc_LOGPIO(imp_xxh), format, ap);
-        va_end(ap);
-    }
-}
-
-static void
-_sqlite_tracef_noline(SV *h, imp_xxh_t *imp_xxh, int level, const char *fmt, ...)
-{
-    dTHX;
-
-    if ( DBIc_TRACE_LEVEL(imp_xxh) >= level ) {
-        va_list ap;
-        const char* format = form("sqlite trace: %s\n", fmt);
-        va_start(ap, fmt);
-        PerlIO_vprintf(DBIc_LOGPIO(imp_xxh), format, ap);
-        va_end(ap);
-    }
-}
-
 int
 sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass)
 {
@@ -73,7 +48,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     int rc;
     char *errmsg = NULL;
 
-    sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 3, "login '%s' (version %s)\n", dbname, sqlite3_version);
+    sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 3, form("login '%s' (version %s)\n", dbname, sqlite3_version));
 
     rc = sqlite3_open(dbname, &(imp_dbh->db));
     if ( rc != SQLITE_OK ) {
@@ -308,7 +283,7 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 2, "prepare statement: %s", statement);
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 2, form("prepare statement: %s", statement));
     imp_sth->nrow      = -1;
     imp_sth->retval    = SQLITE_OK;
     imp_sth->params    = newAV();
@@ -369,8 +344,8 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         SV *sql_type_sv = av_shift(imp_sth->params);
         int sql_type    = SvIV(sql_type_sv);
 
-        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params));
-        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, "bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value));
+        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, form("params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params)));
+        sqlite_trace(sth, (imp_xxh_t*)imp_sth, 4, form("bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
 
         if (!SvOK(value)) {
             sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "binding null");
@@ -441,7 +416,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 
     imp_sth->nrow = 0;
 
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "Execute returned %d cols\n", DBIc_NUM_FIELDS(imp_sth));
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, form("Execute returned %d cols\n", DBIc_NUM_FIELDS(imp_sth)));
     if (DBIc_NUM_FIELDS(imp_sth) == 0) {
         while ((imp_sth->retval = sqlite3_step(imp_sth->stmt)) != SQLITE_DONE) {
             if (imp_sth->retval == SQLITE_ROW) {
@@ -466,7 +441,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     switch (imp_sth->retval) {
         case SQLITE_ROW:
         case SQLITE_DONE: DBIc_ACTIVE_on(imp_sth);
-                          sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, "exec ok - %d rows, %d cols\n", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth));
+                          sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, form("exec ok - %d rows, %d cols\n", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
                           return 0; /* -> '0E0' in SQLite.xsi */
         default:          sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
                           if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
@@ -520,8 +495,8 @@ sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
         }
     }
     pos = 2 * (SvIV(param) - 1);
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, "bind into 0x%p: %d => %s (%d) pos %d\n",
-        imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos);
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, form("bind into 0x%p: %d => %s (%d) pos %d\n",
+        imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos));
     av_store(imp_sth->params, pos, SvREFCNT_inc(value));
     av_store(imp_sth->params, pos+1, newSViv(sql_type));
 
@@ -551,7 +526,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
     int i;
 
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 6, "numFields == %d, nrow == %d\n", numFields, imp_sth->nrow);
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 6, form("numFields == %d, nrow == %d\n", numFields, imp_sth->nrow));
 
     if (!DBIc_ACTIVE(imp_sth)) {
         return Nullav;
@@ -719,7 +694,7 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
     }
     if (strEQ(key, "unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
-        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "Unicode support is disabled for this version of perl.");
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, form("Unicode support is disabled for this version of perl."));
         imp_dbh->unicode = 0;
 #else
         imp_dbh->unicode = !(! SvTRUE(valuesv));
@@ -1305,12 +1280,12 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func)
     /* Check that this is a proper collation function */
     rv = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, aa);
     if (rv != 0) {
-        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "improper collation function: %s(aa, aa) returns %d!", name, rv);
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, form("improper collation function: %s(aa, aa) returns %d!", name, rv));
     }
     rv  = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, zz);
     rv2 = sqlite_db_collation_dispatcher(func_sv, 2, zz, 2, aa);
     if (rv2 != (rv * -1)) {
-        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, "improper collation function: '%s' is not symmetric", name);
+        sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 2, form("improper collation function: '%s' is not symmetric", name));
     }
 
     /* Copy the func reference so that it can be deallocated at disconnect */
