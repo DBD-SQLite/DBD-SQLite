@@ -15,6 +15,7 @@
 #define NEED_DBIXS_VERSION 93
 #include <DBIXS.h>
 #include "dbdimp.h"
+#include "dbivport.h"
 #include <dbd_xsh.h>
 
 #include "sqlite3.h"
