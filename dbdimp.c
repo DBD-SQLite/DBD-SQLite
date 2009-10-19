@@ -146,9 +146,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     int rc;
-#if 0
     sqlite3_stmt *pStmt;
-#endif
     DBIc_ACTIVE_off(imp_dbh);
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit) == FALSE) {
@@ -157,9 +155,10 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
 
 #if 0
     /*
-    ** This cause segfaults when we have virtual tables, as sqlite3 seems
-    ** to try to finalize the statements for the tables (freed here) while
-    ** closing. So we need to find other ways to do the right thing.
+    ** This cause segfaults when we have virtual tables, as sqlite3
+    ** seems to try to finalize the statements for the tables (freed
+    ** here) while closing. So we need to find other ways to do the
+    ** right thing.
     */
     while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
         sqlite3_finalize(pStmt);
@@ -169,14 +168,23 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
     rc = sqlite3_close(imp_dbh->db);
     if (rc != SQLITE_OK) {
         /*
-        ** "closing dbh with ..." message is not always true.
-        ** (SQLITE_BUSY may occur due to the unfinished backup operation)
-        ** We may need to wait for a while if we get SQLITE_BUSY.
-        ** XXX: Putting "warn" here is just for the debugging purpose.
+        ** Most probably we still have unfinalized statements.
+        ** Let's try to close them.
+        ** TODO: We also need to deactivate statement handles somehow
         */
-        warn((char*)sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
-/*        warn("closing dbh with active statement handles"); */
+        while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
+            sqlite3_finalize(pStmt);
+        }
+
+        rc = sqlite3_close(imp_dbh->db);
+        if (rc != SQLITE_OK) {
+            /*
+            ** We still have problems. probably a backup operation
+            ** is not finished. We may need to wait for a while if
+            ** we get SQLITE_BUSY...
+            */
+            sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+        }
     }
     imp_dbh->db = NULL;
 
