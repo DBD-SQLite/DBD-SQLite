@@ -207,7 +207,7 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
 
-        sqlite_trace(dbh, imp_dbh, 2, "ROLLBACK TRAN");
+        sqlite_trace(dbh, imp_dbh, 3, "ROLLBACK TRAN");
 
         rc = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION", NULL, NULL, &errmsg);
         if (rc != SQLITE_OK) {
@@ -238,7 +238,7 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
     }
 
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
-        sqlite_trace(dbh, imp_dbh, 2, "COMMIT TRAN");
+        sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
 
         rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
         if (rc != SQLITE_OK) {
@@ -283,7 +283,7 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
-    sqlite_trace(sth, imp_sth, 2, form("prepare statement: %s", statement));
+    sqlite_trace(sth, imp_sth, 3, form("prepare statement: %s", statement));
     imp_sth->nrow      = -1;
     imp_sth->retval    = SQLITE_OK;
     imp_sth->params    = newAV();
@@ -405,7 +405,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     }
 
     if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (sqlite3_get_autocommit(imp_dbh->db)) ) {
-        sqlite_trace(sth, imp_sth, 2, "BEGIN TRAN");
+        sqlite_trace(sth, imp_sth, 3, "BEGIN TRAN");
         rc = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
         if (rc != SQLITE_OK) {
             sqlite_error(sth, imp_sth, rc, errmsg);
@@ -680,7 +680,7 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         if (SvTRUE(valuesv)) {
             /* commit tran? */
             if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
-                sqlite_trace(dbh, imp_dbh, 2, "COMMIT TRAN");
+                sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
                 rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
                 if (rc != SQLITE_OK) {
                     sqlite_error(dbh, imp_dbh, rc, errmsg);
@@ -694,7 +694,7 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
     }
     if (strEQ(key, "unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
-        sqlite_trace(dbh, imp_dbh, 2, form("Unicode support is disabled for this version of perl."));
+        sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
         imp_dbh->unicode = 0;
 #else
         imp_dbh->unicode = !(! SvTRUE(valuesv));
@@ -715,7 +715,7 @@ sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
     }
    if (strEQ(key, "unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
-       sqlite_trace(dbh, imp_dbh, 2, "Unicode support is disabled for this version of perl.");
+       sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
        return newSViv(0);
 #else
        return newSViv(imp_dbh->unicode ? 1 : 0);
@@ -1280,12 +1280,12 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func)
     /* Check that this is a proper collation function */
     rv = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, aa);
     if (rv != 0) {
-        sqlite_trace(dbh, imp_dbh, 2, form("improper collation function: %s(aa, aa) returns %d!", name, rv));
+        sqlite_trace(dbh, imp_dbh, 3, form("improper collation function: %s(aa, aa) returns %d!", name, rv));
     }
     rv  = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, zz);
     rv2 = sqlite_db_collation_dispatcher(func_sv, 2, zz, 2, aa);
     if (rv2 != (rv * -1)) {
-        sqlite_trace(dbh, imp_dbh, 2, form("improper collation function: '%s' is not symmetric", name));
+        sqlite_trace(dbh, imp_dbh, 3, form("improper collation function: '%s' is not symmetric", name));
     }
 
     /* Copy the func reference so that it can be deallocated at disconnect */
