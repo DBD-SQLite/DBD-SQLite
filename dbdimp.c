@@ -99,8 +99,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     if ( rc != SQLITE_OK ) {
         /* warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
-        if (errmsg)
-            sqlite3_free(errmsg);
+        if (errmsg) sqlite3_free(errmsg);
         sqlite3_close(imp_dbh->db); /* we don't use this handle */
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
@@ -109,8 +108,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     if ( rc != SQLITE_OK ) {
         /* warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
-        if (errmsg)
-            sqlite3_free(errmsg);
+        if (errmsg) sqlite3_free(errmsg);
         sqlite3_close(imp_dbh->db); /* we don't use this handle */
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
@@ -175,7 +173,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
         ** XXX: Putting "warn" here is just for the debugging purpose.
         */
         warn((char*)sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, imp_dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
 /*        warn("closing dbh with active statement handles"); */
     }
     imp_dbh->db = NULL;
@@ -229,8 +227,7 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
         rc = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION", NULL, NULL, &errmsg);
         if (rc != SQLITE_OK) {
             sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
-            if (errmsg)
-                sqlite3_free(errmsg);
+            if (errmsg) sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
@@ -261,8 +258,7 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
         rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
         if (rc != SQLITE_OK) {
             sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
-            if (errmsg)
-                sqlite3_free(errmsg);
+            if (errmsg) sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
@@ -332,7 +328,7 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
 }
 
 int
-sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
+sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 {
     dTHX;
     D_imp_dbh_from_sth;
@@ -428,8 +424,7 @@ sqlite_st_execute (SV *sth, imp_sth_t *imp_sth)
         rc = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
         if (rc != SQLITE_OK) {
             sqlite_error(sth, (imp_xxh_t*)imp_sth, rc, errmsg);
-            if (errmsg)
-                sqlite3_free(errmsg);
+            if (errmsg) sqlite3_free(errmsg);
             return -2; /* -> undef in SQLite.xsi */
         }
     }
@@ -663,13 +658,17 @@ void
 sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
 {
     dTHX;
+    int rc;
 
     D_imp_dbh_from_sth;
     /* warn("destroy statement: %s\n", imp_sth->statement); */
     DBIc_ACTIVE_off(imp_sth);
     if (DBIc_ACTIVE(imp_dbh)) {
         /* finalize sth when active connection */
-        sqlite3_finalize(imp_sth->stmt);
+        rc = sqlite3_finalize(imp_sth->stmt);
+        if (rc != SQLITE_OK) {
+            sqlite_error(sth, (imp_xxh_t*)imp_sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+        }
     }
     Safefree(imp_sth->statement);
     SvREFCNT_dec((SV*)imp_sth->params);
@@ -700,8 +699,7 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
                 rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
                 if (rc != SQLITE_OK) {
                     sqlite_error(dbh, (imp_xxh_t*)imp_dbh, rc, errmsg);
-                    if (errmsg)
-                        sqlite3_free(errmsg);
+                    if (errmsg) sqlite3_free(errmsg);
                     return TRUE; /* XXX: is this correct? */
                 }
             }
