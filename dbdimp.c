@@ -48,7 +48,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
     int rc;
     char *errmsg = NULL;
 
-    sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 3, form("login '%s' (version %s)\n", dbname, sqlite3_version));
+    sqlite_trace(dbh, (imp_xxh_t*)imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
     rc = sqlite3_open(dbname, &(imp_dbh->db));
     if ( rc != SQLITE_OK ) {
@@ -416,7 +416,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 
     imp_sth->nrow = 0;
 
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, form("Execute returned %d cols\n", DBIc_NUM_FIELDS(imp_sth)));
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, form("Execute returned %d cols", DBIc_NUM_FIELDS(imp_sth)));
     if (DBIc_NUM_FIELDS(imp_sth) == 0) {
         while ((imp_sth->retval = sqlite3_step(imp_sth->stmt)) != SQLITE_DONE) {
             if (imp_sth->retval == SQLITE_ROW) {
@@ -441,7 +441,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     switch (imp_sth->retval) {
         case SQLITE_ROW:
         case SQLITE_DONE: DBIc_ACTIVE_on(imp_sth);
-                          sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, form("exec ok - %d rows, %d cols\n", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
+                          sqlite_trace(sth, (imp_xxh_t*)imp_sth, 5, form("exec ok - %d rows, %d cols", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
                           return 0; /* -> '0E0' in SQLite.xsi */
         default:          sqlite_error(sth, (imp_xxh_t*)imp_sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
                           if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
@@ -495,7 +495,7 @@ sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
         }
     }
     pos = 2 * (SvIV(param) - 1);
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, form("bind into 0x%p: %d => %s (%d) pos %d\n",
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 3, form("bind into 0x%p: %d => %s (%d) pos %d",
         imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos));
     av_store(imp_sth->params, pos, SvREFCNT_inc(value));
     av_store(imp_sth->params, pos+1, newSViv(sql_type));
@@ -526,7 +526,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
     int i;
 
-    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 6, form("numFields == %d, nrow == %d\n", numFields, imp_sth->nrow));
+    sqlite_trace(sth, (imp_xxh_t*)imp_sth, 6, form("numFields == %d, nrow == %d", numFields, imp_sth->nrow));
 
     if (!DBIc_ACTIVE(imp_sth)) {
         return Nullav;
