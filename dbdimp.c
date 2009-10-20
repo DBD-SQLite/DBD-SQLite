@@ -6,17 +6,14 @@ DBISTATE_DECLARE;
 
 #define SvPV_nolen_undef_ok(x) (SvOK(x) ? SvPV_nolen(x) : "undef")
 
+/*-----------------------------------------------------*
+ * Helper Methods
+ *-----------------------------------------------------*/
+
 #define sqlite_error(h,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, rc, what)
 #define sqlite_trace(h,xxh,level,what) if ( DBIc_TRACE_LEVEL((imp_xxh_t*)xxh) >= level ) _sqlite_trace(aTHX_ __FILE__, __LINE__, h, (imp_xxh_t*)xxh, what)
 #define sqlite_exec(h,sql) _sqlite_exec(aTHX_ h, imp_dbh->db, sql)
 #define sqlite_open(dbname,db) _sqlite_open(aTHX_ dbh, dbname, db)
-
-void
-sqlite_init(dbistate_t *dbistate)
-{
-    dTHX;
-    DBISTATE_INIT; /* Initialize the DBI macros  */
-}
 
 static void
 _sqlite_trace(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, const char *what)
@@ -71,6 +68,66 @@ _sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db)
     return rc;
 }
 
+static int
+sqlite_type_to_odbc_type(int type)
+{
+    switch(type) {
+        case SQLITE_INTEGER: return SQL_INTEGER;
+        case SQLITE_FLOAT:   return SQL_DOUBLE;
+        case SQLITE_TEXT:    return SQL_VARCHAR;
+        case SQLITE_BLOB:    return SQL_BLOB;
+        case SQLITE_NULL:    return SQL_UNKNOWN_TYPE;
+        default:             return SQL_UNKNOWN_TYPE;
+    }
+}
+
+static void
+sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
+{
+    STRLEN len;
+    char *s;
+
+    if ( is_error ) {
+        s = SvPV(result, len);
+        sqlite3_result_error( context, s, len );
+        return;
+    }
+
+    /* warn("result: %s\n", SvPV_nolen(result)); */
+    if ( !SvOK(result) ) {
+        sqlite3_result_null( context );
+    } else if( SvIOK_UV(result) ) {
+        s = SvPV(result, len);
+        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+    }
+    else if ( SvIOK(result) ) {
+        sqlite3_result_int( context, SvIV(result));
+    } else if ( !is_error && SvIOK(result) ) {
+        sqlite3_result_double( context, SvNV(result));
+    } else {
+        s = SvPV(result, len);
+        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+    }
+}
+
+/*-----------------------------------------------------*
+ * DBD Methods
+ *-----------------------------------------------------*/
+
+void
+sqlite_init(dbistate_t *dbistate)
+{
+    dTHX;
+    DBISTATE_INIT; /* Initialize the DBI macros  */
+}
+
+int
+sqlite_discon_all(SV *drh, imp_drh_t *imp_drh)
+{
+    dTHX;
+    return FALSE; /* no way to do this */
+}
+
 int
 sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass, SV *attr)
 {
@@ -104,14 +161,55 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 }
 
 int
-sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
+sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 {
-    D_imp_dbh(dbh);
-    if (timeout) {
-        imp_dbh->timeout = timeout;
-        sqlite3_busy_timeout(imp_dbh->db, timeout);
+    dTHX;
+    int rc;
+
+    if (DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
+        /* We don't need to warn, because the DBI layer will do it for us */
+        return TRUE;
     }
-    return imp_dbh->timeout;
+
+    if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        DBIc_off(imp_dbh, DBIcf_BegunWork);
+        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+    }
+
+    if (!sqlite3_get_autocommit(imp_dbh->db)) {
+        sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
+
+        rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
+        if (rc != SQLITE_OK) {
+            return FALSE; /* -> &sv_no in SQLite.xsi */
+        }
+    }
+
+    return TRUE;
+}
+
+int
+sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
+{
+    dTHX;
+    int rc;
+
+    if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        DBIc_off(imp_dbh, DBIcf_BegunWork);
+        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+    }
+
+    if (!sqlite3_get_autocommit(imp_dbh->db)) {
+
+        sqlite_trace(dbh, imp_dbh, 3, "ROLLBACK TRAN");
+
+        rc = sqlite_exec(dbh, "ROLLBACK TRANSACTION");
+        if (rc != SQLITE_OK) {
+            return FALSE; /* -> &sv_no in SQLite.xsi */
+        }
+    }
+
+    return TRUE;
 }
 
 int
@@ -187,62 +285,57 @@ sqlite_db_destroy(SV *dbh, imp_dbh_t *imp_dbh)
 }
 
 int
-sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
+sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
 {
     dTHX;
+    char *key = SvPV_nolen(keysv);
     int rc;
 
-    if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
-        DBIc_off(imp_dbh, DBIcf_BegunWork);
-        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
-    }
-
-    if (!sqlite3_get_autocommit(imp_dbh->db)) {
-
-        sqlite_trace(dbh, imp_dbh, 3, "ROLLBACK TRAN");
-
-        rc = sqlite_exec(dbh, "ROLLBACK TRANSACTION");
-        if (rc != SQLITE_OK) {
-            return FALSE; /* -> &sv_no in SQLite.xsi */
+    if (strEQ(key, "AutoCommit")) {
+        if (SvTRUE(valuesv)) {
+            /* commit tran? */
+            if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
+                sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
+                rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
+                if (rc != SQLITE_OK) {
+                    return TRUE; /* XXX: is this correct? */
+                }
+            }
         }
-    }
-
-    return TRUE;
-}
-
-int
-sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
-{
-    dTHX;
-    int rc;
-
-    if (DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
-        /* We don't need to warn, because the DBI layer will do it for us */
+        DBIc_set(imp_dbh, DBIcf_AutoCommit, SvTRUE(valuesv));
         return TRUE;
     }
-
-    if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
-        DBIc_off(imp_dbh, DBIcf_BegunWork);
-        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+    if (strEQ(key, "unicode")) {
+#if PERL_UNICODE_DOES_NOT_WORK_WELL
+        sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
+        imp_dbh->unicode = 0;
+#else
+        imp_dbh->unicode = !(! SvTRUE(valuesv));
+#endif
+        return TRUE;
     }
-
-    if (!sqlite3_get_autocommit(imp_dbh->db)) {
-        sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
-
-        rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
-        if (rc != SQLITE_OK) {
-            return FALSE; /* -> &sv_no in SQLite.xsi */
-        }
-    }
-
-    return TRUE;
+    return FALSE;
 }
 
-int
-sqlite_discon_all(SV *drh, imp_drh_t *imp_drh)
+SV *
+sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
 {
     dTHX;
-    return FALSE; /* no way to do this */
+    char *key = SvPV_nolen(keysv);
+
+    if (strEQ(key, "sqlite_version")) {
+        return newSVpv(sqlite3_version, 0);
+    }
+   if (strEQ(key, "unicode")) {
+#if PERL_UNICODE_DOES_NOT_WORK_WELL
+       sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
+       return newSViv(0);
+#else
+       return newSViv(imp_dbh->unicode ? 1 : 0);
+#endif
+   }
+
+    return NULL;
 }
 
 SV *
@@ -293,6 +386,12 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
     DBIc_IMPSET_on(imp_sth);
 
     return TRUE;
+}
+
+int
+sqlite_st_rows(SV *sth, imp_sth_t *imp_sth)
+{
+    return imp_sth->nrow;
 }
 
 int
@@ -431,69 +530,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     }
 }
 
-int
-sqlite_st_rows(SV *sth, imp_sth_t *imp_sth)
-{
-    return imp_sth->nrow;
-}
-
-/* bind parameter
- * NB: We store the params instead of bind immediately because
- *     we might need to re-create the imp_sth->stmt (see top of execute() function)
- *     and so we can't lose these params
- */
-int
-sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
-               SV *param, SV *value, IV sql_type, SV *attribs,
-               int is_inout, IV maxlen)
-{
-    dTHX;
-    int pos;
-    if (!looks_like_number(param)) {
-        STRLEN len;
-        char *paramstring;
-        paramstring = SvPV(param, len);
-        if(paramstring[len] == 0 && strlen(paramstring) == len) {
-            pos = sqlite3_bind_parameter_index(imp_sth->stmt, paramstring);
-            if (pos == 0) {
-                char* const errmsg = form("Unknown named parameter: %s", paramstring);
-                sqlite_error(sth, -2, errmsg);
-                return FALSE; /* -> &sv_no in SQLite.xsi */
-            }
-            pos = 2 * (pos - 1);
-        }
-        else {
-            sqlite_error(sth, -2, "<param> could not be coerced to a C string");
-            return FALSE; /* -> &sv_no in SQLite.xsi */
-        }
-    }
-    else {
-        if (is_inout) {
-            sqlite_error(sth, -2, "InOut bind params not implemented");
-            return FALSE; /* -> &sv_no in SQLite.xsi */
-        }
-    }
-    pos = 2 * (SvIV(param) - 1);
-    sqlite_trace(sth, imp_sth, 3, form("bind into 0x%p: %d => %s (%d) pos %d",
-        imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos));
-    av_store(imp_sth->params, pos, SvREFCNT_inc(value));
-    av_store(imp_sth->params, pos+1, newSViv(sql_type));
-
-    return TRUE;
-}
-
-int
-sqlite_bind_col(SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs)
-{
-    dTHX;
-
-    /* store the type */
-    av_store(imp_sth->col_types, SvIV(col)-1, newSViv(sql_type));
-
-    /* Allow default implementation to continue */
-    return 1;
-}
-
 AV *
 sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 {
@@ -581,12 +617,6 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 }
 
 int
-sqlite_st_finish(SV *sth, imp_sth_t *imp_sth)
-{
-    return sqlite_st_finish3(sth, imp_sth, 0);
-}
-
-int
 sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
 {
     dTHX;
@@ -615,6 +645,12 @@ sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
     }
 
     return TRUE;
+}
+
+int
+sqlite_st_finish(SV *sth, imp_sth_t *imp_sth)
+{
+    return sqlite_st_finish3(sth, imp_sth, 0);
 }
 
 void
@@ -649,78 +685,11 @@ sqlite_st_blob_read(SV *sth, imp_sth_t *imp_sth,
 }
 
 int
-sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
-{
-    dTHX;
-    char *key = SvPV_nolen(keysv);
-    int rc;
-
-    if (strEQ(key, "AutoCommit")) {
-        if (SvTRUE(valuesv)) {
-            /* commit tran? */
-            if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
-                sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
-                rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
-                if (rc != SQLITE_OK) {
-                    return TRUE; /* XXX: is this correct? */
-                }
-            }
-        }
-        DBIc_set(imp_dbh, DBIcf_AutoCommit, SvTRUE(valuesv));
-        return TRUE;
-    }
-    if (strEQ(key, "unicode")) {
-#if PERL_UNICODE_DOES_NOT_WORK_WELL
-        sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
-        imp_dbh->unicode = 0;
-#else
-        imp_dbh->unicode = !(! SvTRUE(valuesv));
-#endif
-        return TRUE;
-    }
-    return FALSE;
-}
-
-SV *
-sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
-{
-    dTHX;
-    char *key = SvPV_nolen(keysv);
-
-    if (strEQ(key, "sqlite_version")) {
-        return newSVpv(sqlite3_version, 0);
-    }
-   if (strEQ(key, "unicode")) {
-#if PERL_UNICODE_DOES_NOT_WORK_WELL
-       sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
-       return newSViv(0);
-#else
-       return newSViv(imp_dbh->unicode ? 1 : 0);
-#endif
-   }
-
-    return NULL;
-}
-
-int
 sqlite_st_STORE_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv, SV *valuesv)
 {
     dTHX;
     /* char *key = SvPV_nolen(keysv); */
     return FALSE;
-}
-
-static int
-type_to_odbc_type(int type)
-{
-    switch(type) {
-        case SQLITE_INTEGER: return SQL_INTEGER;
-        case SQLITE_FLOAT:   return SQL_DOUBLE;
-        case SQLITE_TEXT:    return SQL_VARCHAR;
-        case SQLITE_BLOB:    return SQL_BLOB;
-        case SQLITE_NULL:    return SQL_UNKNOWN_TYPE;
-        default:             return SQL_UNKNOWN_TYPE;
-    }
 }
 
 SV *
@@ -769,7 +738,7 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
             const char *fieldtype = sqlite3_column_decltype(imp_sth->stmt, n);
             int type = sqlite3_column_type(imp_sth->stmt, n);
             /* warn("got type: %d = %s\n", type, fieldtype); */
-            type = type_to_odbc_type(type);
+            type = sqlite_type_to_odbc_type(type);
             /* av_store(av, n, newSViv(type)); */
             if (fieldtype)
                 av_store(av, n, newSVpv(fieldtype, 0));
@@ -811,33 +780,76 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     return retsv;
 }
 
-static void
-sqlite_db_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
+/* bind parameter
+ * NB: We store the params instead of bind immediately because
+ *     we might need to re-create the imp_sth->stmt (see top of execute() function)
+ *     and so we can't lose these params
+ */
+int
+sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
+               SV *param, SV *value, IV sql_type, SV *attribs,
+               int is_inout, IV maxlen)
 {
-    STRLEN len;
-    char *s;
+    dTHX;
+    int pos;
+    if (!looks_like_number(param)) {
+        STRLEN len;
+        char *paramstring;
+        paramstring = SvPV(param, len);
+        if(paramstring[len] == 0 && strlen(paramstring) == len) {
+            pos = sqlite3_bind_parameter_index(imp_sth->stmt, paramstring);
+            if (pos == 0) {
+                char* const errmsg = form("Unknown named parameter: %s", paramstring);
+                sqlite_error(sth, -2, errmsg);
+                return FALSE; /* -> &sv_no in SQLite.xsi */
+            }
+            pos = 2 * (pos - 1);
+        }
+        else {
+            sqlite_error(sth, -2, "<param> could not be coerced to a C string");
+            return FALSE; /* -> &sv_no in SQLite.xsi */
+        }
+    }
+    else {
+        if (is_inout) {
+            sqlite_error(sth, -2, "InOut bind params not implemented");
+            return FALSE; /* -> &sv_no in SQLite.xsi */
+        }
+    }
+    pos = 2 * (SvIV(param) - 1);
+    sqlite_trace(sth, imp_sth, 3, form("bind into 0x%p: %d => %s (%d) pos %d",
+        imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos));
+    av_store(imp_sth->params, pos, SvREFCNT_inc(value));
+    av_store(imp_sth->params, pos+1, newSViv(sql_type));
 
-    if ( is_error ) {
-        s = SvPV(result, len);
-        sqlite3_result_error( context, s, len );
-        return;
-    }
+    return TRUE;
+}
 
-    /* warn("result: %s\n", SvPV_nolen(result)); */
-    if ( !SvOK(result) ) {
-        sqlite3_result_null( context );
-    } else if( SvIOK_UV(result) ) {
-        s = SvPV(result, len);
-        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+int
+sqlite_bind_col(SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs)
+{
+    dTHX;
+
+    /* store the type */
+    av_store(imp_sth->col_types, SvIV(col)-1, newSViv(sql_type));
+
+    /* Allow default implementation to continue */
+    return 1;
+}
+
+/*-----------------------------------------------------*
+ * Driver Private Methods
+ *-----------------------------------------------------*/
+
+int
+sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
+{
+    D_imp_dbh(dbh);
+    if (timeout) {
+        imp_dbh->timeout = timeout;
+        sqlite3_busy_timeout(imp_dbh->db, timeout);
     }
-    else if ( SvIOK(result) ) {
-        sqlite3_result_int( context, SvIV(result));
-    } else if ( !is_error && SvIOK(result) ) {
-        sqlite3_result_double( context, SvNV(result));
-    } else {
-        s = SvPV(result, len);
-        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
-    }
+    return imp_dbh->timeout;
 }
 
 static void
@@ -894,19 +906,19 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
 
     /* Check for an error */
     if (SvTRUE(ERRSV) ) {
-        sqlite_db_set_result(aTHX_ context, ERRSV, 1);
+        sqlite_set_result(aTHX_ context, ERRSV, 1);
         POPs;
     } else if ( count != 1 ) {
         SV *err = sv_2mortal(newSVpvf( "function should return 1 argument, got %d",
                                        count ));
 
-        sqlite_db_set_result(aTHX_ context, err, 1);
+        sqlite_set_result(aTHX_ context, err, 1);
         /* Clear the stack */
         for ( i=0; i < count; i++ ) {
             POPs;
         }
     } else {
-        sqlite_db_set_result(aTHX_ context, POPs, 0 );
+        sqlite_set_result(aTHX_ context, POPs, 0 );
     }
 
     PUTBACK;
@@ -918,13 +930,13 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
 static void
 sqlite_db_func_dispatcher_unicode(sqlite3_context *context, int argc, sqlite3_value **value)
 {
-  sqlite_db_func_dispatcher(1, context, argc, value);
+    sqlite_db_func_dispatcher(1, context, argc, value);
 }
 
 static void
 sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3_value **value)
 {
-  sqlite_db_func_dispatcher(0, context, argc, value);
+    sqlite_db_func_dispatcher(0, context, argc, value);
 }
 
 int
@@ -1131,7 +1143,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
                 POPs;
             }
         } else {
-            sqlite_db_set_result(aTHX_ context, POPs, 0);
+            sqlite_set_result(aTHX_ context, POPs, 0);
         }
         PUTBACK;
     }
@@ -1140,7 +1152,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
         warn( "DBD::SQLite: error in aggregator cannot be reported to SQLite: %s",
             SvPV_nolen( aggr->err ) );
 
-        /* sqlite_db_set_result(aTHX_ context, aggr->err, 1); */
+        /* sqlite_set_result(aTHX_ context, aggr->err, 1); */
         SvREFCNT_dec( aggr->err );
         aggr->err = NULL;
     }

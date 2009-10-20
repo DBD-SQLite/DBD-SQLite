@@ -49,15 +49,12 @@ struct imp_sth_st {
 #define dbd_init                sqlite_init
 #define dbd_discon_all          sqlite_discon_all
 #define dbd_db_login6           sqlite_db_login6
-#define dbd_db_do               sqlite_db_do
 #define dbd_db_commit           sqlite_db_commit
 #define dbd_db_rollback         sqlite_db_rollback
 #define dbd_db_disconnect       sqlite_db_disconnect
 #define dbd_db_destroy          sqlite_db_destroy
 #define dbd_db_STORE_attrib     sqlite_db_STORE_attrib
 #define dbd_db_FETCH_attrib     sqlite_db_FETCH_attrib
-#define dbd_db_STORE_attrib_k   sqlite_db_STORE_attrib_k
-#define dbd_db_FETCH_attrib_k   sqlite_db_FETCH_attrib_k
 #define dbd_db_last_insert_id   sqlite_db_last_insert_id
 #define dbd_st_prepare          sqlite_st_prepare
 #define dbd_st_rows             sqlite_st_rows
@@ -69,8 +66,6 @@ struct imp_sth_st {
 #define dbd_st_blob_read        sqlite_st_blob_read
 #define dbd_st_STORE_attrib     sqlite_st_STORE_attrib
 #define dbd_st_FETCH_attrib     sqlite_st_FETCH_attrib
-#define dbd_st_STORE_attrib_k   sqlite_st_STORE_attrib_k
-#define dbd_st_FETCH_attrib_k   sqlite_st_FETCH_attrib_k
 #define dbd_bind_ph             sqlite_bind_ph
 #define dbd_st_bind_col         sqlite_bind_col
 
