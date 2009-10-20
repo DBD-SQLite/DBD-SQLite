@@ -9,6 +9,7 @@ DBISTATE_DECLARE;
 #define sqlite_error(h,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, rc, what)
 #define sqlite_trace(h,xxh,level,what) if ( DBIc_TRACE_LEVEL((imp_xxh_t*)xxh) >= level ) _sqlite_trace(aTHX_ __FILE__, __LINE__, h, (imp_xxh_t*)xxh, what)
 #define sqlite_exec(h,sql) _sqlite_exec(aTHX_ h, imp_dbh->db, sql)
+#define sqlite_open(dbname,db) _sqlite_open(aTHX_ dbh, dbname, db)
 
 void
 sqlite_init(dbistate_t *dbistate)
@@ -59,6 +60,18 @@ _sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
 }
 
 int
+_sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db)
+{
+    int rc;
+    rc = sqlite3_open(dbname, db);
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, (char*)sqlite3_errmsg(*db));
+        if (*db) sqlite3_close(*db);
+    }
+    return rc;
+}
+
+int
 sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass)
 {
     dTHX;
@@ -66,13 +79,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
-    rc = sqlite3_open(dbname, &(imp_dbh->db));
+    rc = sqlite_open(dbname, &(imp_dbh->db));
     if ( rc != SQLITE_OK ) {
-        sqlite_error(dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
-        if (imp_dbh->db) {
-            /* close the handle anyway */
-            sqlite3_close(imp_dbh->db);
-        }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
     DBIc_IMPSET_on(imp_dbh);
@@ -1574,13 +1582,8 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
 
     D_imp_dbh(dbh);
 
-    rc = sqlite3_open(filename, &pFrom);
-    if ( rc != SQLITE_OK )
-    {
-        char* const errmsg = form("sqlite_backup_from_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
-        if (pFrom)
-            sqlite3_close(pFrom);
+    rc = sqlite_open(filename, &pFrom);
+    if ( rc != SQLITE_OK ) {
         return FALSE;
     }
 
@@ -1616,13 +1619,8 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
 
     D_imp_dbh(dbh);
 
-    rc = sqlite3_open(filename, &pTo);
-    if ( rc != SQLITE_OK )
-    {
-        char* const errmsg = form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
-        if (pTo)
-            sqlite3_close(pTo);
+    rc = sqlite_open(filename, &pTo);
+    if ( rc != SQLITE_OK ) {
         return FALSE;
     }
 
