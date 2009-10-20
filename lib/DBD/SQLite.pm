@@ -137,20 +137,20 @@ sub connect {
 
 
 sub install_collation {
-  my ($dbh, $collation_name) = @_;
-  my $collation = $DBD::SQLite::COLLATION{$collation_name}
-    or die "can't install, unknown collation : $collation_name";
-  $DBI::VERSION >= 1.608 
-      ? $dbh->sqlite_create_collation($collation_name => $collation)
-      : $dbh->func($collation_name => $collation, "create_collation");
+    my ($dbh, $collation_name) = @_;
+    my $collation = $DBD::SQLite::COLLATION{$collation_name}
+        or die "can't install, unknown collation : $collation_name";
+    $DBI::VERSION >= 1.608 
+        ? $dbh->sqlite_create_collation($collation_name => $collation)
+        : $dbh->func($collation_name => $collation, "create_collation");
 }
 
 # default implementation for sqlite 'REGEXP' infix operator.
 # Note : args are reversed, i.e. "a REGEXP b" calls REGEXP(b, a)
 # (see http://www.sqlite.org/vtab.html#xfindfunction)
 sub regexp { 
-  use locale;
-  return scalar($_[1] =~ $_[0]);
+    use locale;
+    return scalar($_[1] =~ $_[0]);
 }
 
 
@@ -209,7 +209,7 @@ sub table_info {
     if (  defined($cat_val) && $cat_val eq '%'
        && defined($sch_val) && $sch_val eq ''
        && defined($tbl_val) && $tbl_val eq '')  { # Rule 19a
-            $sql = <<'END_SQL';
+        $sql = <<'END_SQL';
 SELECT NULL TABLE_CAT
      , NULL TABLE_SCHEM
      , NULL TABLE_NAME
@@ -220,7 +220,7 @@ END_SQL
     elsif (  defined($cat_val) && $cat_val eq ''
           && defined($sch_val) && $sch_val eq '%'
           && defined($tbl_val) && $tbl_val eq '') { # Rule 19b
-            $sql = <<'END_SQL';
+        $sql = <<'END_SQL';
 SELECT NULL      TABLE_CAT
      , t.tn      TABLE_SCHEM
      , NULL      TABLE_NAME
@@ -230,16 +230,16 @@ FROM (
      SELECT 'main' tn
      UNION SELECT 'temp' tn
 END_SQL
-            for my $db_name (_attached_database_list($dbh)) {
-                $sql .= "     UNION SELECT '$db_name' tn\n";
-            }
-            $sql .= ") t\n";
+        for my $db_name (_attached_database_list($dbh)) {
+            $sql .= "     UNION SELECT '$db_name' tn\n";
+        }
+        $sql .= ") t\n";
     }
     elsif (  defined($cat_val) && $cat_val eq ''
           && defined($sch_val) && $sch_val eq ''
           && defined($tbl_val) && $tbl_val eq ''
           && defined($typ_val) && $typ_val eq '%') { # Rule 19c
-            $sql = <<'END_SQL';
+        $sql = <<'END_SQL';
 SELECT NULL TABLE_CAT
      , NULL TABLE_SCHEM
      , NULL TABLE_NAME
@@ -254,7 +254,7 @@ ORDER BY TABLE_TYPE
 END_SQL
     }
     else {
-            $sql = <<'END_SQL';
+        $sql = <<'END_SQL';
 SELECT *
 FROM
 (
@@ -272,15 +272,15 @@ UNION ALL
     FROM sqlite_temp_master
 END_SQL
 
-            for my $db_name (_attached_database_list($dbh)) {
-                    $sql .= <<"END_SQL";
+        for my $db_name (_attached_database_list($dbh)) {
+            $sql .= <<"END_SQL";
 UNION ALL
     SELECT '$db_name' TABLE_SCHEM, tbl_name, upper(type) TABLE_TYPE, sql
     FROM "$db_name".sqlite_master
 END_SQL
-            }
+        }
 
-            $sql .= <<'END_SQL';
+        $sql .= <<'END_SQL';
 UNION ALL
     SELECT 'main' TABLE_SCHEM, 'sqlite_master'      tbl_name, 'SYSTEM TABLE' TABLE_TYPE, NULL sql
 UNION ALL
@@ -288,29 +288,29 @@ UNION ALL
 )
 )
 END_SQL
-            $attr = {} unless ref $attr eq 'HASH';
-            my $escape = defined $attr->{Escape} ? " ESCAPE '$attr->{Escape}'" : '';
-            if ( defined $sch_val ) {
-                    push @where, "TABLE_SCHEM LIKE '$sch_val'$escape";
+        $attr = {} unless ref $attr eq 'HASH';
+        my $escape = defined $attr->{Escape} ? " ESCAPE '$attr->{Escape}'" : '';
+        if ( defined $sch_val ) {
+            push @where, "TABLE_SCHEM LIKE '$sch_val'$escape";
+        }
+        if ( defined $tbl_val ) {
+            push @where, "TABLE_NAME LIKE '$tbl_val'$escape";
+        }
+        if ( defined $typ_val ) {
+            my $table_type_list;
+            $typ_val =~ s/^\s+//;
+            $typ_val =~ s/\s+$//;
+            my @ttype_list = split (/\s*,\s*/, $typ_val);
+            foreach my $table_type (@ttype_list) {
+                if ($table_type !~ /^'.*'$/) {
+                    $table_type = "'" . $table_type . "'";
+                }
             }
-            if ( defined $tbl_val ) {
-                    push @where, "TABLE_NAME LIKE '$tbl_val'$escape";
-            }
-            if ( defined $typ_val ) {
-                    my $table_type_list;
-                    $typ_val =~ s/^\s+//;
-                    $typ_val =~ s/\s+$//;
-                    my @ttype_list = split (/\s*,\s*/, $typ_val);
-                    foreach my $table_type (@ttype_list) {
-                            if ($table_type !~ /^'.*'$/) {
-                                    $table_type = "'" . $table_type . "'";
-                            }
-                    }
-                    $table_type_list = join(', ', @ttype_list);
-                    push @where, "TABLE_TYPE IN (\U$table_type_list)" if $table_type_list;
-            }
-            $sql .= ' WHERE ' . join("\n   AND ", @where ) . "\n" if @where;
-            $sql .= " ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME\n";
+            $table_type_list = join(', ', @ttype_list);
+            push @where, "TABLE_TYPE IN (\U$table_type_list)" if $table_type_list;
+        }
+        $sql .= ' WHERE ' . join("\n   AND ", @where ) . "\n" if @where;
+        $sql .= " ORDER BY TABLE_TYPE, TABLE_SCHEM, TABLE_NAME\n";
     }
     my $sth = $dbh->prepare($sql) or return undef;
     $sth->execute or return undef;
@@ -547,16 +547,16 @@ require Tie::Hash;
 our @ISA = qw(Tie::StdHash);
 
 sub TIEHASH {
-  bless {}, $_[0];
+    bless {}, $_[0];
 }
 
 sub STORE {
-  ! exists $_[0]->{$_[1]} or die "entry $_[1] already registered";
-  $_[0]->{$_[1]} = $_[2];
+    ! exists $_[0]->{$_[1]} or die "entry $_[1] already registered";
+    $_[0]->{$_[1]} = $_[2];
 }
 
 sub DELETE {
-  die "deletion of entry $_[1] is forbidden";
+    die "deletion of entry $_[1] is forbidden";
 }
 
 1;
