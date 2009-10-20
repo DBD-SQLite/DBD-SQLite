@@ -114,7 +114,7 @@ sub connect {
     }
 
     # Hand off to the actual login function
-    DBD::SQLite::db::_login($dbh, $real, $user, $auth) or return undef;
+    DBD::SQLite::db::_login($dbh, $real, $user, $auth, $attr) or return undef;
 
     # Register the on-demand collation installer
     $DBI::VERSION >= 1.608 
