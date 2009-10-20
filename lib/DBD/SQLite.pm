@@ -614,62 +614,172 @@ SQL parser.
 
 There's lots more to it, so please refer to the docs on the SQLite web
 page, listed above, for SQL details. Also refer to L<DBI> for details
-on how to use DBI itself.
+on how to use DBI itself. The API works like every DBI module does.
+However, currently many statement attributes are not implemented or
+are limited by the typeless nature of the SQLite database.
 
-=head1 CONFORMANCE WITH DBI SPECIFICATION
+=head1 NOTABLE DIFFERENCES FROM OTHER DRIVERS
 
-The API works like every DBI module does. Please see L<DBI> for more
-details about core features.
+=head2 Database Name Is A File Name
 
-Currently many statement attributes are not implemented or are
-limited by the typeless nature of the SQLite database.
-
-=head3 B<table_info>
-
-  $sth = $dbh->table_info(undef, $schema, $table, $type, \%attr);
-
-Returns all tables and schemas (databases) as specified in L<DBI/table_info>.
-The schema and table arguments will do a C<LIKE> search. You can specify an
-ESCAPE character by including an 'Escape' attribute in \%attr. The C<$type>
-argument accepts a comma seperated list of the following types 'TABLE',
-'VIEW', 'LOCAL TEMPORARY' and 'SYSTEM TABLE' (by default all are returned).
-Note that a statement handle is returned, and not a direct list of tables.
-
-The following fields are returned:
-
-B<TABLE_CAT>: Always NULL, as SQLite does not have the concept of catalogs.
-
-B<TABLE_SCHEM>: The name of the schema (database) that the table or view is
-in. The default schema is 'main', temporary tables are in 'temp' and other
-databases will be in the name given when the database was attached.
-
-B<TABLE_NAME>: The name of the table or view.
-
-B<TABLE_TYPE>: The type of object returned. Will be one of 'TABLE', 'VIEW',
-'LOCAL TEMPORARY' or 'SYSTEM TABLE'.
-
-=head1 CONNECTING
-
-The name of the database file is passed in the the DBI connection 
-string :
+SQLite creates a file per a database. You should pass the C<path> of
+the database file (with or without a parent directory) in the DBI
+connection string (as a database C<name>):
 
   my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile","","");
 
 The file is opened in read/write mode, and will be created if
 it does not exist yet. 
 
+Although the database is stored in a single file, the directory
+containing the database file must be writable by SQLite because the
+library will create several temporary files there.
+
 If the filename C<$dbfile> is ":memory:", then a private, temporary
 in-memory database is created for the connection. This in-memory
-database will vanish when the database connection is closed. Future
-versions of SQLite might make use of additional special filenames that
-begin with the ":" character. It is recommended that when a database
-filename actually does begin with a ":" character you should prefix
-the filename with a pathname such as "./" to avoid ambiguity.
+database will vanish when the database connection is closed.
+It is handy for your library tests.
+
+Note that future versions of SQLite might make use of additional
+special filenames that begin with the ":" character. It is recommended
+that when a database filename actually does begin with a ":" character
+you should prefix the filename with a pathname such as "./" to avoid
+ambiguity.
 
 If the filename C<$dbfile> is an empty string, then a private,
 temporary on-disk database will be created. This private database will
 be automatically deleted as soon as the database connection is closed.
 
+=head2 Accessing A Database With Other Tools
+
+To access the database from the command line, try using C<dbish>
+which comes with the L<DBI::Shell> module. Just type:
+
+  dbish dbi:SQLite:foo.db
+
+On the command line to access the file F<foo.db>.
+
+Alternatively you can install SQLite from the link above without
+conflicting with B<DBD::SQLite> and use the supplied C<sqlite3>
+command line tool.
+
+=head2 Blobs
+
+As of version 1.11, blobs should "just work" in SQLite as text columns.
+However this will cause the data to be treated as a string, so SQL
+statements such as length(x) will return the length of the column as a NUL
+terminated string, rather than the size of the blob in bytes. In order to
+store natively as a BLOB use the following code:
+
+  use DBI qw(:sql_types);
+  my $dbh = DBI->connect("dbi:SQLite:dbfile","","");
+  
+  my $blob = `cat foo.jpg`;
+  my $sth = $dbh->prepare("INSERT INTO mytable VALUES (1, ?)");
+  $sth->bind_param(1, $blob, SQL_BLOB);
+  $sth->execute();
+
+And then retrieval just works:
+
+  $sth = $dbh->prepare("SELECT * FROM mytable WHERE id = 1");
+  $sth->execute();
+  my $row = $sth->fetch;
+  my $blobo = $row->[1];
+  
+  # now $blobo == $blob
+
+=head2 Functions And Bind Parameters
+
+As of this writing, a SQL that compares a return value of a function
+with a numeric bind value like this doesn't work as you might expect.
+
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
+  });
+  $sth->execute(5);
+
+This is because DBD::SQLite assumes that all the bind values are text
+(and should be quoted) by default. Thus the above statement becomes
+like this while executing:
+
+  SELECT bar FROM foo GROUP BY bar HAVING count(*) > "5";
+
+There are two workarounds for this.
+
+=over 4
+
+=item Use bind_param() explicitly
+
+As shown above in the C<BLOB> section, you can always use
+C<bind_param()> to tell the type of a bind value.
+
+  use DBI qw(:sql_types);  # Don't forget this
+  
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
+  });
+  $sth->bind_param(1, 5, SQL_INTEGER);
+  $sth->execute();
+
+=item Add zero to make it a number
+
+This is somewhat weird, but works anyway.
+
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > (? + 0);
+  });
+  $sth->execute(5);
+
+=back
+
+=head2 Foreign Keys
+
+Since SQLite 3.6.19 (released on Oct 14, 2009; bundled with
+DBD::SQLite 1.26_05), foreign key constraints are supported (though
+with some limitations). See L<http://www.sqlite.org/foreignkeys.html>
+for details. Note that this feature is not enabled by default. You
+need to issue a pragma explicitly, or set C<sqlite_foreign_keys>
+attribute to the database handle (explicitly, or as a connection
+attribute. See below).
+
+=head2 Performance
+
+SQLite is fast, very fast. Matt processed my 72MB log file with it,
+inserting the data (400,000+ rows) by using transactions and only
+committing every 1000 rows (otherwise the insertion is quite slow),
+and then performing queries on the data.
+
+Queries like count(*) and avg(bytes) took fractions of a second to
+return, but what surprised him most of all was:
+
+  SELECT url, count(*) as count
+  FROM access_log
+  GROUP BY url
+  ORDER BY count desc
+  LIMIT 20
+
+To discover the top 20 hit URLs on the site (L<http://axkit.org>),
+and it returned within 2 seconds. He was seriously considering
+switching his log analysis code to use this little speed demon!
+
+Oh yeah, and that was with no indexes on the table, on a 400MHz PIII.
+
+For best performance be sure to tune your hdparm settings if you 
+are using linux. Also you might want to set:
+
+  PRAGMA default_synchronous = OFF
+
+Which will prevent sqlite from doing fsync's when writing (which
+slows down non-transactional writes significantly) at the expense
+of some peace of mind. Also try playing with the cache_size pragma.
+
+The memory usage of SQLite can also be tuned using the cache_size
+pragma.
+
+  $dbh->do("PRAGMA cache_size = 800000");
+
+The above will allocate 800M for DB cache; the default is 2M.
+Your sweet spot probably lies somewhere in between.
 
 =head1 DRIVER PRIVATE ATTRIBUTES
 
@@ -706,6 +816,32 @@ updates:
 Defining the column type as C<BLOB> in the DDL is B<not> sufficient.
 
 =back
+
+=head1 METHODS
+
+=head2 table_info
+
+  $sth = $dbh->table_info(undef, $schema, $table, $type, \%attr);
+
+Returns all tables and schemas (databases) as specified in L<DBI/table_info>.
+The schema and table arguments will do a C<LIKE> search. You can specify an
+ESCAPE character by including an 'Escape' attribute in \%attr. The C<$type>
+argument accepts a comma seperated list of the following types 'TABLE',
+'VIEW', 'LOCAL TEMPORARY' and 'SYSTEM TABLE' (by default all are returned).
+Note that a statement handle is returned, and not a direct list of tables.
+
+The following fields are returned:
+
+B<TABLE_CAT>: Always NULL, as SQLite does not have the concept of catalogs.
+
+B<TABLE_SCHEM>: The name of the schema (database) that the table or view is
+in. The default schema is 'main', temporary tables are in 'temp' and other
+databases will be in the name given when the database was attached.
+
+B<TABLE_NAME>: The name of the table or view.
+
+B<TABLE_TYPE>: The type of object returned. Will be one of 'TABLE', 'VIEW',
+'LOCAL TEMPORARY' or 'SYSTEM TABLE'.
 
 =head1 DRIVER PRIVATE METHODS
 
@@ -1273,144 +1409,21 @@ The builtin C<perl> or C<perllocale> collations are predefined
 in that same hash.
 
 The COLLATION hash is a global registry within the current process;
- hence there is a risk of undesired side-effects. Therefore, to
- prevent action at distance, the hash is implemented as a "write-only"
- hash, that will happily accept new entries, but will raise an
- exception if any attempt is made to override or delete a existing
- entry (including the builtin C<perl> and C<perllocale>).  
+hence there is a risk of undesired side-effects. Therefore, to
+prevent action at distance, the hash is implemented as a "write-only"
+hash, that will happily accept new entries, but will raise an
+exception if any attempt is made to override or delete a existing
+entry (including the builtin C<perl> and C<perllocale>).  
 
 If you really, really need to change or delete an entry, you can
- always grab the tied object underneath C<%DBD::SQLite::COLLATION> ---
- but don't do that unless you really know what you are doing. Also
+always grab the tied object underneath C<%DBD::SQLite::COLLATION> ---
+but don't do that unless you really know what you are doing. Also
 observe that changes in the global hash will not modify existing
 collations in existing database handles: it will only affect new
 I<requests> for collations. In other words, if you want to change
 the behaviour of a collation within an existing C<$dbh>, you 
 need to call the L</create_collation> method directly.
 
-
-=head1 BLOBS
-
-As of version 1.11, blobs should "just work" in SQLite as text columns.
-However this will cause the data to be treated as a string, so SQL
-statements such as length(x) will return the length of the column as a NUL
-terminated string, rather than the size of the blob in bytes. In order to
-store natively as a BLOB use the following code:
-
-  use DBI qw(:sql_types);
-  my $dbh = DBI->connect("dbi:SQLite:dbfile","","");
-  
-  my $blob = `cat foo.jpg`;
-  my $sth = $dbh->prepare("INSERT INTO mytable VALUES (1, ?)");
-  $sth->bind_param(1, $blob, SQL_BLOB);
-  $sth->execute();
-
-And then retrieval just works:
-
-  $sth = $dbh->prepare("SELECT * FROM mytable WHERE id = 1");
-  $sth->execute();
-  my $row = $sth->fetch;
-  my $blobo = $row->[1];
-  
-  # now $blobo == $blob
-
-=head1 NOTES
-
-Although the database is stored in a single file, the directory containing the
-database file must be writable by SQLite because the library will create
-several temporary files there.
-
-To access the database from the command line, try using dbish which comes with
-the L<DBI::Shell> module. Just type:
-
-  dbish dbi:SQLite:foo.db
-
-On the command line to access the file F<foo.db>.
-
-Alternatively you can install SQLite from the link above without conflicting
-with B<DBD::SQLite> and use the supplied C<sqlite> command line tool.
-
-=head1 FUNCTIONS AND BIND PARAMETERS
-
-As of this writing, a SQL that compares a return value of a function with a
-numeric bind value like this doesn't work as you might expect.
-
-  my $sth = $dbh->prepare(q{
-    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
-  });
-  $sth->execute(5);
-
-This is because DBD::SQLite assumes that all the bind values are text (and
-should be quoted) by default. Thus the above statement becomes like this
-while executing:
-
-  SELECT bar FROM foo GROUP BY bar HAVING count(*) > "5";
-
-There are two workarounds for this.
-
-=over 4
-
-=item Use bind_param() explicitly
-
-As shown above in the C<BLOB> section, you can always use C<bind_param()> to
-tell the type of a bind value.
-
-  use DBI qw(:sql_types);  # Don't forget this
-  
-  my $sth = $dbh->prepare(q{
-    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
-  });
-  $sth->bind_param(1, 5, SQL_INTEGER);
-  $sth->execute();
-
-=item Add zero to make it a number
-
-This is somewhat weird, but works anyway.
-
-  my $sth = $dbh->prepare(q{
-    SELECT bar FROM foo GROUP BY bar HAVING count(*) > (? + 0);
-  });
-  $sth->execute(5);
-
-=back
-
-=head1 PERFORMANCE
-
-SQLite is fast, very fast. I recently processed my 72MB log file with it,
-inserting the data (400,000+ rows) by using transactions and only committing
-every 1000 rows (otherwise the insertion is quite slow), and then performing
-queries on the data.
-
-Queries like count(*) and avg(bytes) took fractions of a second to return,
-but what surprised me most of all was:
-
-  SELECT url, count(*) as count
-  FROM access_log
-  GROUP BY url
-  ORDER BY count desc
-  LIMIT 20
-
-To discover the top 20 hit URLs on the site (L<http://axkit.org>), and it
-returned within 2 seconds. I'm seriously considering switching my log
-analysis code to use this little speed demon!
-
-Oh yeah, and that was with no indexes on the table, on a 400MHz PIII.
-
-For best performance be sure to tune your hdparm settings if you are
-using linux. Also you might want to set:
-
-  PRAGMA default_synchronous = OFF
-
-Which will prevent sqlite from doing fsync's when writing (which
-slows down non-transactional writes significantly) at the expense of some
-peace of mind. Also try playing with the cache_size pragma.
-
-The memory usage of SQLite can also be tuned using the cache_size pragma.
-
-  $dbh->do("PRAGMA cache_size = 800000");
-
-The above will allocate 800M for DB cache; the default is 2M. Your sweet spot
-probably lies somewhere in between.
 
 =head1 TO DO
 
