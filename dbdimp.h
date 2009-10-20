@@ -42,7 +42,6 @@ struct imp_sth_st {
     */
     int retval;
     int nrow;
-    char *statement;
     AV *params;
     AV *col_types;
 };

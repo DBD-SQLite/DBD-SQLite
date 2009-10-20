@@ -305,10 +305,6 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
-    /* store the query for later re-use if required */
-    /* but only when the query is properly prepared */
-    imp_sth->statement = savepv(statement);
-
     DBIc_NUM_PARAMS(imp_sth) = sqlite3_bind_parameter_count(imp_sth->stmt);
     DBIc_NUM_FIELDS(imp_sth) = sqlite3_column_count(imp_sth->stmt);
     DBIc_IMPSET_on(imp_sth);
@@ -647,16 +643,18 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
     int rc;
 
     D_imp_dbh_from_sth;
-    /* warn("destroy statement: %s\n", imp_sth->statement); */
+
     DBIc_ACTIVE_off(imp_sth);
     if (DBIc_ACTIVE(imp_dbh)) {
+        if (imp_sth->stmt)
+            sqlite_trace(sth, imp_sth, 4, form("destroy statement: %s", sqlite3_sql(imp_sth->stmt)));
+
         /* finalize sth when active connection */
         rc = sqlite3_finalize(imp_sth->stmt);
         if (rc != SQLITE_OK) {
             sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
         }
     }
-    Safefree(imp_sth->statement);
     SvREFCNT_dec((SV*)imp_sth->params);
     SvREFCNT_dec((SV*)imp_sth->col_types);
     DBIc_IMPSET_off(imp_sth);
