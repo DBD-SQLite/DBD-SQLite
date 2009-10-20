@@ -19,7 +19,7 @@ sqlite_init(dbistate_t *dbistate)
 }
 
 static void
-_sqlite_trace(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, char *what)
+_sqlite_trace(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, const char *what)
 {
     PerlIO_printf(
         DBIc_LOGPIO(imp_xxh),
@@ -28,7 +28,7 @@ _sqlite_trace(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, char *what)
 }
 
 static void
-_sqlite_error(pTHX_ char *file, int line, SV *h, int rc, char *what)
+_sqlite_error(pTHX_ char *file, int line, SV *h, int rc, const char *what)
 {
     D_imp_xxh(h);
 
@@ -65,7 +65,7 @@ _sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db)
     int rc;
     rc = sqlite3_open(dbname, db);
     if ( rc != SQLITE_OK ) {
-        sqlite_error(dbh, rc, (char*)sqlite3_errmsg(*db));
+        sqlite_error(dbh, rc, sqlite3_errmsg(*db));
         if (*db) sqlite3_close(*db);
     }
     return rc;
@@ -168,7 +168,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
             ** is not finished. We may need to wait for a while if
             ** we get SQLITE_BUSY...
             */
-            sqlite_error(dbh, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+            sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
         }
     }
     imp_dbh->db = NULL;
@@ -295,11 +295,11 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
 
     rc = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra);
     if (rc != SQLITE_OK) {
-        sqlite_error(sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
         if (imp_sth->stmt) {
             rc = sqlite3_finalize(imp_sth->stmt);
             if (rc != SQLITE_OK) {
-                sqlite_error(sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+                sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
             }
         }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
@@ -402,7 +402,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         }
         SvREFCNT_dec(sql_type_sv);
         if (rc != SQLITE_OK) {
-            sqlite_error(sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+            sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
             return -4; /* -> undef in SQLite.xsi */
         }
     }
@@ -423,9 +423,9 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             if (imp_sth->retval == SQLITE_ROW) {
                 continue;
             }
-            sqlite_error(sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+            sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
-                sqlite_error(sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+                sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             }
             return -5; /* -> undef in SQLite.xsi */
         }
@@ -444,9 +444,9 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         case SQLITE_DONE: DBIc_ACTIVE_on(imp_sth);
                           sqlite_trace(sth, imp_sth, 5, form("exec ok - %d rows, %d cols", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
                           return 0; /* -> '0E0' in SQLite.xsi */
-        default:          sqlite_error(sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+        default:          sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
                           if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
-                              sqlite_error(sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+                              sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
                           }
                           imp_sth->stmt = NULL;
                           return -6; /* -> undef in SQLite.xsi */
@@ -540,7 +540,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 
     if (imp_sth->retval != SQLITE_ROW) {
         /* error */
-        sqlite_error(sth, imp_sth->retval, (char*)sqlite3_errmsg(imp_dbh->db));
+        sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
         sqlite_st_finish(sth, imp_sth);
         return Nullav; /* -> undef in SQLite.xsi */
     }
@@ -653,7 +653,7 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
         /* finalize sth when active connection */
         rc = sqlite3_finalize(imp_sth->stmt);
         if (rc != SQLITE_OK) {
-            sqlite_error(sth, rc, (char*)sqlite3_errmsg(imp_dbh->db));
+            sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
         }
     }
     Safefree(imp_sth->statement);
