@@ -8,6 +8,7 @@ DBISTATE_DECLARE;
 
 #define sqlite_error(h,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, rc, what)
 #define sqlite_trace(h,xxh,level,what) if ( DBIc_TRACE_LEVEL((imp_xxh_t*)xxh) >= level ) _sqlite_trace(aTHX_ __FILE__, __LINE__, h, (imp_xxh_t*)xxh, what)
+#define sqlite_exec(h,sql) _sqlite_exec(aTHX_ h, imp_dbh->db, sql)
 
 void
 sqlite_init(dbistate_t *dbistate)
@@ -44,11 +45,24 @@ _sqlite_error(pTHX_ char *file, int line, SV *h, int rc, char *what)
 }
 
 int
+_sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
+{
+    int rc;
+    char *errmsg;
+
+    rc = sqlite3_exec(db, sql, NULL, NULL, &errmsg);
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(h, rc, errmsg);
+        if (errmsg) sqlite3_free(errmsg);
+    }
+    return rc;
+}
+
+int
 sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass)
 {
     dTHX;
     int rc;
-    char *errmsg = NULL;
 
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
@@ -72,17 +86,8 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
-    rc = sqlite3_exec(imp_dbh->db, "PRAGMA empty_result_callbacks = ON", NULL, NULL, &errmsg);
-    if ( rc != SQLITE_OK ) {
-        sqlite_error(dbh, rc, errmsg);
-        if (errmsg) sqlite3_free(errmsg);
-    }
-
-    rc = sqlite3_exec(imp_dbh->db, "PRAGMA show_datatypes = ON", NULL, NULL, &errmsg);
-    if ( rc != SQLITE_OK ) {
-        sqlite_error(dbh, rc, errmsg);
-        if (errmsg) sqlite3_free(errmsg);
-    }
+    sqlite_exec(dbh, "PRAGMA empty_result_callbacks = ON");
+    sqlite_exec(dbh, "PRAGMA show_datatypes = ON");
 
     DBIc_ACTIVE_on(imp_dbh);
 
@@ -194,7 +199,6 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     int rc;
-    char *errmsg;
 
     if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
         DBIc_off(imp_dbh, DBIcf_BegunWork);
@@ -205,10 +209,8 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 
         sqlite_trace(dbh, imp_dbh, 3, "ROLLBACK TRAN");
 
-        rc = sqlite3_exec(imp_dbh->db, "ROLLBACK TRANSACTION", NULL, NULL, &errmsg);
+        rc = sqlite_exec(dbh, "ROLLBACK TRANSACTION");
         if (rc != SQLITE_OK) {
-            sqlite_error(dbh, rc, errmsg);
-            if (errmsg) sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
@@ -221,7 +223,6 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     int rc;
-    char *errmsg;
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
         /* We don't need to warn, because the DBI layer will do it for us */
@@ -236,10 +237,8 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
         sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
 
-        rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
+        rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
         if (rc != SQLITE_OK) {
-            sqlite_error(dbh, rc, errmsg);
-            if (errmsg) sqlite3_free(errmsg);
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
     }
@@ -314,7 +313,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     dTHX;
     D_imp_dbh_from_sth;
     int rc = 0;
-    char *errmsg;
     int num_params = DBIc_NUM_PARAMS(imp_sth);
     int i;
 
@@ -402,10 +400,8 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 
     if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (sqlite3_get_autocommit(imp_dbh->db)) ) {
         sqlite_trace(sth, imp_sth, 3, "BEGIN TRAN");
-        rc = sqlite3_exec(imp_dbh->db, "BEGIN TRANSACTION", NULL, NULL, &errmsg);
+        rc = sqlite_exec(sth, "BEGIN TRANSACTION");
         if (rc != SQLITE_OK) {
-            sqlite_error(sth, rc, errmsg);
-            if (errmsg) sqlite3_free(errmsg);
             return -2; /* -> undef in SQLite.xsi */
         }
     }
@@ -669,7 +665,6 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
 {
     dTHX;
     char *key = SvPV_nolen(keysv);
-    char *errmsg;
     int rc;
 
     if (strEQ(key, "AutoCommit")) {
@@ -677,10 +672,8 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
             /* commit tran? */
             if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
                 sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
-                rc = sqlite3_exec(imp_dbh->db, "COMMIT TRANSACTION", NULL, NULL, &errmsg);
+                rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
                 if (rc != SQLITE_OK) {
-                    sqlite_error(dbh, rc, errmsg);
-                    if (errmsg) sqlite3_free(errmsg);
                     return TRUE; /* XXX: is this correct? */
                 }
             }
