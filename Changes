@@ -3,10 +3,8 @@ Changes for Perl extension DBD-SQLite
 1.26_06 (not released yet)
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Removed undocumented (and most probably unused) reset method
-      from a statement handle. This violated the DBI spec (driver-
-      specific methods must have names that begin with the registered
-      prefix) and was not useful as it didn't return any result.
-      (ISHIGAKI)
+      from a statement handle (which was only accessible via func().)
+      Simply use "$sth->finish" instead. (ISHIGAKI)
 
     - You can see file/line info while tracing even if you compile
       with a non-gcc compiler. (ISHIGAKI)
@@ -18,6 +16,8 @@ Changes for Perl extension DBD-SQLite
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #49716: Fixed $dbh->column_info to work according to
       the spec in DBI and added support for attached databases. (VLYON)
+    - Fixed $sth->primary_key_info to work according to the spec in DBI
+      and changed the tests in t/27_metadata.t to reflect this. (VLYON)
     - Tweaked not to hide a real error by a "not an error" issued
       by another sqlite3 function between the failed sqlite3 function
       and the sqlite_error to report. Note that this change makes
@@ -33,8 +33,6 @@ Changes for Perl extension DBD-SQLite
       (ISHIGAKI)
     - Added documentation and an 'Escape' attribute for $sth->table_info.
       (VLYON)
-    - Fixed $sth->primary_key_info to work according to the spec in DBI
-      and changed the tests in t/27_metadata.t to reflect this. (VLYON)
 
 1.26_03 Wed 12 Aug 2009
     - Updated to SQLite 3.6.17 (ISHIGAKI)
