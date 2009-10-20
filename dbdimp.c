@@ -88,6 +88,7 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     sqlite_exec(dbh, "PRAGMA empty_result_callbacks = ON");
     sqlite_exec(dbh, "PRAGMA show_datatypes = ON");
+    sqlite_exec(dbh, "PRAGMA foreign_keys = ON");
 
     DBIc_ACTIVE_on(imp_dbh);
 
