@@ -72,7 +72,7 @@ _sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db)
 }
 
 int
-sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass)
+sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pass, SV *attr)
 {
     dTHX;
     int rc;

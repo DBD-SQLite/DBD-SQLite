@@ -49,7 +49,7 @@ struct imp_sth_st {
 
 #define dbd_init                sqlite_init
 #define dbd_discon_all          sqlite_discon_all
-#define dbd_db_login            sqlite_db_login
+#define dbd_db_login6           sqlite_db_login6
 #define dbd_db_do               sqlite_db_do
 #define dbd_db_commit           sqlite_db_commit
 #define dbd_db_rollback         sqlite_db_rollback
