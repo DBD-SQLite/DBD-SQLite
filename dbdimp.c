@@ -100,18 +100,6 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 
     DBIc_ACTIVE_on(imp_dbh);
 
-/*
-    if ( DBIc_WARN(imp_dbh) ) {
-        warn("DBIc_WARN is on");
-    }
-    else {
-        warn("DBIc_WARN if off");
-    }
-    if ( DBIc_is(imp_dbh, DBIcf_PrintWarn) ) {
-        warn("DBIcf_PrintWarn is on");
-    }
-*/
-
     return TRUE;
 }
 
@@ -193,12 +181,7 @@ sqlite_db_destroy(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     if (DBIc_ACTIVE(imp_dbh)) {
-        /* warn("DBIc_ACTIVE is on"); */
         sqlite_db_disconnect(dbh, imp_dbh);
-/*
-    } else {
-        warn("DBIc_ACTIVE is off");
-*/
     }
     DBIc_IMPSET_off(imp_dbh);
 }
@@ -428,7 +411,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         /* warn("Finalize\n"); */
         sqlite3_reset(imp_sth->stmt);
         imp_sth->nrow = sqlite3_changes(imp_dbh->db);
-        /* DBIc_ACTIVE_on(imp_sth); */
         /* warn("Total changes: %d\n", sqlite3_total_changes(imp_dbh->db)); */
         /* warn("Nrow: %d\n", imp_sth->nrow); */
         return imp_sth->nrow;
@@ -628,7 +610,6 @@ sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
 
     if ((imp_sth->retval = sqlite3_reset(imp_sth->stmt)) != SQLITE_OK) {
         char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
-        /* warn("finalize failed! %s\n", errmsg); */
         sqlite_error(sth, imp_sth->retval, errmsg);
         return FALSE; /* -> &sv_no (or void) in SQLite.xsi */
     }
