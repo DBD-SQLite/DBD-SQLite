@@ -74,20 +74,14 @@ sqlite_db_login(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pas
 
     rc = sqlite3_exec(imp_dbh->db, "PRAGMA empty_result_callbacks = ON", NULL, NULL, &errmsg);
     if ( rc != SQLITE_OK ) {
-        /* warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, rc, errmsg);
         if (errmsg) sqlite3_free(errmsg);
-        sqlite3_close(imp_dbh->db); /* we don't use this handle */
-        return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
     rc = sqlite3_exec(imp_dbh->db, "PRAGMA show_datatypes = ON", NULL, NULL, &errmsg);
     if ( rc != SQLITE_OK ) {
-        /* warn("failed to set pragma: %s\n", errmsg); */
         sqlite_error(dbh, rc, errmsg);
         if (errmsg) sqlite3_free(errmsg);
-        sqlite3_close(imp_dbh->db); /* we don't use this handle */
-        return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
     DBIc_ACTIVE_on(imp_dbh);
