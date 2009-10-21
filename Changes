@@ -5,9 +5,16 @@ Changes for Perl extension DBD-SQLite
     - Removed undocumented (and most probably unused) reset method
       from a statement handle (which was only accessible via func().)
       Simply use "$sth->finish" instead. (ISHIGAKI)
+    - Now DBD::SQLite supports foreign key constraints by default.
+      Long-ignored foreign keys (typically written for other DB
+      engines) will start working. If you don't want this feature,
+      issue a pragma to disable foreign keys. (ISHIGAKI)
 
     - You can see file/line info while tracing even if you compile
       with a non-gcc compiler. (ISHIGAKI)
+    - Major code refactoring. (ISHIGAKI)
+    - Pod reorganized, and some of the missing bits (including
+      pragma) are added. (ISHIGAKI)
 
 1.26_05 Thu 15 Oct 2009
     - Updated to SQLite 3.6.19 (ISHIGAKI)
