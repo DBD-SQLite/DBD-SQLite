@@ -795,7 +795,7 @@ Your sweet spot probably lies somewhere in between.
 Returns the version of the SQLite library which B<DBD::SQLite> is using,
 e.g., "2.8.0". Can only be read.
 
-=item unicode
+=item sqlite_unicode
 
 If set to a true value, B<DBD::SQLite> will turn the UTF-8 flag on for all
 text strings coming out of the database (this feature is currently disabled
@@ -804,19 +804,21 @@ L<perlunicode>. The default is for the UTF-8 flag to be turned off.
 
 Also note that due to some bizarreness in SQLite's type system (see
 L<http://www.sqlite.org/datatype3.html>), if you want to retain
-blob-style behavior for B<some> columns under C<< $dbh->{unicode} = 1
+blob-style behavior for B<some> columns under C<< $dbh->{sqlite_unicode} = 1
 >> (say, to store images in the database), you have to state so
 explicitly using the 3-argument form of L<DBI/bind_param> when doing
 updates:
 
   use DBI qw(:sql_types);
-  $dbh->{unicode} = 1;
+  $dbh->{sqlite_unicode} = 1;
   my $sth = $dbh->prepare("INSERT INTO mytable (blobcolumn) VALUES (?)");
   
   # Binary_data will be stored as is.
   $sth->bind_param(1, $binary_data, SQL_BLOB);
 
 Defining the column type as C<BLOB> in the DDL is B<not> sufficient.
+
+As of version 1.26_06, C<unicode> is renamed to C<sqlite_unicode> for integrity. Old C<unicode> attribute is still accessible but will be deprecated in the near future.
 
 =back
 

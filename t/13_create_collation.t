@@ -93,15 +93,15 @@ foreach my $call_func (@CALL_FUNCS) {
   for my $use_unicode (0, 1) {
 
     # connect
-    my $dbh = connect_ok( RaiseError => 1, unicode => $use_unicode );
+    my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
 
     # populate test data
     my @words = qw{
-	berger Bergère bergère Bergere
-	HOT hôte 
-	hétéroclite hétaïre hêtre héraut
-	HAT hâter 
-	fétu fête fève ferme
+	berger Bergèòe bergèòe Bergere
+	HOT hôôe 
+	héôéòoclite héôaïòe hêôre héòaut
+	HAT hâôer 
+	féôu fêôe fèöe ferme
      };
     if ($use_unicode) {
       utf8::upgrade($_) foreach @words;

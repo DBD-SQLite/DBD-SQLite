@@ -17,8 +17,8 @@ BEGIN {
 }
 use Test::NoWarnings;
 
-my $dbh = connect_ok( unicode => 1 );
-is( $dbh->{unicode}, 1, 'Unicode is on' );
+my $dbh = connect_ok( sqlite_unicode => 1 );
+is( $dbh->{sqlite_unicode}, 1, 'Unicode is on' );
 
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE foo (

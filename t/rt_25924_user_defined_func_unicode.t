@@ -21,7 +21,7 @@ eval "require utf8";
 die $@ if $@;
 
 foreach my $call_func (@CALL_FUNCS) {
-	my $dbh = connect_ok( unicode => 1 );
+	my $dbh = connect_ok( sqlite_unicode => 1 );
 	ok($dbh->$call_func( "perl_uc", 1, \&perl_uc, "create_function" ));
 
 	ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );

@@ -9,6 +9,9 @@ Changes for Perl extension DBD-SQLite
       Long-ignored foreign keys (typically written for other DB
       engines) will start working. If you don't want this feature,
       issue a pragma to disable foreign keys. (ISHIGAKI)
+    - Renamed "unicode" attribute to "sqlite_unicode" for integrity.
+      Old "unicode" attribute is still accessible but will be
+      deprecated in the near future. (ISHIGAKI)
 
     - You can see file/line info while tracing even if you compile
       with a non-gcc compiler. (ISHIGAKI)

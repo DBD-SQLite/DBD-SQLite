@@ -33,9 +33,9 @@ foreach my $call_func (@CALL_FUNCS) {
 		unless ( $] >= 5.008005 ) {
 			skip( 'Unicode is not supported before 5.8.5', 2 );
 		}
-		my $dbh = DBI->connect( 'dbi:SQLite:dbname=foo;unicode=1', '', '' );
+		my $dbh = DBI->connect( 'dbi:SQLite:dbname=foo;sqlite_unicode=1', '', '' );
 		isa_ok( $dbh, 'DBI::db' );
-		is( $dbh->{unicode}, 1, 'Unicode is on' );
+		is( $dbh->{sqlite_unicode}, 1, 'Unicode is on' );
 	}
 
 	# Connect to a memory database

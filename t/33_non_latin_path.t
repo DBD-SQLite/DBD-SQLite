@@ -58,7 +58,7 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 		my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", undef, undef, {
 			RaiseError => 1,
 			PrintError => 0,
-			unicode    => 1,
+			sqlite_unicode    => 1,
 		} );
 		isa_ok( $dbh, 'DBI::db' );
 	};

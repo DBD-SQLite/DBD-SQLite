@@ -47,7 +47,7 @@ foreach my $call_func (@CALL_FUNCS) {
   for my $use_unicode (0, 1) {
 
     # connect
-    my $dbh = connect_ok( RaiseError => 1, unicode => $use_unicode );
+    my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
 
     # populate test data
     my @vals = @words;
