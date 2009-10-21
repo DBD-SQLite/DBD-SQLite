@@ -1464,7 +1464,7 @@ L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
 
 Note that bugs of bundled sqlite library (i.e. bugs in C<sqlite3.[ch]>) should be reported to the sqlite developers at sqlite.org via their bug tracker or via their mailing list.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
 Matt Sergeant E<lt>matt@sergeant.orgE<gt>
 
@@ -1477,6 +1477,8 @@ Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 Max Maischein E<lt>corion@cpan.orgE<gt>
 
 Laurent Dami E<lt>dami@cpan.orgE<gt>
+
+Kenichi Ishigaki E<lt>ishigaki@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
