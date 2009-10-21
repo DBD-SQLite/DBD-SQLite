@@ -737,10 +737,13 @@ This is somewhat weird, but works anyway.
 Since SQLite 3.6.19 (released on Oct 14, 2009; bundled with
 DBD::SQLite 1.26_05), foreign key constraints are supported (though
 with some limitations). See L<http://www.sqlite.org/foreignkeys.html>
-for details. Note that this feature is not enabled by default. You
-need to issue a pragma explicitly, or set C<sqlite_foreign_keys>
-attribute to the database handle (explicitly, or as a connection
-attribute. See below).
+for details. Though SQLite does NOT enable this feature by default yet (for backward compatibility), DBD::SQLite enables it internally. If you don't want this feature, issue a pragma to disable the feature.
+
+  $dbh->do("PRAGMA foreign_keys = OFF");
+
+=head2 Pragma
+
+SQLite has a set of "Pragma"s to modifiy its operation or to query for its internal data. These are specific to SQLite and are not likely to work with other DBD libraries, but you may find some of these are quite useful. DBD::SQLite actually sets some (like C<foreign_keys> above) for you when you connect to a database. See L<http://www.sqlite.org/pragma.html> for details.
 
 =head2 Performance
 
