@@ -251,6 +251,8 @@ WriteMakefile(
 	NAME             => 'DBD::SQLite',
 	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM     => 'lib/DBD/SQLite.pm',
+	AUTHOR           => 'Adam Kennedy <adamk@cpan.org>',
+		# Release manager (can this be an array?)
 	PREREQ_PM        => {
 		'Tie::Hash'        => 0,
 		'File::Spec'       => (WINLIKE ? '3.27' : '0.82'),
@@ -265,10 +267,6 @@ WriteMakefile(
 	),
 	OPTIONAL( '6.31',
 		LICENSE => 'perl',	
-	),
-	OPTIONAL( '6.11',
-		# Release manager (can this be an array?)
-		AUTHOR  => 'Adam Kennedy <adamk@cpan.org>',
 	),
 	OPTIONAL( '6.46',
 		# Use META_ADD instead of META_MERGE so that we can remove
