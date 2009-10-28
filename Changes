@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.26_06 (not released yet)
+1.26_06 Wed 28 Ocr 2009
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Removed undocumented (and most probably unused) reset method
       from a statement handle (which was only accessible via func().)
