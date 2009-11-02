@@ -241,7 +241,6 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
         /*
         ** Most probably we still have unfinalized statements.
         ** Let's try to close them.
-        ** TODO: We also need to deactivate statement handles somehow
         */
         while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
             sqlite3_finalize(pStmt);
@@ -433,8 +432,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
          sqlite_trace(sth, imp_sth, 3, "execute still active, reset");
          imp_sth->retval = sqlite3_reset(imp_sth->stmt);
          if (imp_sth->retval != SQLITE_OK) {
-             char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
-             sqlite_error(sth, imp_sth->retval, errmsg);
+             sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
              return -2; /* -> undef in SQLite.xsi */
          }
     }
@@ -537,15 +535,17 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     imp_sth->retval = sqlite3_step(imp_sth->stmt);
     switch (imp_sth->retval) {
         case SQLITE_ROW:
-        case SQLITE_DONE: DBIc_ACTIVE_on(imp_sth);
-                          sqlite_trace(sth, imp_sth, 5, form("exec ok - %d rows, %d cols", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
-                          return 0; /* -> '0E0' in SQLite.xsi */
-        default:          sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
-                          if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
-                              sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
-                          }
-                          imp_sth->stmt = NULL;
-                          return -6; /* -> undef in SQLite.xsi */
+        case SQLITE_DONE:
+            DBIc_ACTIVE_on(imp_sth);
+            sqlite_trace(sth, imp_sth, 5, form("exec ok - %d rows, %d cols", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
+            return 0; /* -> '0E0' in SQLite.xsi */
+        default:
+            sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
+            if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
+                sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
+            }
+            imp_sth->stmt = NULL;
+            return -6; /* -> undef in SQLite.xsi */
     }
 }
 
@@ -658,8 +658,7 @@ sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
     }
 
     if ((imp_sth->retval = sqlite3_reset(imp_sth->stmt)) != SQLITE_OK) {
-        char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
-        sqlite_error(sth, imp_sth->retval, errmsg);
+        sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
         return FALSE; /* -> &sv_no (or void) in SQLite.xsi */
     }
 
@@ -778,8 +777,7 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
             int notnull, primary, autoinc;
             int rc = sqlite3_table_column_metadata(imp_dbh->db, database, tablename, fieldname, &datatype, &collseq, &notnull, &primary, &autoinc);
             if (rc != SQLITE_OK) {
-                char *errmsg = (char*)sqlite3_errmsg(imp_dbh->db);
-                sqlite_error(sth, rc, errmsg);
+                sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
                 av_store(av, n, newSViv(2)); /* SQL_NULLABLE_UNKNOWN */
             }
             else {
@@ -818,8 +816,7 @@ sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
         if(paramstring[len] == 0 && strlen(paramstring) == len) {
             pos = sqlite3_bind_parameter_index(imp_sth->stmt, paramstring);
             if (pos == 0) {
-                char* const errmsg = form("Unknown named parameter: %s", paramstring);
-                sqlite_error(sth, -2, errmsg);
+                sqlite_error(sth, -2, form("Unknown named parameter: %s", paramstring));
                 return FALSE; /* -> &sv_no in SQLite.xsi */
             }
             pos = 2 * (pos - 1);
@@ -975,8 +972,7 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func)
                                                    : sqlite_db_func_dispatcher_no_unicode, 
                                   NULL, NULL );
     if ( rc != SQLITE_OK ) {
-        char* const errmsg = form("sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
+        sqlite_error(dbh, rc, form("sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
     return TRUE;
@@ -990,8 +986,7 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 
     rc = sqlite3_enable_load_extension( imp_dbh->db, onoff );
     if ( rc != SQLITE_OK ) {
-        char* const errmsg = form("sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
+        sqlite_error(dbh, rc, form("sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
     return TRUE;
@@ -1203,8 +1198,7 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
                                 );
 
     if ( rc != SQLITE_OK ) {
-        char* const errmsg = form("sqlite_create_aggregate failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
+        sqlite_error(dbh, rc, form("sqlite_create_aggregate failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
     return TRUE;
@@ -1307,10 +1301,8 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func)
                          : sqlite_db_collation_dispatcher
       );
 
-    if ( rv != SQLITE_OK )
-    {
-        char* const errmsg = form("sqlite_create_collation failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rv, errmsg);
+    if ( rv != SQLITE_OK ) {
+        sqlite_error(dbh, rv, form("sqlite_create_collation failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
     return TRUE;
@@ -1605,10 +1597,8 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
     rc = sqlite3_errcode(imp_dbh->db);
     (void)sqlite3_close(pFrom);
 
-    if ( rc != SQLITE_OK )
-    {
-        char* const errmsg = form("sqlite_backup_from_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, form("sqlite_backup_from_file failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
 
@@ -1642,10 +1632,8 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
     rc = sqlite3_errcode(pTo);
     (void)sqlite3_close(pTo);
 
-    if ( rc != SQLITE_OK )
-    {
-        char* const errmsg = form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db));
-        sqlite_error(dbh, rc, errmsg);
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
 
