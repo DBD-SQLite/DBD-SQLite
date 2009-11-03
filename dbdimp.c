@@ -435,7 +435,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     int num_params = DBIc_NUM_PARAMS(imp_sth);
     int i;
 
-    sqlite_trace(sth, imp_sth, 3, "execute");
+    sqlite_trace(sth, imp_sth, 3, form("executing %s", sqlite3_sql(imp_sth->stmt)));
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(sth, -2, "attempt to execute on inactive database handle");
