@@ -153,7 +153,21 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 
     sqlite_exec(dbh, "PRAGMA empty_result_callbacks = ON");
     sqlite_exec(dbh, "PRAGMA show_datatypes = ON");
+
+#if 0
+    /*
+    ** As of 1.26_06 foreign keys support was enabled by default,
+    ** but with further discussion, we agreed to follow what
+    ** sqlite team does, i.e. wait until the team think it
+    ** reasonable to enable the support by default, as they have
+    ** larger users and will allocate enough time for people to
+    ** get used to the foreign keys. However, we should say it loud
+    ** that sometime in the (near?) future, this feature may break
+    ** your applications (and it actually broke applications).
+    ** Let everyone be prepared.
+    */
     sqlite_exec(dbh, "PRAGMA foreign_keys = ON");
+#endif
 
     DBIc_ACTIVE_on(imp_dbh);
 

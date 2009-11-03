@@ -1,6 +1,18 @@
 Changes for Perl extension DBD-SQLite
 
 1.26_07 to be released
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Foreign keys support is once again disabled by default.
+      It seems to have a greater impact than we expected and
+      it actually broke things. This featuer probably will be
+      enabled by default by the sqlite team in the future, and
+      eventually you'll need to cope with it, but right now we
+      agreed with some discussion to give you more time to be
+      prepared. If you use referential stuff in your schema
+      (which sqlite ignores now) should do extensive testing
+      to ensure that they will work when you issue "PRAGMA
+      foreign_keys = ON". (ISHIGAKI)
+
     - Resolved #50935: there remained old "unicode" attribute usage
       in the pod, spotted by ASHLEY. (ISHIGAKI)
 
