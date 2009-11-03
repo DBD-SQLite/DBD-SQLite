@@ -10,7 +10,7 @@ DBISTATE_DECLARE;
  * Debug Macros
  *-----------------------------------------------------*/
 
-#define DBD_SQLITE_CROAK_DEBUG
+#undef DBD_SQLITE_CROAK_DEBUG
 
 #ifdef DBD_SQLITE_CROAK_DEBUG
   #define croak_if_db_is_null()   if (!imp_dbh->db)   croak("imp_dbh->db is NULL at line %d in %s", __LINE__, __FILE__)
