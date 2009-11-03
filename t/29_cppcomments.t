@@ -10,11 +10,16 @@ use Test::More;
 use t::lib::Test;
 use Fatal qw(open);
 
-my @c_files = <*.c>, <*.xs>;
+my @c_files = (<*.c>, <*.h>, <*.xs>);
 plan tests => scalar(@c_files);
 
 FILE:
 foreach my $file (@c_files) {
+    if ($file =~ /ppport.h/) {
+        pass("$file is not ours to be tested");
+        next;
+    }
+
     open(F, $file);
     my $line = 0;
     while (<F>) {
