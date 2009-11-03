@@ -7,6 +7,20 @@ DBISTATE_DECLARE;
 #define SvPV_nolen_undef_ok(x) (SvOK(x) ? SvPV_nolen(x) : "undef")
 
 /*-----------------------------------------------------*
+ * Debug Macros
+ *-----------------------------------------------------*/
+
+#define DBD_SQLITE_CROAK_DEBUG
+
+#ifdef DBD_SQLITE_CROAK_DEBUG
+  #define croak_if_db_is_null()   if (!imp_dbh->db)   croak("imp_dbh->db is NULL at line %d in %s", __LINE__, __FILE__)
+  #define croak_if_stmt_is_null() if (!imp_sth->stmt) croak("imp_sth->stmt is NULL at line %d in %s", __LINE__, __FILE__)
+#else
+  #define croak_if_db_is_null()
+  #define croak_if_stmt_is_null()
+#endif
+
+/*-----------------------------------------------------*
  * Helper Methods
  *-----------------------------------------------------*/
 
@@ -190,6 +204,8 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
         DBIc_on(imp_dbh,  DBIcf_AutoCommit);
     }
 
+    croak_if_db_is_null();
+
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
         sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
 
@@ -212,6 +228,8 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
         DBIc_off(imp_dbh, DBIcf_BegunWork);
         DBIc_on(imp_dbh,  DBIcf_AutoCommit);
     }
+
+    croak_if_db_is_null();
 
     if (!sqlite3_get_autocommit(imp_dbh->db)) {
 
@@ -249,6 +267,8 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
         sqlite3_finalize(pStmt);
     }
 #endif
+
+    croak_if_db_is_null();
 
     rc = sqlite3_close(imp_dbh->db);
     if (rc != SQLITE_OK) {
@@ -303,6 +323,8 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
     dTHX;
     char *key = SvPV_nolen(keysv);
     int rc;
+
+    croak_if_db_is_null();
 
     if (strEQ(key, "AutoCommit")) {
         if (SvTRUE(valuesv)) {
@@ -374,6 +396,9 @@ SV *
 sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, SV *table, SV *field, SV *attr)
 {
     dTHX;
+
+    croak_if_db_is_null();
+
     return newSViv(sqlite3_last_insert_rowid(imp_dbh->db));
 }
 
@@ -400,6 +425,8 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
     imp_sth->retval    = SQLITE_OK;
     imp_sth->params    = newAV();
     imp_sth->col_types = newAV();
+
+    croak_if_db_is_null();
 
     rc = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra);
     if (rc != SQLITE_OK) {
@@ -435,12 +462,15 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     int num_params = DBIc_NUM_PARAMS(imp_sth);
     int i;
 
-    sqlite_trace(sth, imp_sth, 3, form("executing %s", sqlite3_sql(imp_sth->stmt)));
-
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(sth, -2, "attempt to execute on inactive database handle");
         return -2; /* -> undef in SQLite.xsi */
     }
+
+    croak_if_db_is_null();
+    croak_if_stmt_is_null();
+
+    sqlite_trace(sth, imp_sth, 3, form("executing %s", sqlite3_sql(imp_sth->stmt)));
 
     if (DBIc_ACTIVE(imp_sth)) {
          sqlite_trace(sth, imp_sth, 3, "execute still active, reset");
@@ -574,6 +604,9 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
     int i;
 
+    croak_if_db_is_null();
+    croak_if_stmt_is_null();
+
     sqlite_trace(sth, imp_sth, 6, form("numFields == %d, nrow == %d", numFields, imp_sth->nrow));
 
     if (!DBIc_ACTIVE(imp_sth)) {
@@ -656,6 +689,9 @@ sqlite_st_finish3(SV *sth, imp_sth_t *imp_sth, int is_destroy)
 
     D_imp_dbh_from_sth;
 
+    croak_if_db_is_null();
+    croak_if_stmt_is_null();
+
     /* warn("finish statement\n"); */
     if (!DBIc_ACTIVE(imp_sth))
         return TRUE;
@@ -695,13 +731,17 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
 
     DBIc_ACTIVE_off(imp_sth);
     if (DBIc_ACTIVE(imp_dbh)) {
-        if (imp_sth->stmt)
+        if (imp_sth->stmt) {
             sqlite_trace(sth, imp_sth, 4, form("destroy statement: %s", sqlite3_sql(imp_sth->stmt)));
 
-        /* finalize sth when active connection */
-        rc = sqlite3_finalize(imp_sth->stmt);
-        if (rc != SQLITE_OK) {
-            sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
+            croak_if_db_is_null();
+            croak_if_stmt_is_null();
+
+            /* finalize sth when active connection */
+            rc = sqlite3_finalize(imp_sth->stmt);
+            if (rc != SQLITE_OK) {
+                sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
+            }
         }
     }
     SvREFCNT_dec((SV*)imp_sth->params);
@@ -732,6 +772,9 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     char *key = SvPV_nolen(keysv);
     SV *retsv = NULL;
     int i,n;
+
+    croak_if_db_is_null();
+    croak_if_stmt_is_null();
 
     if (!DBIc_ACTIVE(imp_sth)) {
         return NULL;
@@ -823,6 +866,9 @@ sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
 {
     dTHX;
     int pos;
+
+    croak_if_stmt_is_null();
+
     if (!looks_like_number(param)) {
         STRLEN len;
         char *paramstring;
@@ -875,6 +921,9 @@ int
 sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
 {
     D_imp_dbh(dbh);
+
+    croak_if_db_is_null();
+
     if (timeout) {
         imp_dbh->timeout = timeout;
         sqlite3_busy_timeout(imp_dbh->db, timeout);
@@ -979,6 +1028,8 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func)
     SV *func_sv = newSVsv(func);
     av_push( imp_dbh->functions, func_sv );
 
+    croak_if_db_is_null();
+
     /* warn("create_function %s with %d args\n", name, argc); */
     rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
                                   func_sv,
@@ -997,6 +1048,8 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 {
     D_imp_dbh(dbh);
     int rc;
+
+    croak_if_db_is_null();
 
     rc = sqlite3_enable_load_extension( imp_dbh->db, onoff );
     if ( rc != SQLITE_OK ) {
@@ -1204,6 +1257,8 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
     SV *aggr_pkg_copy = newSVsv(aggr_pkg);
     av_push( imp_dbh->aggregates, aggr_pkg_copy );
 
+    croak_if_db_is_null();
+
     rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
                                   aggr_pkg_copy,
                                   NULL,
@@ -1293,6 +1348,8 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func)
 
     SV *func_sv = newSVsv(func);
 
+    croak_if_db_is_null();
+
     /* Check that this is a proper collation function */
     rv = sqlite_db_collation_dispatcher(func_sv, 2, aa, 2, aa);
     if (rv != 0) {
@@ -1355,6 +1412,8 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback)
 {
     D_imp_dbh(dbh);
 
+    croak_if_db_is_null();
+
     /* remember the callback within the dbh */
     sv_setsv(imp_dbh->collation_needed_callback, callback);
 
@@ -1395,6 +1454,8 @@ sqlite_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler)
 {
     D_imp_dbh(dbh);
 
+    croak_if_db_is_null();
+
     if (!SvOK(handler)) {
         /* remove previous handler */
         sqlite3_progress_handler( imp_dbh->db, 0, NULL, NULL);
@@ -1418,6 +1479,8 @@ sqlite_db_commit_hook(pTHX_ SV *dbh, SV *hook)
 {
     D_imp_dbh(dbh);
     void *retval;
+
+    croak_if_db_is_null();
 
     if (!SvOK(hook)) {
         /* remove previous hook */
@@ -1443,6 +1506,8 @@ sqlite_db_rollback_hook(pTHX_ SV *dbh, SV *hook)
 {
     D_imp_dbh(dbh);
     void *retval;
+
+    croak_if_db_is_null();
 
     if (!SvOK(hook)) {
         /* remove previous hook */
@@ -1495,6 +1560,8 @@ sqlite_db_update_hook(pTHX_ SV *dbh, SV *hook)
 {
     D_imp_dbh(dbh);
     void *retval;
+
+    croak_if_db_is_null();
 
     if (!SvOK(hook)) {
         /* remove previous hook */
@@ -1565,6 +1632,8 @@ sqlite_db_set_authorizer(pTHX_ SV *dbh, SV *authorizer)
     D_imp_dbh(dbh);
     int retval;
 
+    croak_if_db_is_null();
+
     if (!SvOK(authorizer)) {
         /* remove previous hook */
         retval = sqlite3_set_authorizer( imp_dbh->db, NULL, NULL );
@@ -1597,6 +1666,8 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
     sqlite3_backup *pBackup;
 
     D_imp_dbh(dbh);
+
+    croak_if_db_is_null();
 
     rc = sqlite_open(filename, &pFrom);
     if ( rc != SQLITE_OK ) {
@@ -1632,6 +1703,8 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
     sqlite3_backup *pBackup;
 
     D_imp_dbh(dbh);
+
+    croak_if_db_is_null();
 
     rc = sqlite_open(filename, &pTo);
     if ( rc != SQLITE_OK ) {
