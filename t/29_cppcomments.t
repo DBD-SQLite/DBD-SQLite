@@ -20,9 +20,9 @@ foreach my $file (@c_files) {
         next;
     }
 
-    open(F, $file);
+    open my $fh, '<', $file;
     my $line = 0;
-    while (<F>) {
+    while (<$fh>) {
         $line++;
         if (/^(.*)\/\//) {
             my $m = $1;
@@ -38,5 +38,5 @@ foreach my $file (@c_files) {
         }
     }
     pass("$file has no C++ comments");
-    close(F);
+    close $fh;
 }
