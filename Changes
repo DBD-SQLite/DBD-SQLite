@@ -13,6 +13,7 @@ Changes for Perl extension DBD-SQLite
       to ensure that they will work when you issue "PRAGMA
       foreign_keys = ON". (ISHIGAKI)
 
+    - Updated to SQLite 3.6.20 (DUNCAND)
     - Resolved #50935: there remained old "unicode" attribute usage
       in the pod, spotted by ASHLEY. (ISHIGAKI)
 
