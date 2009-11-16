@@ -17,7 +17,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #50935: there remained old "unicode" attribute usage
       in the pod, spotted by ASHLEY. (ISHIGAKI)
 
-1.26_06 Wed 28 Ocr 2009
+1.26_06 Wed 28 Oct 2009
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Removed undocumented (and most probably unused) reset method
       from a statement handle (which was only accessible via func().)
