@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.26_07 to be released
+1.26_07 Sun 15 Nov 2009
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Foreign keys support is once again disabled by default.
       It seems to have a greater impact than we expected and
