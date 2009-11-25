@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.28_01 to be released
+    - silence warnings on HP-UX (HMBRAND)
+
 1.27 Mon 23 Nov 2009
     - Switching to a production version
 
