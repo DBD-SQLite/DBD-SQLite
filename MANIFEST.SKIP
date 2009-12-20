@@ -6,6 +6,9 @@ CVS/.*
 \.tgz$
 \.tar\.gz$
 \.o$
+\.obj$
+\.def$
+\.pdb$
 \.xsi$
 \.bs$
 ^.#

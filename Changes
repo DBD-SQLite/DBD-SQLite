@@ -3,6 +3,8 @@ Changes for Perl extension DBD-SQLite
 1.28_01 to be released
     - Updated to SQLite 3.6.21 (ISHIGAKI)
     - silence warnings on HP-UX (HMBRAND)
+    - Resolved #52573: Manual Transaction handling seems to be
+      broken (hopefully) (ISHIGAKI)
 
 1.27 Mon 23 Nov 2009
     - Switching to a production version

@@ -546,11 +546,22 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         }
     }
 
-    if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (sqlite3_get_autocommit(imp_dbh->db)) ) {
-        sqlite_trace(sth, imp_sth, 3, "BEGIN TRAN");
-        rc = sqlite_exec(sth, "BEGIN TRANSACTION");
-        if (rc != SQLITE_OK) {
-            return -2; /* -> undef in SQLite.xsi */
+    if (sqlite3_get_autocommit(imp_dbh->db)) {
+        char *sql = sqlite3_sql(imp_sth->stmt);
+        if ((sql[0] == 'B' || sql[0] == 'b') &&
+            (sql[1] == 'E' || sql[1] == 'e') &&
+            (sql[2] == 'G' || sql[2] == 'g') &&
+            (sql[3] == 'I' || sql[3] == 'i') &&
+            (sql[4] == 'N' || sql[4] == 'n')) {
+            DBIc_on(imp_dbh,  DBIcf_BegunWork);
+            DBIc_off(imp_dbh, DBIcf_AutoCommit);
+        }
+        else if (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
+            sqlite_trace(sth, imp_sth, 3, "BEGIN TRAN");
+            rc = sqlite_exec(sth, "BEGIN TRANSACTION");
+            if (rc != SQLITE_OK) {
+                return -2; /* -> undef in SQLite.xsi */
+            }
         }
     }
 
@@ -582,6 +593,10 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         case SQLITE_DONE:
             DBIc_ACTIVE_on(imp_sth);
             sqlite_trace(sth, imp_sth, 5, form("exec ok - %d rows, %d cols", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
+            if (DBIc_is(imp_dbh, DBIcf_AutoCommit) && !sqlite3_get_autocommit(imp_dbh->db)) {
+                DBIc_on(imp_dbh,  DBIcf_BegunWork);
+                DBIc_off(imp_dbh, DBIcf_AutoCommit);
+            }
             return 0; /* -> '0E0' in SQLite.xsi */
         default:
             sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
