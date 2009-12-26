@@ -16,8 +16,8 @@ DBISTATE_DECLARE;
   #define croak_if_db_is_null()   if (!imp_dbh->db)   croak("imp_dbh->db is NULL at line %d in %s", __LINE__, __FILE__)
   #define croak_if_stmt_is_null() if (!imp_sth->stmt) croak("imp_sth->stmt is NULL at line %d in %s", __LINE__, __FILE__)
 #else
-  #define croak_if_db_is_null()
-  #define croak_if_stmt_is_null()
+  #define croak_if_db_is_null() 
+  #define croak_if_stmt_is_null() 
 #endif
 
 /*-----------------------------------------------------*
@@ -415,10 +415,12 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
+#if 0
     if (*statement == '\0') {
       sqlite_error(sth, -2, "attempt to prepare empty statement");
       return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
+#endif
 
     sqlite_trace(sth, imp_sth, 3, form("prepare statement: %s", statement));
     imp_sth->nrow      = -1;
@@ -466,6 +468,8 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         sqlite_error(sth, -2, "attempt to execute on inactive database handle");
         return -2; /* -> undef in SQLite.xsi */
     }
+
+    if (!imp_sth->stmt) return 0;
 
     croak_if_db_is_null();
     croak_if_stmt_is_null();
@@ -575,6 +579,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
+sqlite_trace(sth, imp_sth, 3, "RESET ERROR!");
                 sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             }
             return -5; /* -> undef in SQLite.xsi */

@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.28_02 to be released
+    - Now empty (or comment only) statements won't cause segv
+      or "not an error" errors. Spotted by TOKUHIROM. (ISHIGAKI)
+
 1.28_01 Tue 22 Dec 2009
     - Updated to SQLite 3.6.21 (ISHIGAKI)
     - silence warnings on HP-UX (HMBRAND)
