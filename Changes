@@ -3,6 +3,9 @@ Changes for Perl extension DBD-SQLite
 1.28_02 to be released
     - Now empty (or comment only) statements won't cause segv
       or "not an error" errors. Spotted by TOKUHIROM. (ISHIGAKI)
+    - Resolved #52573: previous fix always turned on the AutoCommit
+      flag; it goes along with the behavior of the internal library
+      but broke compat. (ISHIGAKI)
 
 1.28_01 Tue 22 Dec 2009
     - Updated to SQLite 3.6.21 (ISHIGAKI)
