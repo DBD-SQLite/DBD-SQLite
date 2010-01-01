@@ -557,8 +557,10 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             (sql[2] == 'G' || sql[2] == 'g') &&
             (sql[3] == 'I' || sql[3] == 'i') &&
             (sql[4] == 'N' || sql[4] == 'n')) {
-            DBIc_on(imp_dbh,  DBIcf_BegunWork);
-            DBIc_off(imp_dbh, DBIcf_AutoCommit);
+            if (DBIc_is(imp_dbh,  DBIcf_AutoCommit)) {
+                DBIc_on(imp_dbh,  DBIcf_BegunWork);
+                DBIc_off(imp_dbh, DBIcf_AutoCommit);
+            }
         }
         else if (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
             sqlite_trace(sth, imp_sth, 3, "BEGIN TRAN");

@@ -132,8 +132,9 @@ ok $dbh->{AutoCommit}, "AutoCommit is turned on now";
 ok !$dbh->{BegunWork},  "BegunWork is turned off";
 
 # scenario 7: AutoCommit => 0 and explicit BEGIN
+eval { $dbh->{AutoCommit} = 1 }; # to initialize
 ok $dbh->{AutoCommit}, "AutoCommit is on";
-ok !$dbh->{BegunWork},    "BegunWork is off";
+ok !$dbh->{BegunWork},  "BegunWork is off";
 eval { $dbh->{AutoCommit} = 0 };
 ok !$@, "AutoCommit is turned off";
 ok !$dbh->{BegunWork},    "BegunWork is still off";
@@ -141,7 +142,7 @@ eval { $dbh->do('BEGIN TRANSACTION'); };
 ok !$@, 'BEGIN should work';
 diag $@ if $@;
 ok !$dbh->{AutoCommit}, "AutoCommit is turned off";
-ok $dbh->{BegunWork},    "BegunWork is turned on";
+ok !$dbh->{BegunWork},   "BegunWork is still off";
 eval { $dbh->do('BEGIN TRANSACTION') };
 like $@ => qr/cannot start a transaction/, "second BEGIN should fail";
 eval { $dbh->begin_work };
@@ -152,24 +153,25 @@ diag $@ if $@;
 eval { $dbh->rollback };
 ok !$@, 'rolled back';
 diag $@ if $@;
-ok $dbh->{AutoCommit}, "AutoCommit is turned on now";
-ok !$dbh->{BegunWork},  "BegunWork is turned off";
+ok !$dbh->{AutoCommit}, "AutoCommit is still off";
+ok !$dbh->{BegunWork},   "BegunWork is still off";
 
 # scenario 8: AutoCommit => 0 and begin_work
+eval { $dbh->{AutoCommit} = 1 }; # to initialize
 ok $dbh->{AutoCommit}, "AutoCommit is on";
-ok !$dbh->{BegunWork},    "BegunWork is off";
+ok !$dbh->{BegunWork},  "BegunWork is off";
 eval { $dbh->{AutoCommit} = 0 };
 ok !$@, "AutoCommit is turned off";
-ok !$dbh->{BegunWork},    "BegunWork is still off";
+ok !$dbh->{BegunWork}, "BegunWork is still off";
 eval { $dbh->begin_work; };
 like $@ => qr/Already in a transaction/, "begin_work should fail";
 ok !$dbh->{AutoCommit}, "AutoCommit is still off";
-ok !$dbh->{BegunWork},    "BegunWork is still off";
+ok !$dbh->{BegunWork},   "BegunWork is still off";
 eval { $dbh->do('BEGIN TRANSACTION') };
 ok !$@, "BEGIN should work";
 diag $@ if $@;
 ok !$dbh->{AutoCommit}, "AutoCommit is still off";
-ok $dbh->{BegunWork},    "BegunWork is turned on";
+ok !$dbh->{BegunWork},   "BegunWork is still off";
 eval { $dbh->begin_work };
 like $@ => qr/Already in a transaction/, "and second begin_work also should fail";
 eval { $dbh->do('insert into foo (id) values (1)'); };
@@ -178,20 +180,21 @@ diag $@ if $@;
 eval { $dbh->rollback };
 ok !$@, 'rolled back';
 diag $@ if $@;
-ok $dbh->{AutoCommit}, "AutoCommit is turned on now";
-ok !$dbh->{BegunWork},  "BegunWork is turned off";
+ok !$dbh->{AutoCommit}, "AutoCommit is still off";
+ok !$dbh->{BegunWork},   "BegunWork is still off";
 
 # scenario 9: AutoCommit => 0 and implicit BEGIN
+eval { $dbh->{AutoCommit} = 1 }; # to initialize
 ok $dbh->{AutoCommit}, "AutoCommit is on";
-ok !$dbh->{BegunWork},    "BegunWork is off";
+ok !$dbh->{BegunWork},  "BegunWork is off";
 eval { $dbh->{AutoCommit} = 0 };
 ok !$@, "AutoCommit is turned off";
-ok !$dbh->{BegunWork},    "BegunWork is still off";
+ok !$dbh->{BegunWork}, "BegunWork is still off";
 eval { $dbh->do('insert into foo (id) values (1)'); };
 ok !$@, 'other statement should work';
 diag $@ if $@;
 ok !$dbh->{AutoCommit}, "AutoCommit is still off";
-ok !$dbh->{BegunWork},    "BegunWork is still off";
+ok !$dbh->{BegunWork},   "BegunWork is still off";
 eval { $dbh->rollback };
 ok !$@, 'rolled back';
 diag $@ if $@;
