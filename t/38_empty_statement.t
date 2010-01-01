@@ -34,12 +34,6 @@ eval { $dbh->do("-- everything in a comment") };
 ok !$@, "empty statement does not spit a warning";
 diag $@ if $@;
 
-{
-    # We know this causes "Use of uninitialized value
-    # in subroutine entry" warning, but anyway this
-    # shouldn't die, either.
-    local $SIG{__WARN__};
-    eval { $dbh->do(undef) };
-    ok !$@, "undef statement does spit a warning, but does not die anyway";
-    diag $@ if $@;
-}
+eval { $dbh->do(undef) };
+ok !$@, "undef statement does not spit a warning, and does not die anyway";
+diag $@ if $@;

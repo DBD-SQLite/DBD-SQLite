@@ -159,6 +159,7 @@ package DBD::SQLite::db;
 sub prepare {
     my $dbh = shift;
     my $sql = shift;
+    $sql = '' unless defined $sql;
 
     my $sth = DBI::_new_sth( $dbh, {
         Statement => $sql,
