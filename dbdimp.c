@@ -579,7 +579,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
-sqlite_trace(sth, imp_sth, 3, "RESET ERROR!");
                 sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             }
             return -5; /* -> undef in SQLite.xsi */
