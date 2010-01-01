@@ -775,6 +775,60 @@ these are quite useful. DBD::SQLite actually sets some (like
 C<foreign_keys> above) for you when you connect to a database.
 See L<http://www.sqlite.org/pragma.html> for details.
 
+=head2 Transactions
+
+DBI/DBD::SQLite's transactions may be a bit confusing. They behave
+differently according to the status of the C<AutoCommit> flag:
+
+=over 4
+
+=item When the AutoCommit flag is on
+
+You're supposed to always use the auto-commit mode, except you
+explicitly begin a transaction, and when the transaction ended,
+you're supposed to go back to the auto-commit mode. To begin a
+transaction, call C<begin_work> method, or issue a C<BEGIN>
+statement. To end it, call C<commit/rollback> methods, or issue
+the corresponding statements.
+
+  $dbh->{AutoCommit} = 1;
+  
+  $dbh->begin_work; # or $dbh->do('BEGIN TRANSACTION');
+  
+  # $dbh->{AutoCommit} is turned off temporarily during a transaction;
+  
+  $dbh->commit; # or $dbh->do('COMMIT');
+  
+  # $dbh->{AutoCommit} is turned on again;
+
+=item When the AutoCommit flag is off
+
+You're supposed to always use the transactinal mode, until you
+explicitly turn on the AutoCommit flag. You can explicitly issue
+a C<BEGIN> statement (only when an actual transaction has not
+begun yet) but you're not allowed to call C<begin_work> method
+(if you don't issue a C<BEGIN>, it will be issued internally).
+You can commit or roll it back freely. Another transaction will
+automatically begins if you execute another statement.
+
+  $dbh->{AutoCommit} = 0;
+  
+  # $dbh->do('BEGIN TRANSACTION') is not necessary, but possible
+  
+  ...
+  
+  $dbh->commit; # or $dbh->do('COMMIT');
+  
+  # $dbh->{AutoCommit} stays intact;
+  
+  $dbh->{AutoCommit} = 1;  # ends the transactional mode
+
+=back
+
+This C<AutoCommit> mode is independent from the autocommit mode
+of the internal SQLite library, which always begins by a C<BEGIN>
+statement, and ends by a C<COMMIT> or a <ROLLBACK>.
+
 =head2 Performance
 
 SQLite is fast, very fast. Matt processed my 72MB log file with it,
