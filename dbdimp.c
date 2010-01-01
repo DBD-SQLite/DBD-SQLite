@@ -570,6 +570,26 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
         }
     }
+    else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        char *sql = sqlite3_sql(imp_sth->stmt);
+        if (((sql[0] == 'C' || sql[0] == 'c') &&
+             (sql[1] == 'O' || sql[1] == 'o') &&
+             (sql[2] == 'M' || sql[2] == 'm') &&
+             (sql[3] == 'M' || sql[3] == 'm') &&
+             (sql[4] == 'I' || sql[4] == 'i') &&
+             (sql[5] == 'T' || sql[5] == 't')) ||
+            ((sql[0] == 'R' || sql[0] == 'r') &&
+             (sql[1] == 'O' || sql[1] == 'o') &&
+             (sql[2] == 'L' || sql[2] == 'l') &&
+             (sql[3] == 'L' || sql[3] == 'l') &&
+             (sql[4] == 'B' || sql[4] == 'b') &&
+             (sql[5] == 'A' || sql[5] == 'a') &&
+             (sql[6] == 'C' || sql[6] == 'c') &&
+             (sql[7] == 'K' || sql[7] == 'k'))) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        }
+    }
 
     imp_sth->nrow = 0;
 
