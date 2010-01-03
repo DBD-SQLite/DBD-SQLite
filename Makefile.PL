@@ -60,7 +60,7 @@ if ( $@ or DBI->VERSION < $DBI_required ) {
 
 # See if we have a C compiler
 # The following code is adapted from Module::Install::Can
-{
+SCOPE: {
 	# Fix Cygwin bug on maybe_command();
 	if ( $^O eq 'cygwin' ) {
 		require ExtUtils::MM_Cygwin;
@@ -220,7 +220,6 @@ my @CC_DEFINE = (
 	# '-DSQLITE_ENABLE_FTS3_PARENTHESIS',  # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_COLUMN_METADATA',
 	'-DNDEBUG=1',
-	"-DSQLITE_PTR_SZ=$Config{ptrsize}"
 );
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 	push @CC_DEFINE, '-DHAVE_USLEEP=1';
