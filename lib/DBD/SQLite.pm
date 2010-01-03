@@ -537,12 +537,12 @@ END_SQL
     );
 }
 
-
 #======================================================================
 # An internal tied hash package used for %DBD::SQLite::COLLATION, to
 # prevent people from unintentionally overriding globally registered collations.
 
 package DBD::SQLite::_WriteOnceHash;
+
 require Tie::Hash;
 
 our @ISA = qw(Tie::StdHash);
@@ -561,9 +561,6 @@ sub DELETE {
 }
 
 1;
-
-
-
 
 __END__
 
@@ -999,7 +996,6 @@ After this, it could be use from SQL as:
 
   INSERT INTO mytable ( now() );
 
-
 =head3 REGEXP function
 
 SQLite includes syntactic support for an infix operator 'REGEXP', but
@@ -1019,7 +1015,6 @@ C<create_function> API described above.
 
 Note that regexp matching will B<not> use SQLite indices, but will iterate
 over all rows, so it could be quite costly in terms of performance.
-
 
 =head2 $dbh->sqlite_create_collation( $name, $code_ref )
 
@@ -1042,7 +1037,6 @@ The driver will check that this is a proper sorting function.
 
 =back
 
-
 =head2 $dbh->sqlite_collation_needed( $code_ref )
 
 This method manually registers a callback function that will
@@ -1058,7 +1052,6 @@ An initial callback is already registered by C<DBD::SQLite>,
 so for most common cases it will be simpler to just
 add your collation sequences in the C<%DBD::SQLite::COLLATION>
 hash (see section L</"COLLATION FUNCTIONS"> below).
-
 
 =head2 $dbh->sqlite_create_aggregate( $name, $argc, $pkg )
 
@@ -1202,7 +1195,6 @@ C<sqlite_rollback_hook> is overridden. A reference to the previous
 callback (if any) is returned.  Registering an C<undef> disables the
 callback.
 
-
 =head2 $dbh->sqlite_update_hook( $code_ref )
 
 This method registers a callback function to be invoked whenever a row
@@ -1238,7 +1230,6 @@ is the name of the table containing the affected row;
 is the unique 64-bit signed integer key of the affected row within that table.
 
 =back
-
 
 =head2 $dbh->sqlite_set_authorizer( $code_ref )
 
@@ -1292,8 +1283,6 @@ top-level SQL code.
 
 =back
 
-
-
 =head2 $dbh->sqlite_backup_from_file( $filename )
 
 This method accesses the SQLite Online Backup API, and will take a backup of
@@ -1314,7 +1303,6 @@ sqlite3 extensions. After the call, you can load extensions like this:
   $dbh->sqlite_enable_load_extension(1);
   $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
   or die "Cannot prepare: " . $dbh->errstr();
-
 
 =head1 DRIVER CONSTANTS
 
@@ -1386,7 +1374,6 @@ associated strings.
   DROP_VTABLE             Table Name      Module Name
   FUNCTION                undef           Function Name
   SAVEPOINT               Operation       Savepoint Name
-
 
 =head1 COLLATION FUNCTIONS
 
@@ -1468,7 +1455,6 @@ is to set the parameter at connection time :
       }
   );
 
-
 =head2 Adding user-defined collations
 
 The native SQLite API for adding user-defined collations is
@@ -1495,7 +1481,6 @@ characters :
   my $sql  = "SELECT ... FROM ... ORDER BY ... COLLATE no_accents");
   my $rows = $dbh->selectall_arrayref($sql);
 
-
 The builtin C<perl> or C<perllocale> collations are predefined
 in that same hash.
 
@@ -1515,7 +1500,6 @@ I<requests> for collations. In other words, if you want to change
 the behaviour of a collation within an existing C<$dbh>, you
 need to call the L</create_collation> method directly.
 
-
 =head1 TO DO
 
 The following items remain to be done.
@@ -1525,7 +1509,7 @@ The following items remain to be done.
 We currently use a horridly hacky method to issue and suppress warnings.
 It suffices for now, but just barely.
 
-Migrate all of the warning code to use the recommended DBI warnings.
+Migrate all of the warning code to use the recommended L<DBI> warnings.
 
 =head2 Leak Detection
 
@@ -1540,7 +1524,6 @@ Reading/writing into blobs using C<sqlite2_blob_open> / C<sqlite2_blob_close>.
 =head2 Flags for sqlite3_open_v2
 
 Support the full API of sqlite3_open_v2 (flags for opening the file).
-
 
 =head1 SUPPORT
 
@@ -1578,7 +1561,7 @@ Some parts copyright 2008 Francis J. Lacoste.
 
 Some parts copyright 2008 Wolfgang Sourdeau.
 
-Some parts copyright 2008 - 2009 Adam Kennedy.
+Some parts copyright 2008 - 2010 Adam Kennedy.
 
 Some parts derived from L<DBD::SQLite::Amalgamation>
 copyright 2008 Audrey Tang.
