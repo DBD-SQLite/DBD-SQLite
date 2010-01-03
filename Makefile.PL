@@ -214,7 +214,7 @@ if ( $sqlite_inc ) {
 }
 
 my @CC_DEFINE = (
-	'-DSQLITE_CORE',
+	# '-DSQLITE_CORE',
 	'-DSQLITE_ENABLE_FTS3',
 	#  Disabled until we have a test for this
 	# '-DSQLITE_ENABLE_FTS3_PARENTHESIS',  # for sqlite >= 3.6.10
