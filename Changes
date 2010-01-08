@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.28_03 not yet released
+1.29 Fri  8 Jan 2010
     - Updated to SQLite 3.6.22 (DUNCAND)
 
 1.28_02 Sun  3 Jan 2010
