@@ -9,9 +9,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
-
-ok( $] >= 5.00503, 'Perl version is new enough' );
+use Test::More tests => 3;
 
 use_ok('DBI');
 use_ok('DBD::SQLite');
