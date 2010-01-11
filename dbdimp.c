@@ -162,6 +162,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->collation_needed_callback = newSVsv( &PL_sv_undef );
     imp_dbh->timeout                   = SQL_TIMEOUT;
     imp_dbh->handle_binary_nulls       = FALSE;
+    imp_dbh->allow_multiple_statements = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
@@ -340,6 +341,10 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         DBIc_set(imp_dbh, DBIcf_AutoCommit, SvTRUE(valuesv));
         return TRUE;
     }
+    if (strEQ(key, "sqlite_allow_multiple_statements")) {
+        imp_dbh->allow_multiple_statements = !(! SvTRUE(valuesv));
+        return TRUE;
+    }
     if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
         sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
@@ -369,23 +374,26 @@ sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
     char *key = SvPV_nolen(keysv);
 
     if (strEQ(key, "sqlite_version")) {
-        return newSVpv(sqlite3_version, 0);
+        return sv_2mortal(newSVpv(sqlite3_version, 0));
+    }
+    if (strEQ(key, "sqlite_allow_multiple_statements")) {
+        return sv_2mortal(newSViv(imp_dbh->allow_multiple_statements ? 1 : 0));
     }
    if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
        sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
-       return newSViv(0);
+       return sv_2mortal(newSViv(0));
 #else
-       return newSViv(imp_dbh->unicode ? 1 : 0);
+       return sv_2mortal(newSViv(imp_dbh->unicode ? 1 : 0));
 #endif
    }
    if (strEQ(key, "unicode")) {
         warn("\"unicode\" attribute will be deprecated. Use \"sqlite_unicode\" instead.");
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
        sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
-       return newSViv(0);
+       return sv_2mortal(newSViv(0));
 #else
-       return newSViv(imp_dbh->unicode ? 1 : 0);
+       return sv_2mortal(newSViv(imp_dbh->unicode ? 1 : 0));
 #endif
    }
 
@@ -440,6 +448,12 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
             }
         }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
+    }
+    if (&extra) {
+        imp_sth->unprepared_statements = extra;
+    }
+    else {
+        imp_sth->unprepared_statements = NULL;
     }
 
     DBIc_NUM_PARAMS(imp_sth) = sqlite3_bind_parameter_count(imp_sth->stmt);
@@ -817,6 +831,10 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     croak_if_db_is_null();
     croak_if_stmt_is_null();
 
+    if (strEQ(key, "sqlite_unprepared_statements")) {
+        return sv_2mortal(newSVpv(imp_sth->unprepared_statements, 0));
+    }
+
     if (!DBIc_ACTIVE(imp_sth)) {
         return NULL;
     }
@@ -890,6 +908,9 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     }
     else if (strEQ(key, "NUM_OF_FIELDS")) {
         retsv = sv_2mortal(newSViv(i));
+    }
+    else if (strEQ(key, "NUM_OF_PARAMS")) {
+        retsv = sv_2mortal(newSViv(sqlite3_bind_parameter_count(imp_sth->stmt)));
     }
 
     return retsv;

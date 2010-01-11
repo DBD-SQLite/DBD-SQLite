@@ -10,7 +10,7 @@ use vars qw{$err $errstr $drh $sqlite_version};
 use vars qw{%COLLATION};
 
 BEGIN {
-    $VERSION = '1.29';
+    $VERSION = '1.30_01';
     @ISA     = 'DynaLoader';
 
     # Initialize errors
@@ -168,6 +168,24 @@ sub prepare {
     DBD::SQLite::st::_prepare($sth, $sql, @_) or return undef;
 
     return $sth;
+}
+
+sub do {
+    my ($dbh, $statement, $attr, @bind_values) = @_;
+
+    my @copy = @{[@bind_values]};
+
+    my $rows = 0;
+    while ($statement) {
+        my $sth = $dbh->prepare($statement, $attr) or return undef;
+        $sth->execute(splice @copy, 0, $sth->{NUM_OF_PARAMS}) or return undef;
+        $rows += $sth->rows;
+        # XXX: not sure why but $dbh->{sqlite...} wouldn't work here
+        last unless $dbh->FETCH('sqlite_allow_multiple_statements');
+        $statement = $sth->{sqlite_unprepared_statements};
+    }
+    # always return true if no error
+    return ($rows == 0) ? "0E0" : $rows;
 }
 
 sub _get_version {
@@ -826,6 +844,12 @@ This C<AutoCommit> mode is independent from the autocommit mode
 of the internal SQLite library, which always begins by a C<BEGIN>
 statement, and ends by a C<COMMIT> or a <ROLLBACK>.
 
+=head2 Processing Multiple Statements At A Time
+
+L<DBI>'s statement handle is not supposed to process multiple statements at a time. So if you pass a string that contains multiple statements (a C<dump>) to a statement handle (via C<prepare> or C<do>), L<DBD::SQLite> only processes the first statement, and discards the rest.
+
+Since 1.30_01, you can retrieve those ignored (unprepared) statements via C<< $sth->{sqlite_unprepared_statements} >>. It usually contains nothing but white spaces, but if you really care, you can check this attribute to see if there's anything left undone. Also, if you set a C<sqlite_allow_multiple_statements> attribute of a database handle to true when you connect to a database, C<do> method automatically checks the C<sqlite_unprepared_statements> attribute, and if it finds anything undone (even if what's left is just a single white space), it repeats the process again, to the end.
+
 =head2 Performance
 
 SQLite is fast, very fast. Matt processed my 72MB log file with it,
@@ -902,6 +926,20 @@ Defining the column type as C<BLOB> in the DDL is B<not> sufficient.
 This attribute was originally named as C<unicode>, and renamed to
 C<sqlite_unicode> for integrity since version 1.26_06. Old C<unicode>
 attribute is still accessible but will be deprecated in the near future.
+
+=item sqlite_allow_multiple_statements
+
+If you set this to true, C<do> method will process multiple statements at one go. This may be handy, but with performance penalty. See above for details.
+
+=back
+
+=head2 Statement Handle Attributes
+
+=over 4
+
+=item sqlite_unprepared_statements
+
+Returns an unprepared part of the statement you pass to C<prepare>. Typically this contains nothing but white spaces after a semicolon. See above for details.
 
 =back
 

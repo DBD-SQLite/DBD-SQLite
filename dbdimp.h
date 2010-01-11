@@ -29,6 +29,7 @@ struct imp_dbh_st {
     AV *functions;
     AV *aggregates;
     SV *collation_needed_callback;
+    bool allow_multiple_statements;
 };
 
 /* Statement Handle */
@@ -44,6 +45,7 @@ struct imp_sth_st {
     int nrow;
     AV *params;
     AV *col_types;
+    char *unprepared_statements;
 };
 
 #define dbd_init                sqlite_init
