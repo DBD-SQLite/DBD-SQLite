@@ -34,14 +34,14 @@ plan tests => 21;
 	# "sqlite_unprepared_statements" attributes.
 	my $dbh = connect_ok(
 		RaiseError => 1,
-		sqlite_allows_multiple_statements => 1,
+		sqlite_allow_multiple_statements => 1,
 	);
-	ok $dbh->{sqlite_allows_multiple_statements}, "allows multiple statements";
+	ok $dbh->{sqlite_allow_multiple_statements}, "allows multiple statements";
 	eval { $dbh->do(q/
 		create table foo (id integer);
 		insert into foo (id) values (1);
 		insert into foo (id) values (2);
-	/, { sqlite_allows_multiple_statements => 1 })};
+	/, { sqlite_allow_multiple_statements => 1 })};
 	ok !$@, "do succeeds anyway";
 	diag $@ if $@;
 
@@ -54,9 +54,9 @@ plan tests => 21;
 	# Do it more explicitly
 	my $dbh = connect_ok(
 		RaiseError => 1,
-		sqlite_allows_multiple_statements => 1,
+		sqlite_allow_multiple_statements => 1,
 	);
-	ok $dbh->{sqlite_allows_multiple_statements}, "allows multiple statements";
+	ok $dbh->{sqlite_allow_multiple_statements}, "allows multiple statements";
 	my $statement = q/
 		create table foo (id integer);
 		insert into foo (id) values (1);
@@ -83,9 +83,9 @@ plan tests => 21;
 	# Placeholders
 	my $dbh = connect_ok(
 		RaiseError => 1,
-		sqlite_allows_multiple_statements => 1,
+		sqlite_allow_multiple_statements => 1,
 	);
-	ok $dbh->{sqlite_allows_multiple_statements}, "allows multiple statements";
+	ok $dbh->{sqlite_allow_multiple_statements}, "allows multiple statements";
 	eval { $dbh->do(q/
 		create table foo (id integer);
 		insert into foo (id) values (?);
@@ -103,9 +103,9 @@ plan tests => 21;
 	# Do it more explicitly
 	my $dbh = connect_ok(
 		RaiseError => 1,
-		sqlite_allows_multiple_statements => 1,
+		sqlite_allow_multiple_statements => 1,
 	);
-	ok $dbh->{sqlite_allows_multiple_statements}, "allows multiple statements";
+	ok $dbh->{sqlite_allow_multiple_statements}, "allows multiple statements";
 	my $statement = q/
 		create table foo (id integer);
 		insert into foo (id) values (?);
