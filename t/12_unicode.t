@@ -13,7 +13,7 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => 19 );
+		plan( tests => 26 );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -103,6 +103,23 @@ SCOPE: {
 	)
 	or
 	warn "($lengths->[0]->[0] != $lengths->[0]->[1])";
+}
+
+# Test that passing a string with the utf-8 flag on is handled properly in a BLOB field
+SCOPE: {
+	my $dbh = connect_ok( dbfile => 'foo' );
+
+	ok( utf8::upgrade($bytestring), 'bytestring upgraded to utf-8' );
+	ok( utf8::is_utf8($bytestring), 'bytestring has utf-8 flag' );
+
+	($textback, $bytesback) = database_roundtrip($dbh, $utfstring, $bytestring);
+	ok( $bytesback eq $bytestring, 'No blob corruption with utf-8 flag on' );
+
+	ok( utf8::downgrade($bytestring), 'bytestring downgraded to bytes' );
+	ok( !utf8::is_utf8($bytestring), 'bytestring does not have utf-8 flag' );
+
+	($textback, $bytesback) = database_roundtrip($dbh, $utfstring, $bytestring);
+	ok( $bytesback eq $bytestring, 'No blob corruption with utf-8 flag off' );
 }
 
 sub database_roundtrip {
