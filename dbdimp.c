@@ -523,7 +523,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         }
         else if (sql_type == SQL_BLOB) {
             STRLEN len;
-            char * data = SvPV(value, len);
+            char * data = SvPVbyte(value, len);
             rc = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
         }
         else {
