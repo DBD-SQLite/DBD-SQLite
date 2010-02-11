@@ -834,11 +834,11 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     if (strEQ(key, "sqlite_unprepared_statements")) {
         return sv_2mortal(newSVpv(imp_sth->unprepared_statements, 0));
     }
-
+/*
     if (!DBIc_ACTIVE(imp_sth)) {
         return NULL;
     }
-
+*/
     /* warn("fetch: %s\n", key); */
 
     i = DBIc_NUM_FIELDS(imp_sth);
