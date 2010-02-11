@@ -753,13 +753,19 @@ This is somewhat weird, but works anyway.
 
 =head2 Placeholders
 
-SQLite supports several placeholder expressions, including C<?> and C<:AAAA>. Consult the L<DBI> and sqlite documentation for details. 
+SQLite supports several placeholder expressions, including C<?>
+and C<:AAAA>. Consult the L<DBI> and sqlite documentation for
+details. 
 
 L<http://www.sqlite.org/lang_expr.html#varparam>
 
-Note that a question mark actually means a next unused (numbered) placeholder. You're advised not to use it with other (numbered or named) placeholders to avoid confusion.
+Note that a question mark actually means a next unused (numbered)
+placeholder. You're advised not to use it with other (numbered or
+named) placeholders to avoid confusion.
 
-  my $sth = $dbh->prepare('update TABLE set a=?1 where b=?2 and a IS NOT ?1');
+  my $sth = $dbh->prepare(
+    'update TABLE set a=?1 where b=?2 and a IS NOT ?1'
+  );
   $sth->execute(1, 2); 
 
 =head2 Foreign Keys
@@ -860,13 +866,25 @@ statement, and ends by a C<COMMIT> or a <ROLLBACK>.
 
 =head2 Processing Multiple Statements At A Time
 
-L<DBI>'s statement handle is not supposed to process multiple statements at a time. So if you pass a string that contains multiple statements (a C<dump>) to a statement handle (via C<prepare> or C<do>), L<DBD::SQLite> only processes the first statement, and discards the rest.
+L<DBI>'s statement handle is not supposed to process multiple
+statements at a time. So if you pass a string that contains multiple
+statements (a C<dump>) to a statement handle (via C<prepare> or C<do>),
+L<DBD::SQLite> only processes the first statement, and discards the
+rest.
 
-Since 1.30_01, you can retrieve those ignored (unprepared) statements via C<< $sth->{sqlite_unprepared_statements} >>. It usually contains nothing but white spaces, but if you really care, you can check this attribute to see if there's anything left undone. Also, if you set a C<sqlite_allow_multiple_statements> attribute of a database handle to true when you connect to a database, C<do> method automatically checks the C<sqlite_unprepared_statements> attribute, and if it finds anything undone (even if what's left is just a single white space), it repeats the process again, to the end.
+Since 1.30_01, you can retrieve those ignored (unprepared) statements
+via C<< $sth->{sqlite_unprepared_statements} >>. It usually contains
+nothing but white spaces, but if you really care, you can check this
+attribute to see if there's anything left undone. Also, if you set
+a C<sqlite_allow_multiple_statements> attribute of a database handle
+to true when you connect to a database, C<do> method automatically
+checks the C<sqlite_unprepared_statements> attribute, and if it finds
+anything undone (even if what's left is just a single white space),
+it repeats the process again, to the end.
 
 =head2 Performance
 
-SQLite is fast, very fast. Matt processed my 72MB log file with it,
+SQLite is fast, very fast. Matt processed his 72MB log file with it,
 inserting the data (400,000+ rows) by using transactions and only
 committing every 1000 rows (otherwise the insertion is quite slow),
 and then performing queries on the data.
@@ -943,7 +961,9 @@ attribute is still accessible but will be deprecated in the near future.
 
 =item sqlite_allow_multiple_statements
 
-If you set this to true, C<do> method will process multiple statements at one go. This may be handy, but with performance penalty. See above for details.
+If you set this to true, C<do> method will process multiple
+statements at one go. This may be handy, but with performance
+penalty. See above for details.
 
 =back
 
@@ -953,7 +973,9 @@ If you set this to true, C<do> method will process multiple statements at one go
 
 =item sqlite_unprepared_statements
 
-Returns an unprepared part of the statement you pass to C<prepare>. Typically this contains nothing but white spaces after a semicolon. See above for details.
+Returns an unprepared part of the statement you pass to C<prepare>.
+Typically this contains nothing but white spaces after a semicolon.
+See above for details.
 
 =back
 
@@ -1279,7 +1301,8 @@ is the name of the table containing the affected row;
 
 =item $rowid
 
-is the unique 64-bit signed integer key of the affected row within that table.
+is the unique 64-bit signed integer key of the affected row within
+that table.
 
 =back
 
