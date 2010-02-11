@@ -983,6 +983,9 @@ See above for details.
 
 =head1 METHODS
 
+See also to the L<DBI> documentation for the details of other common
+methods.
+
 =head2 table_info
 
   $sth = $dbh->table_info(undef, $schema, $table, $type, \%attr);
@@ -1006,6 +1009,17 @@ B<TABLE_NAME>: The name of the table or view.
 
 B<TABLE_TYPE>: The type of object returned. Will be one of 'TABLE', 'VIEW',
 'LOCAL TEMPORARY' or 'SYSTEM TABLE'.
+
+=head2 primary_key, primary_key_info
+
+  @names = $dbh->primary_key(undef, $schema, $table);
+  $sth   = $dbh->primary_key_info(undef, $schema, $table, \%attr);
+
+You can retrieve primary key names or more detailed information.
+As noted above, SQLite does not have the concept of catalogs, so the
+first argument of the mothods is usually C<undef>, and you'll usually
+set C<undef> for the second one (unless you want to know the primary
+keys of temporary tables).
 
 =head1 DRIVER PRIVATE METHODS
 
