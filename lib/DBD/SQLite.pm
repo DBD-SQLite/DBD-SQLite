@@ -587,6 +587,8 @@ __END__
 
 =pod
 
+=encoding utf-8
+
 =head1 NAME
 
 DBD::SQLite - Self-contained RDBMS in a DBI Driver
