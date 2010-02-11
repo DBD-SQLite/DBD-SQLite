@@ -9,10 +9,14 @@ Changes for Perl extension DBD-SQLite
     - Implemented NUM_OF_PARAMS statement handle attribute (ISHIGAKI)
     - Added experimental "sqlite_allow_multiple_statements"
       database handle attribute, and "sqlite_unprepared_statements"
-      statement handle attribute, to allow processing a SQL dump
+      statement handle attribute, to allow processing a SQL dump.
       (ISHIGAKI)
     - Resolved #53579: Added a note and a test of placeholders.
       (ISHIGAKI)
+    - Resolved #45113, which was actually an issue of dequoting
+      primary key column names (ISHIGAKI)
+    - You can now retrieve some of the statement handle attributes
+      before you execute. (ISHIGAKI)
 
 1.29 Fri  8 Jan 2010
     - Updated to SQLite 3.6.22 (DUNCAND)
