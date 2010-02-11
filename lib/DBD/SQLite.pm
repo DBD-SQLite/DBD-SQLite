@@ -748,6 +748,17 @@ This is somewhat weird, but works anyway.
 
 =back
 
+=head2 Placeholders
+
+SQLite supports several placeholder expressions, including C<?> and C<:AAAA>. Consult the L<DBI> and sqlite documentation for details. 
+
+L<http://www.sqlite.org/lang_expr.html#varparam>
+
+Note that a question mark actually means a next unused (numbered) placeholder. You're advised not to use it with other (numbered or named) placeholders to avoid confusion.
+
+  my $sth = $dbh->prepare('update TABLE set a=?1 where b=?2 and a IS NOT ?1');
+  $sth->execute(1, 2); 
+
 =head2 Foreign Keys
 
 B<BE PREPARED! WOLVES APPROACH!!>
