@@ -360,6 +360,7 @@ sub primary_key_info {
         }
         my $key_seq = 0;
         foreach my $pk_field (@pk) {
+            $pk_field =~ s/(["'`])(.+)\1/$2/; # dequote
             push @pk_info, {
                 TABLE_SCHEM => $row->{TABLE_SCHEM},
                 TABLE_NAME  => $row->{TABLE_NAME},
