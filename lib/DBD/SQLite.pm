@@ -337,13 +337,15 @@ END_SQL
 }
 
 sub primary_key_info {
-    my ($dbh, $catalog, $schema, $table) = @_;
+    my ($dbh, $catalog, $schema, $table, $attr) = @_;
 
     # Escape the schema and table name
     $schema =~ s/([\\_%])/\\$1/g if defined $schema;
     my $escaped = $table;
     $escaped =~ s/([\\_%])/\\$1/g;
-    my $sth_tables = $dbh->table_info($catalog, $schema, $escaped, undef, {Escape => '\\'});
+    $attr ||= {};
+    $attr->{Escape} = '\\';
+    my $sth_tables = $dbh->table_info($catalog, $schema, $escaped, undef, $attr);
 
     # This is a hack but much simpler than using pragma index_list etc
     # also the pragma doesn't list 'INTEGER PRIMARY KEY' autoinc PKs!
@@ -830,7 +832,7 @@ the corresponding statements.
 
 =item When the AutoCommit flag is off
 
-You're supposed to always use the transactinal mode, until you
+You're supposed to always use the transactional mode, until you
 explicitly turn on the AutoCommit flag. You can explicitly issue
 a C<BEGIN> statement (only when an actual transaction has not
 begun yet) but you're not allowed to call C<begin_work> method
