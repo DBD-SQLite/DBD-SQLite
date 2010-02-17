@@ -323,6 +323,46 @@ package MY;
 use Config;
 
 sub postamble {
+	foreach my $file (qw/sqlite3.h sqlite3.c/) {
+		(my $pm = $file) =~ tr/./_/;
+		print "generating lib/DBD/SQLite/$pm.pm\n";
+		open my $fh, '>', "lib/DBD/SQLite/$pm.pm" or die $!;
+		print $fh <<"EOT";
+package DBD::SQLite::$pm;
+
+use strict;
+our \$CODE = do { local \$/; <DATA> };
+
+sub get {
+	my (\$class, \$file, \$out) = \@_;
+	my \$got;
+	if (\$file) {
+		(\$got) = \$CODE =~ m{(
+			/\\*+[ ]Begin[ ]file[ ]\$file[ ]\\*+
+			.+?
+			/\\*+[ ]End[ ]of[ ]\$file[ ]\\*+/
+		)}sx;
+	}
+	else {
+		\$got = \$CODE;
+	}
+	if (\$got && \$out) {
+		open my \$fh, '>', \$out or die \$!;
+		print \$fh \$got;
+	}
+	return \$got ? \$got : '';
+}
+
+1;
+\__DATA__
+EOT
+		print $fh do {
+			local $/;
+			open my $in, '<', $file or die $!;
+			<$in>;
+		};
+	}
+
 	require DBI;
 	require DBI::DBD;
 	eval {
