@@ -17,6 +17,9 @@ Changes for Perl extension DBD-SQLite
       primary key column names (ISHIGAKI)
     - You can now retrieve some of the statement handle attributes
       before you execute. (ISHIGAKI)
+    - Added preamble to generate ::sqlite3_[hc] modules to allow
+      extension authors to use the same C source/header as they
+      used to build DBD::SQLite itself. (ISHIGAKI)
 
 1.29 Fri  8 Jan 2010
     - Updated to SQLite 3.6.22 (DUNCAND)
