@@ -45,7 +45,7 @@ struct imp_sth_st {
     int nrow;
     AV *params;
     AV *col_types;
-    char *unprepared_statements;
+    const char *unprepared_statements;
 };
 
 #define dbd_init                sqlite_init

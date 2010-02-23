@@ -565,7 +565,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     }
 
     if (sqlite3_get_autocommit(imp_dbh->db)) {
-        char *sql = sqlite3_sql(imp_sth->stmt);
+        const char *sql = sqlite3_sql(imp_sth->stmt);
         if ((sql[0] == 'B' || sql[0] == 'b') &&
             (sql[1] == 'E' || sql[1] == 'e') &&
             (sql[2] == 'G' || sql[2] == 'g') &&
@@ -585,7 +585,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         }
     }
     else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
-        char *sql = sqlite3_sql(imp_sth->stmt);
+        const char *sql = sqlite3_sql(imp_sth->stmt);
         if (((sql[0] == 'C' || sql[0] == 'c') &&
              (sql[1] == 'O' || sql[1] == 'o') &&
              (sql[2] == 'M' || sql[2] == 'm') &&
