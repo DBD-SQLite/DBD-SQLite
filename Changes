@@ -6,6 +6,7 @@ Changes for Perl extension DBD-SQLite
       corrupts BLOB data; now BLOB data is always stored as bytes
       (without the utf-8 flag) even if it has the flag set (ISHIGAKI)
 
+    - Updated to SQLite 3.6.23 (DUNCAND)
     - Implemented NUM_OF_PARAMS statement handle attribute (ISHIGAKI)
     - Added experimental "sqlite_allow_multiple_statements"
       database handle attribute, and "sqlite_unprepared_statements"
