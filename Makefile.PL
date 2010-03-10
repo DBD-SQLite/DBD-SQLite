@@ -322,9 +322,11 @@ sub postamble {
 	};
 	my $S = $^O eq 'MSWin32' ? '\\' : '/';  # only Win32 (not cygwin)
 	my $share = "\$(INST_LIB)${S}auto${S}share${S}dist${S}\$(DISTNAME)";
+	my $perm_dir = $ExtUtils::MakeMaker::VERSION >= 6.52 ? '$(PERM_DIR)' : '755';
 	$postamble .= <<"SHARE";
 config ::
 \t\$(NOECHO) \$(MKPATH) "$share"
+\t\$(NOECHO) \$(CHMOD) $perm_dir "$share"
 \t\$(NOECHO) \$(CP) "sqlite3.c" "$share${S}sqlite3.c"
 \t\$(NOECHO) \$(CP) "sqlite3.h" "$share${S}sqlite3.h"
 SHARE
