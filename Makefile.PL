@@ -190,46 +190,6 @@ if ( 0 ) {
 
 @ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
-foreach my $file (qw/sqlite3.h sqlite3.c/) {
-	(my $pm = $file) =~ tr/./_/;
-	print "generating lib/DBD/SQLite/$pm.pm\n";
-	open my $fh, '>', "lib/DBD/SQLite/$pm.pm" or die $!;
-	print $fh <<"EOT";
-package DBD::SQLite::$pm;
-
-use strict;
-our \$CODE = do { local \$/; <DATA> };
-
-sub get {
-	my (\$class, \$file, \$out) = \@_;
-	my \$got;
-	if (\$file) {
-		(\$got) = \$CODE =~ m{(
-			/\\*+[ ]Begin[ ]file[ ]\$file[ ]\\*+
-			.+?
-			/\\*+[ ]End[ ]of[ ]\$file[ ]\\*+/
-		)}sx;
-	}
-	else {
-		\$got = \$CODE;
-	}
-	if (\$got && \$out) {
-		open my \$fh, '>', \$out or die \$!;
-		print \$fh \$got;
-	}
-	return \$got ? \$got : '';
-}
-
-1;
-\__DATA__
-EOT
-	print $fh do {
-		local $/;
-		open my $in, '<', $file or die $!;
-		<$in>;
-	};
-}
-
 #####################################################################
 # Prepare Compiler Options
 
@@ -274,10 +234,6 @@ my @CC_OPTIONS = (
 		LIBS => join( ' ', @CC_LIBS )
 	) : () ),
 );
-
-
-
-
 
 #####################################################################
 # Hand off to ExtUtils::MakeMaker
@@ -361,9 +317,19 @@ use Config;
 sub postamble {
 	require DBI;
 	require DBI::DBD;
-	eval {
+	my $postamble = eval {
 		DBI::DBD::dbd_postamble(@_)
 	};
+	my $S = $^O eq 'MSWin32' ? '\\' : '/';  # only Win32 (not cygwin)
+	my $share = "\$(INST_LIB)${S}auto${S}share${S}dist${S}\$(DISTNAME)";
+	$postamble .= <<"SHARE";
+config ::
+\t\$(NOECHO) \$(MKPATH) "$share"
+\t\$(NOECHO) \$(CHMOD) \$(PERM_DIR) "$share"
+\t\$(NOECHO) \$(CP) "sqlite3.c" "$share${S}sqlite3.c"
+\t\$(NOECHO) \$(CP) "sqlite3.h" "$share${S}sqlite3.h"
+SHARE
+	return $postamble;
 }
 
 sub libscan {

@@ -1601,23 +1601,31 @@ need to call the L</create_collation> method directly.
 Since 1.30_01, you can retrieve the bundled sqlite C source and/or
 header like this:
 
-  use DBD::SQLite::sqlite3_h;
-  use DBD::SQLite::sqlite3_c;
+  use File::ShareDir 'dist_dir';
+  use File::Spec::Functions 'catfile';
   
-  # the whole sqlite3_h header
-  my $sqlite3_h = DBD::SQLite::sqlite3_h->get;  # the whole header
+  # the whole sqlite3.h header
+  my $sqlite3_h = catfile(dist_dir('DBD-SQLite'), 'sqlite3.h');
   
   # or only a particular header, amalgamated in sqlite3.c
-  my $parse_h = DBD::SQLite::sqlite3_c->get('parse.h');
-  
-  # you even write it to a file (if 'include' directory exists).
-  DBD::SQLite::sqlite3_c->get('parse.h' => 'include/parse.h');
+  my $what_i_want = 'parse.h';
+  my $sqlite3_c = catfile(dist_dir('DBD-SQLite'), 'sqlite3.c');
+  open my $fh, '<', $sqlite3_c or die $!;
+  my $code = do { local $/; <$fh> };
+  my ($parse_h) = $code =~ m{(
+    /\*+[ ]Begin[ ]file[ ]$what_i_want[ ]\*+
+    .+?
+    /\*+[ ]End[ ]of[ ]$what_i_want[ ]\*+/
+  )}sx;
+  open my $out, '>', $what_i_want or die $!;
+  print $out $parse_h;
+  close $out;
 
-You usually want to use this feature in your extension's C<Makefile.PL>,
+You usually want to use this in your extension's C<Makefile.PL>,
 and you may want to add DBD::SQLite to your extension's C<CONFIGURE_REQUIRES>
-to allow your extension users to use the same C source/header they
-use to build DBD::SQLite itself (instead of the ones installed
-in their system).
+to ensure your extension users use the same C source/header they use
+to build DBD::SQLite itself (instead of the ones installed in their
+system).
 
 =head1 TO DO
 
