@@ -12,7 +12,7 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 9 * @CALL_FUNCS + 1;
+plan tests => 10 * @CALL_FUNCS + 1;
 
 my $show_diag = 0;
 foreach my $call_func (@CALL_FUNCS) {
@@ -21,6 +21,12 @@ foreach my $call_func (@CALL_FUNCS) {
 	SCOPE: {
 		my $dbh = connect_ok();
 		ok( $dbh->{sqlite_version}, '->{sqlite_version} ok' );
+		my $version = $dbh->{sqlite_version};
+		is(
+			$dbh->{sqlite_source},
+			"http://sqlite.org/sqlite-amalgamation.$version.tar.gz",
+			'->{sqlite_source} ok',
+		);
 		is( $dbh->{AutoCommit}, 1, 'AutoCommit is on by default' );
 		diag("sqlite_version=$dbh->{sqlite_version}") unless $show_diag++;
 		ok( $dbh->$call_func('busy_timeout'), 'Found initial busy_timeout' );

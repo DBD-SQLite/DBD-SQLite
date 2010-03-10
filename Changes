@@ -21,6 +21,10 @@ Changes for Perl extension DBD-SQLite
     - Added preamble to generate ::sqlite3_[hc] modules to allow
       extension authors to use the same C source/header as they
       used to build DBD::SQLite itself. (ISHIGAKI)
+    - The preamble was subsequently moved as too heavy. Instead
+      extension authors should check the $dbh->{sqlite_source}
+      attribute instead for the location of the source code used
+      to build DBD::SQLite with (ADAMK)
 
 1.29 Fri  8 Jan 2010
     - Updated to SQLite 3.6.22 (DUNCAND)
