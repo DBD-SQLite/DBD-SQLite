@@ -26,11 +26,14 @@ BEGIN {
 
 __PACKAGE__->bootstrap($VERSION);
 
+# New or old API?
+use constant NEWAPI => ($DBI::VERSION >= 1.608);
+
 tie %COLLATION, 'DBD::SQLite::_WriteOnceHash';
 $COLLATION{perl}       = sub { $_[0] cmp $_[1] };
 $COLLATION{perllocale} = sub { use locale; $_[0] cmp $_[1] };
 
-my $methods_are_installed;
+my $methods_are_installed = 0;
 
 sub driver {
     return $drh if $drh;
@@ -60,6 +63,7 @@ sub driver {
         Version     => $VERSION,
         Attribution => 'DBD::SQLite by Matt Sergeant et al',
     } );
+
     return $drh;
 }
 
@@ -116,15 +120,14 @@ sub connect {
     # Hand off to the actual login function
     DBD::SQLite::db::_login($dbh, $real, $user, $auth, $attr) or return undef;
 
-    # Register the on-demand collation installer
-    $DBI::VERSION >= 1.608
-      ? $dbh->sqlite_collation_needed(\&install_collation)
-      : $dbh->func(\&install_collation, "collation_needed");
-
-    # Register the REGEXP function
-    $DBI::VERSION >= 1.608
-      ? $dbh->sqlite_create_function("REGEXP", 2, \&regexp)
-      : $dbh->func("REGEXP", 2, \&regexp, "create_function");
+    # Register the on-demand collation installer and REGEXP function
+    if ( DBD::SQLite::NEWAPI ) {
+        $dbh->sqlite_collation_needed( \&install_collation );
+        $dbh->sqlite_create_function( "REGEXP", 2, \&regexp );
+    } else {
+        $dbh->func( \&install_collation, "collation_needed"  );
+        $dbh->func( "REGEXP", 2, \&regexp, "create_function" );
+    }
 
     # HACK: Since PrintWarn = 0 doesn't seem to actually prevent warnings
     # in DBD::SQLite we set Warn to false if PrintWarn is false.
@@ -135,14 +138,16 @@ sub connect {
     return $dbh;
 }
 
-
 sub install_collation {
-    my ($dbh, $collation_name) = @_;
-    my $collation = $DBD::SQLite::COLLATION{$collation_name}
-        or die "can't install, unknown collation : $collation_name";
-    $DBI::VERSION >= 1.608
-        ? $dbh->sqlite_create_collation($collation_name => $collation)
-        : $dbh->func($collation_name => $collation, "create_collation");
+    my $dbh       = shift;
+    my $name      = shift;
+    my $collation = $DBD::SQLite::COLLATION{$name}
+        or die "can't install, unknown collation : $name";
+    if ( DBD::SQLite::NEWAPI ) {
+        $dbh->sqlite_create_collation( $name => $collation );
+    } else {
+        $dbh->func( $name => $collation, "create_collation" );
+    }
 }
 
 # default implementation for sqlite 'REGEXP' infix operator.
@@ -152,7 +157,6 @@ sub regexp {
     use locale;
     return scalar($_[1] =~ $_[0]);
 }
-
 
 package DBD::SQLite::db;
 
@@ -174,8 +178,8 @@ sub do {
     my ($dbh, $statement, $attr, @bind_values) = @_;
 
     my @copy = @{[@bind_values]};
-
     my $rows = 0;
+
     while ($statement) {
         my $sth = $dbh->prepare($statement, $attr) or return undef;
         $sth->execute(splice @copy, 0, $sth->{NUM_OF_PARAMS}) or return undef;
@@ -184,6 +188,7 @@ sub do {
         last unless $dbh->FETCH('sqlite_allow_multiple_statements');
         $statement = $sth->{sqlite_unprepared_statements};
     }
+
     # always return true if no error
     return ($rows == 0) ? "0E0" : $rows;
 }
@@ -381,8 +386,8 @@ sub primary_key_info {
         NUM_OF_FIELDS => scalar @names,
         NAME          => \@names,
     }) or return $dbh->DBI::set_err(
-        $sponge->err(),
-        $sponge->errstr()
+        $sponge->err,
+        $sponge->errstr,
     );
     return $sth;
 }

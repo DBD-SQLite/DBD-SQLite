@@ -287,7 +287,7 @@ WriteMakefile(
 	ABSTRACT         => 'Self Contained SQLite RDBMS in a DBI Driver',
 	VERSION_FROM     => 'lib/DBD/SQLite.pm',
 	AUTHOR           => 'Adam Kennedy <adamk@cpan.org>',
-		# Release manager (can this be an array?)
+	# Release manager (can this be an array?)
 	PREREQ_PM        => {
 		'Tie::Hash'        => 0,
 		'File::Spec'       => (WINLIKE ? '3.27' : '0.82'),
