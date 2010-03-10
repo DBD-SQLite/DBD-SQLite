@@ -325,7 +325,6 @@ sub postamble {
 	$postamble .= <<"SHARE";
 config ::
 \t\$(NOECHO) \$(MKPATH) "$share"
-\t\$(NOECHO) \$(CHMOD) \$(PERM_DIR) "$share"
 \t\$(NOECHO) \$(CP) "sqlite3.c" "$share${S}sqlite3.c"
 \t\$(NOECHO) \$(CP) "sqlite3.h" "$share${S}sqlite3.h"
 SHARE
