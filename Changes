@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.30_02 to be released
+    - Implemented sqlite_use_immediate_transaction database handle
+      attribute to avoid deadlocks easily (ISHIGAKI)
+
 1.30_01 Wed  10 Mar 2010
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #54271: Inserting a string with utf-8 flag on

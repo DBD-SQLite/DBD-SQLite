@@ -163,6 +163,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->timeout                   = SQL_TIMEOUT;
     imp_dbh->handle_binary_nulls       = FALSE;
     imp_dbh->allow_multiple_statements = FALSE;
+    imp_dbh->use_immediate_transaction = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
@@ -345,6 +346,10 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         imp_dbh->allow_multiple_statements = !(! SvTRUE(valuesv));
         return TRUE;
     }
+    if (strEQ(key, "sqlite_use_immediate_transaction")) {
+        imp_dbh->use_immediate_transaction = !(! SvTRUE(valuesv));
+        return TRUE;
+    }
     if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
         sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
@@ -379,6 +384,9 @@ sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
     if (strEQ(key, "sqlite_allow_multiple_statements")) {
         return sv_2mortal(newSViv(imp_dbh->allow_multiple_statements ? 1 : 0));
     }
+   if (strEQ(key, "sqlite_use_immediate_transaction")) {
+       return sv_2mortal(newSViv(imp_dbh->use_immediate_transaction ? 1 : 0));
+   }
    if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
        sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
@@ -578,7 +586,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         }
         else if (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
             sqlite_trace(sth, imp_sth, 3, "BEGIN TRAN");
-            rc = sqlite_exec(sth, "BEGIN TRANSACTION");
+            if (imp_dbh->use_immediate_transaction) {
+                rc = sqlite_exec(sth, "BEGIN IMMEDIATE TRANSACTION");
+            } else {
+                rc = sqlite_exec(sth, "BEGIN TRANSACTION");
+            }
             if (rc != SQLITE_OK) {
                 return -2; /* -> undef in SQLite.xsi */
             }

@@ -30,6 +30,7 @@ struct imp_dbh_st {
     AV *aggregates;
     SV *collation_needed_callback;
     bool allow_multiple_statements;
+    bool use_immediate_transaction;
 };
 
 /* Statement Handle */

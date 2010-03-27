@@ -871,6 +871,39 @@ This C<AutoCommit> mode is independent from the autocommit mode
 of the internal SQLite library, which always begins by a C<BEGIN>
 statement, and ends by a C<COMMIT> or a <ROLLBACK>.
 
+=head2 Transaction and Database Locking
+
+Transaction by C<AutoCommit> or C<begin_work> is nice and handy, but
+sometimes you may get an annoying "database is locked" error.
+This typically happens when someone begins a transaction, and tries
+to write to a database while other person is reading from the
+database (in another transaction). You might be surprised but SQLite
+doesn't lock a database when you just begin a normal (deferred)
+transaction to maximize concurrency. It reserves a lock when you
+issue a statement to write, but until you actually try to write
+with a C<commit> statement, it allows other people to read from
+the database. However, reading from the database also requires
+C<shared lock>, and that prevents to give you the C<exclusive lock>
+you reserved, thus you get the "database is locked" error, and
+other people will get the same error if they try to write afterwards,
+as you still have a C<pending> lock. C<busy_timeout> doesn't help
+in this case.
+
+To avoid this, set a transaction type explicitly. You can issue a
+C<begin immediate transaction> (or C<begin exclusive transaction>)
+for each transaction, or set C<sqlite_use_immediate_transaction>
+database handle attribute to true (since 1.30_02) to always use
+an immediate transaction (even when you simply use C<begin_work>
+or turn off the C<AutoCommit>.).
+
+  my $dbh = DBI->connect("dbi:SQLite::memory:", "", "", {
+    sqlite_use_immediate_transaction => 1,
+  });
+
+Note that this works only when all of the connections use the same
+(non-deferred) transaction. See L<http://sqlite.org/lockingv3.html>
+for locking details.
+
 =head2 Processing Multiple Statements At A Time
 
 L<DBI>'s statement handle is not supposed to process multiple
@@ -971,6 +1004,12 @@ attribute is still accessible but will be deprecated in the near future.
 If you set this to true, C<do> method will process multiple
 statements at one go. This may be handy, but with performance
 penalty. See above for details.
+
+=item sqlite_use_immediate_transaction
+
+If you set this to true, DBD::SQLite tries to issue a C<begin
+immediate transaction> (instead of C<begin transaction>) when
+necessary. See above for details.
 
 =back
 
