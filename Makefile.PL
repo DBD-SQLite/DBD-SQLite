@@ -226,6 +226,9 @@ unless ( $Config{usethreads} ) {
 if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
 	push @CC_DEFINE, '-DSQLITE_OMIT_LOAD_EXTENSION';
 }
+if ($^O eq 'darwin') {
+	push @CC_DEFINE, '-DSQLITE_ENABLE_LOCKING_STYLE=0';
+}
 
 my @CC_OPTIONS = (
 	INC          => join( ' ', @CC_INC    ),

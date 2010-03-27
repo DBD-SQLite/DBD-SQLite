@@ -5,6 +5,8 @@ Changes for Perl extension DBD-SQLite
       attribute to avoid deadlocks easily (ISHIGAKI)
     - Resolved #55466: Problem with names in DB that using square
       bracers (ISHIGAKI)
+    - Added SQLITE_ENABLE_LOCKING_STYLE=0 for Mac OSX to avoid
+      compile error (ISHIGAKI)
 
 1.30_01 Wed  10 Mar 2010
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
