@@ -10,12 +10,13 @@ use t::lib::Test qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 4 * 5 + 1;
+plan tests => 5 * 5 + 1;
 
-for my $quote ('', qw/' " `/) {
+for my $quote ('', qw/' " ` []/) {
+	my ($begin_quote, $end_quote) = (substr($quote, 0, 1), substr($quote, -1, 1));
 	my $dbh = connect_ok( RaiseError => 1 );
 	ok $dbh->do(
-		"create table ${quote}foo${quote} (${quote}id${quote} integer primary key)"
+		"create table ${begin_quote}foo${end_quote} (${begin_quote}id${end_quote} integer primary key)"
 	);
 	my $sth = $dbh->primary_key_info(undef, undef, 'foo');
 	my $pk = $sth->fetchrow_hashref;
