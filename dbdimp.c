@@ -512,7 +512,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         SV *sql_type_sv = av_shift(imp_sth->params);
         int sql_type    = SvIV(sql_type_sv);
 
-        sqlite_trace(sth, imp_sth, 4, form("params left in 0x%p: %d", imp_sth->params, 1+av_len(imp_sth->params)));
+        sqlite_trace(sth, imp_sth, 4, form("params left in 0x%p: %ld", imp_sth->params, 1+av_len(imp_sth->params)));
         sqlite_trace(sth, imp_sth, 4, form("bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
 
         if (!SvOK(value)) {
@@ -1492,7 +1492,7 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback)
 
     /* Register the func within sqlite3 */
     (void) sqlite3_collation_needed( imp_dbh->db, 
-                                     (void*) SvOK(callback) ? dbh : NULL,
+                                     (void*) (SvOK(callback) ? dbh : NULL),
                                      sqlite_db_collation_needed_dispatcher );
 }
 
