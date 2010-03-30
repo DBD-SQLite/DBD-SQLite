@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.30_02 to be released
+1.30_02 Tue 30 Mar 2010
     - Implemented sqlite_use_immediate_transaction database handle
       attribute to avoid deadlocks easily (ISHIGAKI)
     - Resolved #55466: Problem with names in DB that using square
@@ -8,12 +8,11 @@ Changes for Perl extension DBD-SQLite
     - Added SQLITE_ENABLE_LOCKING_STYLE=0 for Mac OSX to avoid
       compile error (ISHIGAKI)
 
-1.30_01 Wed  10 Mar 2010
+1.30_01 Wed 10 Mar 2010
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #54271: Inserting a string with utf-8 flag on
       corrupts BLOB data; now BLOB data is always stored as bytes
       (without the utf-8 flag) even if it has the flag set (ISHIGAKI)
-
     - Updated to SQLite 3.6.23 (DUNCAND)
     - Implemented NUM_OF_PARAMS statement handle attribute (ISHIGAKI)
     - Added experimental "sqlite_allow_multiple_statements"
