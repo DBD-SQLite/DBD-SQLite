@@ -1038,7 +1038,7 @@ methods.
 Returns all tables and schemas (databases) as specified in L<DBI/table_info>.
 The schema and table arguments will do a C<LIKE> search. You can specify an
 ESCAPE character by including an 'Escape' attribute in \%attr. The C<$type>
-argument accepts a comma seperated list of the following types 'TABLE',
+argument accepts a comma separated list of the following types 'TABLE',
 'VIEW', 'LOCAL TEMPORARY' and 'SYSTEM TABLE' (by default all are returned).
 Note that a statement handle is returned, and not a direct list of tables.
 
@@ -1101,7 +1101,7 @@ Set the current busy timeout. The timeout is in milliseconds.
 
 =head2 $dbh->sqlite_create_function( $name, $argc, $code_ref )
 
-This method will register a new function which will be useable in an SQL
+This method will register a new function which will be usable in an SQL
 query. The method's parameters are:
 
 =over
@@ -1145,7 +1145,7 @@ If you want case-insensitive searching, use perl regex flags, like this :
 
   SELECT * from table WHERE column REGEXP '(?i:\bA\w+)'
 
-The default REGEXP implementation can be overriden through the
+The default REGEXP implementation can be overridden through the
 C<create_function> API described above.
 
 Note that regexp matching will B<not> use SQLite indices, but will iterate
@@ -1153,7 +1153,7 @@ over all rows, so it could be quite costly in terms of performance.
 
 =head2 $dbh->sqlite_create_collation( $name, $code_ref )
 
-This method manually registers a new function which will be useable in an SQL
+This method manually registers a new function which will be usable in an SQL
 query as a COLLATE option for sorting. Such functions can also be registered
 automatically on demand: see section L</"COLLATION FUNCTIONS"> below.
 
