@@ -2,6 +2,8 @@ Changes for Perl extension DBD-SQLite
 
 1.30_03 to be released
     - Updated to SQLite 3.6.23.1 (ISHIGAKI)
+    - Resolved #56693: [PATCH] Fix spelling errors (patch by
+      Ansgar Burchardt) (ISHIGAKI)
 
 1.30_02 Tue 30 Mar 2010
     - Implemented sqlite_use_immediate_transaction database handle
