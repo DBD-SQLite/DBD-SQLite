@@ -781,7 +781,7 @@ named) placeholders to avoid confusion.
 B<BE PREPARED! WOLVES APPROACH!!>
 
 SQLite has started supporting foreign key constraints since 3.6.19
-(released on Oct 14, 2009; bundled with DBD::SQLite 1.26_05).
+(released on Oct 14, 2009; bundled in DBD::SQLite 1.26_05).
 To be exact, SQLite has long been able to parse a schema with foreign
 keys, but the constraints has not been enforced. Now you can issue
 a pragma actually to enable this feature and enforce the constraints.
@@ -1439,6 +1439,12 @@ sqlite3 extensions. After the call, you can load extensions like this:
   $dbh->sqlite_enable_load_extension(1);
   $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
   or die "Cannot prepare: " . $dbh->errstr();
+
+=head2 DBD::SQLite::compile_options()
+
+Returns an array reference of compile options (available since sqlite 3.6.23,
+bundled in DBD::SQLite 1.30_01), or undef if the bundled library is old or
+compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
 
 =head1 DRIVER CONSTANTS
 

@@ -205,6 +205,12 @@ MODULE = DBD::SQLite          PACKAGE = DBD::SQLite
 
 PROTOTYPES: ENABLE
 
+SV *
+compile_options()
+    CODE:
+        ST(0) = (SV*)sqlite_compile_options();
+        XSRETURN(1);
+
 static int
 OK()
     CODE:

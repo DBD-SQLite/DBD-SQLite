@@ -16,3 +16,8 @@ use_ok('DBD::SQLite');
 use_ok('t::lib::Test');
 
 diag("\$DBI::VERSION=$DBI::VERSION");
+
+if (my $compile_options = DBD::SQLite::compile_options()) {
+    diag("Compile Options:");
+    diag(join "", map { "  $_\n" } @$compile_options);
+}
