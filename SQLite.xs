@@ -205,11 +205,20 @@ MODULE = DBD::SQLite          PACKAGE = DBD::SQLite
 
 PROTOTYPES: ENABLE
 
-SV *
+static int
 compile_options()
     CODE:
-        ST(0) = (SV*)sqlite_compile_options();
-        XSRETURN(1);
+        int n = 0;
+        AV* av = (AV*)sqlite_compile_options();
+        if (av) {
+            int i;
+            n = AvFILL(av) + 1;
+            EXTEND(sp, n);
+            for (i = 0; i < n; i++) {
+                PUSHs(AvARRAY(av)[i]);
+            }
+        }
+        XSRETURN(n);
 
 static int
 OK()

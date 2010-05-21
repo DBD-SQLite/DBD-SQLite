@@ -1442,7 +1442,7 @@ sqlite3 extensions. After the call, you can load extensions like this:
 
 =head2 DBD::SQLite::compile_options()
 
-Returns an array reference of compile options (available since sqlite 3.6.23,
+Returns an array of compile options (available since sqlite 3.6.23,
 bundled in DBD::SQLite 1.30_01), or undef if the bundled library is old or
 compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
 

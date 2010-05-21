@@ -990,26 +990,23 @@ sqlite_bind_col(SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *
  * Driver Private Methods
  *-----------------------------------------------------*/
 
-SV *
+AV *
 sqlite_compile_options()
 {
     dTHX;
     int i = 0;
     const char *option;
-
-#if SQLITE_VERSION_NUMBER < 3006023
-    return &PL_sv_undef;
-#endif
-#ifdef SQLITE_OMIT_COMPILEOPTION_DIAGS
-    return &PL_sv_undef;
-#endif
-
     AV *av = newAV();
+
+#if SQLITE_VERSION_NUMBER >= 3006023
+#ifndef SQLITE_OMIT_COMPILEOPTION_DIAGS
     while(option = sqlite3_compileoption_get(i++)) {
         av_push(av, newSVpv(option, 0));
     }
+#endif
+#endif
 
-    return sv_2mortal(newRV_noinc((SV*)av));
+    return (AV*)sv_2mortal((SV*)av);
 }
 
 int
