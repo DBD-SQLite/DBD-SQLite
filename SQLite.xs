@@ -212,7 +212,7 @@ compile_options()
         AV* av = (AV*)sqlite_compile_options();
         if (av) {
             int i;
-            n = AvFILL(av) + 1;
+            n = av_len(av) + 1;
             EXTEND(sp, n);
             for (i = 0; i < n; i++) {
                 PUSHs(AvARRAY(av)[i]);
