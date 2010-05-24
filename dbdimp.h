@@ -94,6 +94,7 @@ SV* sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook );
 SV* sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook );
 SV* sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook );
 int sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer );
+AV* sqlite_compile_options();
 
 #ifdef SvUTF8_on
 

@@ -19,7 +19,7 @@ last_insert_rowid(dbh)
     CODE:
     {
         D_imp_dbh(dbh);
-        RETVAL = sqlite3_last_insert_rowid(imp_dbh->db);
+        RETVAL = (IV)sqlite3_last_insert_rowid(imp_dbh->db);
     }
     OUTPUT:
         RETVAL

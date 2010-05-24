@@ -415,7 +415,7 @@ sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, S
 
     croak_if_db_is_null();
 
-    return newSViv(sqlite3_last_insert_rowid(imp_dbh->db));
+    return newSViv((IV)sqlite3_last_insert_rowid(imp_dbh->db));
 }
 
 int
@@ -1636,7 +1636,7 @@ sqlite_db_update_dispatcher( void *callback, int op,
     XPUSHs( sv_2mortal( newSViv( op          ) ) );
     XPUSHs( sv_2mortal( newSVpv( database, 0 ) ) );
     XPUSHs( sv_2mortal( newSVpv( table,    0 ) ) );
-    XPUSHs( sv_2mortal( newSViv( rowid       ) ) );
+    XPUSHs( sv_2mortal( newSViv( (IV)rowid   ) ) );
     PUTBACK;
 
     call_sv( callback, G_VOID );
