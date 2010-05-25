@@ -1000,7 +1000,7 @@ sqlite_compile_options()
 
 #if SQLITE_VERSION_NUMBER >= 3006023
 #ifndef SQLITE_OMIT_COMPILEOPTION_DIAGS
-    while(option = sqlite3_compileoption_get(i++)) {
+    while((option = sqlite3_compileoption_get(i++))) {
         av_push(av, newSVpv(option, 0));
     }
 #endif
