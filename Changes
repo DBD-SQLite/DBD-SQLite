@@ -6,6 +6,8 @@ Changes for Perl extension DBD-SQLite
       Ansgar Burchardt) (ISHIGAKI)
     - Added compile_options() to get compile options (ISHIGAKI)
     - Fixed punctuation; suggested by Father Chrysostomos (ISHIGAKI)
+    - Ignore unknown collations, as they may be installed without
+      using DBD::SQLite's api. This should help ICU plugin. (ISHIGAKI)
 
 1.30_02 Tue 30 Mar 2010
     - Implemented sqlite_use_immediate_transaction database handle
