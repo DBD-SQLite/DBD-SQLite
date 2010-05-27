@@ -39,7 +39,7 @@ utf8::encode($koenig);
         push @got, $value;
     }
     for (my $i = 0; $i < @expected; $i++) {
-        is $expected[$i] => $got[$i], "got: $got[$i]";
+        is $got[$i] => $expected[$i], "got: $got[$i]";
     }
 }
 
@@ -61,6 +61,6 @@ utf8::encode($koenig);
         push @got, $value;
     }
     for (my $i = 0; $i < @expected; $i++) {
-        is $expected[$i] => $got[$i], "got: $got[$i]";
+        is $got[$i] => $expected[$i], "got: $got[$i]";
     }
 }
