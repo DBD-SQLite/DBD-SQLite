@@ -141,8 +141,11 @@ sub connect {
 sub install_collation {
     my $dbh       = shift;
     my $name      = shift;
-    my $collation = $DBD::SQLite::COLLATION{$name}
-        or die "can't install, unknown collation : $name";
+    my $collation = $DBD::SQLite::COLLATION{$name};
+    unless ($collation) {
+        warn "Can't install unknown collation: $name" if $dbh->{PrintWarn};
+        return;
+    }
     if ( DBD::SQLite::NEWAPI ) {
         $dbh->sqlite_create_collation( $name => $collation );
     } else {
