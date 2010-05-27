@@ -549,7 +549,7 @@ END_SQL
                 $col{IS_NULLABLE} = 'YES';
             }
 
-+            push @cols, \%col;
+            push @cols, \%col;
         }
         $sth_columns->finish;
     }
