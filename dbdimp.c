@@ -265,6 +265,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
     ** here) while closing. So we need to find other ways to do the
     ** right thing.
     */
+    /* COMPAT: sqlite3_next_stmt is only available for 3006000 or newer */
     while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
         sqlite3_finalize(pStmt);
     }
@@ -278,6 +279,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
         ** Most probably we still have unfinalized statements.
         ** Let's try to close them.
         */
+        /* COMPAT: sqlite3_next_stmt is only available for 3006000 or newer */
         while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
             sqlite3_finalize(pStmt);
         }
@@ -446,6 +448,7 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
 
     croak_if_db_is_null();
 
+    /* COMPAT: sqlite3_prepare_v2 is only available for 3003009 or newer */
     rc = sqlite3_prepare_v2(imp_dbh->db, statement, -1, &(imp_sth->stmt), &extra);
     if (rc != SQLITE_OK) {
         sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
@@ -496,6 +499,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     croak_if_db_is_null();
     croak_if_stmt_is_null();
 
+    /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
     sqlite_trace(sth, imp_sth, 3, form("executing %s", sqlite3_sql(imp_sth->stmt)));
 
     if (DBIc_ACTIVE(imp_sth)) {
@@ -573,6 +577,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     }
 
     if (sqlite3_get_autocommit(imp_dbh->db)) {
+        /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
         const char *sql = sqlite3_sql(imp_sth->stmt);
         if ((sql[0] == 'B' || sql[0] == 'b') &&
             (sql[1] == 'E' || sql[1] == 'e') &&
@@ -597,6 +602,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         }
     }
     else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
         const char *sql = sqlite3_sql(imp_sth->stmt);
         if (((sql[0] == 'C' || sql[0] == 'c') &&
              (sql[1] == 'O' || sql[1] == 'o') &&
@@ -799,6 +805,7 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
     DBIc_ACTIVE_off(imp_sth);
     if (DBIc_ACTIVE(imp_dbh)) {
         if (imp_sth->stmt) {
+            /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
             sqlite_trace(sth, imp_sth, 4, form("destroy statement: %s", sqlite3_sql(imp_sth->stmt)));
 
             croak_if_db_is_null();
@@ -1143,6 +1150,7 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 
     croak_if_db_is_null();
 
+    /* COMPAT: sqlite3_enable_load_extension is only available for 3003006 or newer */
     rc = sqlite3_enable_load_extension( imp_dbh->db, onoff );
     if ( rc != SQLITE_OK ) {
         sqlite_error(dbh, rc, form("sqlite_enable_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db)));
@@ -1766,6 +1774,7 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
         return FALSE;
     }
 
+    /* COMPAT: sqlite3_backup_* are only available for 3006011 or newer */
     pBackup = sqlite3_backup_init(imp_dbh->db, "main", pFrom, "main");
     if (pBackup) {
         (void)sqlite3_backup_step(pBackup, -1);
@@ -1803,6 +1812,7 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
         return FALSE;
     }
 
+    /* COMPAT: sqlite3_backup_* are only available for 3006011 or newer */
     pBackup = sqlite3_backup_init(pTo, "main", imp_dbh->db, "main");
     if (pBackup) {
         (void)sqlite3_backup_step(pBackup, -1);
