@@ -1761,11 +1761,12 @@ sqlite_db_set_authorizer(pTHX_ SV *dbh, SV *authorizer)
 int
 sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
 {
+    D_imp_dbh(dbh);
+
+#if SQLITE_VERSION_NUMBER >= 3006011
     int rc;
     sqlite3 *pFrom;
     sqlite3_backup *pBackup;
-
-    D_imp_dbh(dbh);
 
     croak_if_db_is_null();
 
@@ -1789,6 +1790,10 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
     }
 
     return TRUE;
+#else
+    sqlite_error(dbh, SQLITE_ERROR, form("backup feature requires SQLite 3.6.11 and newer"));
+    return FALSE;
+#endif
 }
 
 /* Accesses the SQLite Online Backup API, and copies the currently loaded
@@ -1799,11 +1804,12 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
 int
 sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
 {
+    D_imp_dbh(dbh);
+
+#if SQLITE_VERSION_NUMBER >= 3006011
     int rc;
     sqlite3 *pTo;
     sqlite3_backup *pBackup;
-
-    D_imp_dbh(dbh);
 
     croak_if_db_is_null();
 
@@ -1827,6 +1833,10 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
     }
 
     return TRUE;
+#else
+    sqlite_error(dbh, SQLITE_ERROR, form("backup feature requires SQLite 3.6.11 and newer"));
+    return FALSE;
+#endif
 }
 
 /* end */
