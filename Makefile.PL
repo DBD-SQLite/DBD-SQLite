@@ -323,16 +323,18 @@ sub postamble {
 	my $postamble = eval {
 		DBI::DBD::dbd_postamble(@_)
 	};
-	my $S = $^O eq 'MSWin32' ? '\\' : '/';  # only Win32 (not cygwin)
-	my $share = "\$(INST_LIB)${S}auto${S}share${S}dist${S}\$(DISTNAME)";
-	my $perm_dir = $ExtUtils::MakeMaker::VERSION >= 6.52 ? '$(PERM_DIR)' : '755';
-	$postamble .= <<"SHARE";
+    if (-e 'sqlite3.c' && -e 'sqlite3.h') {
+		my $S = $^O eq 'MSWin32' ? '\\' : '/';  # only Win32 (not cygwin)
+		my $share = "\$(INST_LIB)${S}auto${S}share${S}dist${S}\$(DISTNAME)";
+		my $perm_dir = $ExtUtils::MakeMaker::VERSION >= 6.52 ? '$(PERM_DIR)' : '755';
+		$postamble .= <<"SHARE";
 config ::
 \t\$(NOECHO) \$(MKPATH) "$share"
 \t\$(NOECHO) \$(CHMOD) $perm_dir "$share"
 \t\$(NOECHO) \$(CP) "sqlite3.c" "$share${S}sqlite3.c"
 \t\$(NOECHO) \$(CP) "sqlite3.h" "$share${S}sqlite3.h"
 SHARE
+	}
 	return $postamble;
 }
 
