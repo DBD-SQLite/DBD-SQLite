@@ -5,6 +5,15 @@ use warnings;
 
 use Test::More;
 use t::lib::Test qw/connect_ok @CALL_FUNCS/;
+
+BEGIN {
+	use DBD::SQLite;
+	unless ($DBD::SQLite::sqlite_version_number && $DBD::SQLite::sqlite_version_number >= 3006011) {
+		plan skip_all => "this test requires SQLite 3.6.11 and newer";
+		exit;
+	}
+}
+
 use Test::NoWarnings;
 use DBI;
 
