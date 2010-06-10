@@ -462,7 +462,11 @@ FUNCTION()
 static int
 SAVEPOINT()
     CODE:
+#if SQLITE_VERSION_NUMBER >= 3006011
         RETVAL = SQLITE_SAVEPOINT;
+#else
+		RETVAL = -1;
+#endif
     OUTPUT:
         RETVAL
 
