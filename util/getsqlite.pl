@@ -18,9 +18,9 @@ my $rv = getstore(
 die "Failed to download" if $rv != 200;
 print("done\n");
 
-rm_rf('sqlite') || rm_rf("sqlite-$version");
+rm_rf('sqlite') || rm_rf("sqlite-$version") || rm_rf("sqlite-amalgamation-$version");
 xsystem("tar zxvf sqlite.tar.gz");
-chdir("sqlite") || chdir("sqlite-$version") || die "SQLite directory not found";
+chdir("sqlite") || chdir("sqlite-$version") || chdir("sqlite-amalgamation-$version") || die "SQLite directory not found";
 
 xsystem("cp sqlite3.c ../");
 xsystem("cp sqlite3.h ../");
