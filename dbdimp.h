@@ -12,6 +12,10 @@
 /* 30 second timeout by default */
 #define SQL_TIMEOUT 30000
 
+#ifndef sqlite3_int64
+#define sqlite3_int64 sqlite_int64
+#endif
+
 /* Driver Handle */
 struct imp_drh_st {
     dbih_drc_t com;
