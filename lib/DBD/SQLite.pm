@@ -6,7 +6,7 @@ use DBI   1.57 ();
 use DynaLoader ();
 
 use vars qw($VERSION @ISA);
-use vars qw{$err $errstr $drh $sqlite_version};
+use vars qw{$err $errstr $drh $sqlite_version $sqlite_version_number};
 use vars qw{%COLLATION};
 
 BEGIN {
