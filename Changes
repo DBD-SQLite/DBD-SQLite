@@ -3,6 +3,8 @@ Changes for Perl extension DBD-SQLite
 1.30_04 to be released
     - Fixed various backward compatibility issues back to SQLite 3.6.1
       (ISHIGAKI)
+    - Resolved #58332: Documentation error for preventing fsync
+      (ISHIGAKI)
 
 1.30_03 Mon 21 May 2010
     - Updated to SQLite 3.6.23.1 (ISHIGAKI)

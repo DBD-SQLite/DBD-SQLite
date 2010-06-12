@@ -951,7 +951,7 @@ Oh yeah, and that was with no indexes on the table, on a 400MHz PIII.
 For best performance be sure to tune your hdparm settings if you
 are using linux. Also you might want to set:
 
-  PRAGMA default_synchronous = OFF
+  PRAGMA synchronous = OFF
 
 Which will prevent sqlite from doing fsync's when writing (which
 slows down non-transactional writes significantly) at the expense
