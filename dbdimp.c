@@ -124,6 +124,37 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
     }
 }
 
+static int
+sqlite_is_number(pTHX_ const char *v)
+{
+    const char *z = v;
+    int i;
+    int depth = 0;
+    double f;
+    char str[30], format[10];
+    if (*z == '+' || *z == '-') z++;
+    if (!isdigit(*z)) return 0;
+    z++;
+    while (isdigit(*z)) { z++; }
+    if (*z == '.') {
+        z++;
+        if (!isdigit(*z)) return 0;
+        while (isdigit(*z)) { depth++; z++; }
+    }
+    if (*z == 'e' || *z == 'E') {
+        z++;
+        if (*z == '+' || *z == '-') { z++; }
+        if (!isdigit(*z)) return 0;
+        while (isdigit(*z)) { z++; }
+    }
+    sprintf(str, "%i", atoi(v));
+    if (strEQ(str, v)) return 1;
+    sprintf(format, "%%.%df", depth);
+    sprintf(str, format, atof(v));
+    if (strEQ(str, v)) return 2;
+    return 0;
+}
+
 /*-----------------------------------------------------*
  * DBD Methods
  *-----------------------------------------------------*/
@@ -539,31 +570,27 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             rc = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
         }
         else {
-#if 0
-            /* stop guessing until we figure out better way to do this */
-            const int numtype = looks_like_number(value);
-            if ((numtype & (IS_NUMBER_IN_UV|IS_NUMBER_NOT_INT)) == IS_NUMBER_IN_UV) {
+            STRLEN len;
+            const char *data;
+            int numtype;
+            if (imp_dbh->unicode) {
+                sv_utf8_upgrade(value);
+            }
+            data = SvPV(value, len);
+            numtype = sqlite_is_number(aTHX_ data);
+            if (numtype == 1) {
 #if defined(USE_64_BIT_INT)
-                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
+                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atoi(data));
 #else
-                rc = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
+                rc = sqlite3_bind_int(imp_sth->stmt, i+1, atoi(data));
 #endif
             }
-            else if ((numtype & (IS_NUMBER_NOT_INT|IS_NUMBER_INFINITY|IS_NUMBER_NAN)) == IS_NUMBER_NOT_INT) {
-                rc = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
+            else if (numtype == 2) {
+                rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
             }
             else {
-#endif
-                STRLEN len;
-                char *data;
-                if (imp_dbh->unicode) {
-                    sv_utf8_upgrade(value);
-                }
-                data = SvPV(value, len);
                 rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
-#if 0
             }
-#endif
         }
 
         if (value) {
