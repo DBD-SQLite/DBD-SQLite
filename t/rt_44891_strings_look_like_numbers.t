@@ -77,7 +77,7 @@ for my $type (@types) {
                 if ($old_behavior eq $got) {
                     TODO: {
                         local $TODO = "same as the old behavior";
-                        fail "same as the old behavior: type: $typename got: $got expected: $value";
+                        fail "same as the old behavior: type: $typename got: $got expected: $value sqlite3_behavior: $sqlite3_behavior";
                     }
                 }
                 else {
