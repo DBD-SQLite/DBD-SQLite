@@ -132,6 +132,7 @@ sqlite_is_number(pTHX_ const char *v)
     int precision = 0;
     double f;
     char str[30], format[10];
+
     if (*z == '+' || *z == '-') z++;
     if (!isdigit(*z)) return 0;
     z++;
@@ -740,6 +741,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
         }
         switch(col_type) {
             case SQLITE_INTEGER:
+                sqlite_trace(sth, imp_sth, 5, form("fetch column %d as integer", i));
 #if defined(USE_64_BIT_INT)
                 sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
 #else
@@ -747,10 +749,16 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 #endif
                 break;
             case SQLITE_FLOAT:
+#if 0
+                /* fetching as float may lose precision info in the perl world */
+                sqlite_trace(sth, imp_sth, 5, form("fetch column %d as float", i));
                 sv_setnv(AvARRAY(av)[i], sqlite3_column_double(imp_sth->stmt, i));
                 break;
+#endif
             case SQLITE_TEXT:
+                sqlite_trace(sth, imp_sth, 5, form("fetch column %d as text", i));
                 val = (char*)sqlite3_column_text(imp_sth->stmt, i);
+
                 len = sqlite3_column_bytes(imp_sth->stmt, i);
                 if (chopBlanks) {
                     while((len > 0) && (val[len-1] == ' ')) {
@@ -765,11 +773,13 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 }
                 break;
             case SQLITE_BLOB:
+                sqlite_trace(sth, imp_sth, 5, form("fetch column %d as blob", i));
                 len = sqlite3_column_bytes(imp_sth->stmt, i);
                 sv_setpvn(AvARRAY(av)[i], sqlite3_column_blob(imp_sth->stmt, i), len);
                 SvUTF8_off(AvARRAY(av)[i]);
                 break;
             default:
+                sqlite_trace(sth, imp_sth, 5, form("fetch column %d as default", i));
                 sv_setsv(AvARRAY(av)[i], &PL_sv_undef);
                 SvUTF8_off(AvARRAY(av)[i]);
                 break;
