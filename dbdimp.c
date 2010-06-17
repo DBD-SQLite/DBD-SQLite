@@ -129,7 +129,7 @@ sqlite_is_number(pTHX_ const char *v)
 {
     const char *z = v;
     int i;
-    int depth = 0;
+    int precision = 0;
     double f;
     char str[30], format[10];
     if (*z == '+' || *z == '-') z++;
@@ -139,7 +139,7 @@ sqlite_is_number(pTHX_ const char *v)
     if (*z == '.') {
         z++;
         if (!isdigit(*z)) return 0;
-        while (isdigit(*z)) { depth++; z++; }
+        while (isdigit(*z)) { precision++; z++; }
     }
     if (*z == 'e' || *z == 'E') {
         z++;
@@ -149,7 +149,7 @@ sqlite_is_number(pTHX_ const char *v)
     }
     sprintf(str, "%i", atoi(v));
     if (strEQ(str, v)) return 1;
-    sprintf(format, "%%.%df", depth);
+    sprintf(format, "%%.%df", precision);
     sprintf(str, format, atof(v));
     if (strEQ(str, v)) return 2;
     return 0;
