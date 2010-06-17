@@ -169,9 +169,11 @@ sqlite_is_number(pTHX_ const char *v)
 
     sprintf(str, "%i", atoi(v));
     if (strEQ(str, v)) return 1;
-    sprintf(format, "%%.%df", precision);
-    sprintf(str, format, atof(v));
-    if (strEQ(str, v)) return 2;
+    if (precision) {
+        sprintf(format, "%%.%df", precision);
+        sprintf(str, format, atof(v));
+        if (strEQ(str, v)) return 2;
+    }
     return 0;
 }
 
