@@ -27,6 +27,7 @@ my @values = qw/
     *1234567890123456789012345678901234567890
     -9223372036854775807 +9223372036854775806
     -9223372036854775808 +9223372036854775807
+    -9223372036854775809 +9223372036854775808
 /;
 
 plan tests => @values * 3 + 1;
@@ -37,5 +38,5 @@ for my $value (@values) {
     $dbh->do('create table foo (string)');
     ok $dbh->do('insert into foo values(?)', undef, $value), "inserting $value";
     my ($got) = $dbh->selectrow_array('select string from foo where string = ?', undef, $value);
-    ok defined $got && $got eq $value, "got: $got value: $value";
+    ok defined $got && $got eq $value, "got: $got expected: $value";
 }
