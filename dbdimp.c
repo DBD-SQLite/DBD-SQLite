@@ -124,6 +124,10 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
     }
 }
 
+/*
+ * see also sqlite3IsNumber, sqlite3_int64 type definition,
+ * applyNumericAffinity, sqlite3Atoi64, etc from sqlite3.c
+ */
 static int
 sqlite_is_number(pTHX_ const char *v)
 {
