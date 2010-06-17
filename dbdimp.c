@@ -144,6 +144,7 @@ sqlite_is_number(pTHX_ const char *v)
     if (!isdigit(*z)) return 0;
     z++;
     while (isdigit(*z)) { digit++; z++; }
+#if defined(USE_64_BIT_INT)
     if (digit > 19) return 0; /* too large for i64 */
     if (digit == 19) {
         int c;
@@ -153,8 +154,21 @@ sqlite_is_number(pTHX_ const char *v)
         if (c == 0) {
             c = tmp[18] - '8';
         }
-        if (c >= neg) return 0;
+        if (c < neg) return 0;
     }
+#else
+    if (digit > 11) return 0; /* too large for i32 */
+    if (digit == 10) {
+        int c;
+        char tmp[19];
+        strncpy(tmp, v, z - v + 1);
+        c = memcmp(tmp, "2147483648", 10) * 10;
+        if (c == 0) {
+            c = tmp[10] - '8';
+        }
+        if (c < neg) return 0;
+    }
+#endif
     if (*z == '.') {
         z++;
         if (!isdigit(*z)) return 0;
@@ -762,6 +776,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
         }
         switch(col_type) {
             case SQLITE_INTEGER:
+#if 0
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as integer", i));
 #if defined(USE_64_BIT_INT)
                 sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
@@ -769,8 +784,9 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 sv_setnv(AvARRAY(av)[i], (double)sqlite3_column_int64(imp_sth->stmt, i));
 #endif
                 break;
+#endif
             case SQLITE_FLOAT:
-#if 01
+#if 0
                 /* fetching as float may lose precision info in the perl world */
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as float", i));
                 sv_setnv(AvARRAY(av)[i], sqlite3_column_double(imp_sth->stmt, i));
