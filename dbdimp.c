@@ -153,7 +153,7 @@ sqlite_is_number(pTHX_ const char *v)
         if (c == 0) {
             c = tmp[18] - '8';
         }
-        if (c < neg) return 0;
+        if (c >= neg) return 0;
     }
     if (*z == '.') {
         z++;
