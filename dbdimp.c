@@ -770,7 +770,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 #endif
                 break;
             case SQLITE_FLOAT:
-#if 0
+#if 01
                 /* fetching as float may lose precision info in the perl world */
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as float", i));
                 sv_setnv(AvARRAY(av)[i], sqlite3_column_double(imp_sth->stmt, i));
