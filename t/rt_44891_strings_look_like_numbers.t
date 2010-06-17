@@ -21,15 +21,20 @@ my @values = qw/
     0. .123
     -1 -1.0 -1.0e-001 -0000 -0101 -002.00
     +1 +1.0 +1.0e-001 +0000 +0101 +002.00
+    1234567890123456789012345678901234567890
+    -1234567890123456789012345678901234567890
+    +1234567890123456789012345678901234567890
+    *1234567890123456789012345678901234567890
+    -9223372036854775808 +9223372036854775807
 /;
 
-plan tests => @values * 2 + 1;
+plan tests => @values * 3 + 1;
 
 # no type specification
 for my $value (@values) {
     my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
     $dbh->do('create table foo (string)');
-    $dbh->do('insert into foo values(?)', undef, $value);
+    ok $dbh->do('insert into foo values(?)', undef, $value), "inserting $value";
     my ($got) = $dbh->selectrow_array('select string from foo where string = ?', undef, $value);
     ok defined $got && $got eq $value, "got: $got value: $value";
 }

@@ -128,15 +128,29 @@ static int
 sqlite_is_number(pTHX_ const char *v)
 {
     const char *z = v;
-    int i;
+    int i, neg;
+    int digit = 0;
     int precision = 0;
     double f;
     char str[30], format[10];
 
-    if (*z == '+' || *z == '-') z++;
+    if      (*z == '-') { neg = 1; z++; }
+    else if (*z == '+') { neg = 0; z++; }
+    else                { neg = 0; }
     if (!isdigit(*z)) return 0;
     z++;
-    while (isdigit(*z)) { z++; }
+    while (isdigit(*z)) { digit++; z++; }
+    if (digit > 19) return 0; /* too large for i64 */
+    if (digit == 19) {
+        int c;
+        char tmp[19];
+        strncpy(tmp, v, z - v + 1);
+        c = memcmp(tmp, "922337203685477580", 18) * 10;
+        if (c == 0) {
+            c = tmp[18] - '8';
+        }
+        if (c < neg) return 0;
+    }
     if (*z == '.') {
         z++;
         if (!isdigit(*z)) return 0;
@@ -148,6 +162,7 @@ sqlite_is_number(pTHX_ const char *v)
         if (!isdigit(*z)) return 0;
         while (isdigit(*z)) { z++; }
     }
+
     sprintf(str, "%i", atoi(v));
     if (strEQ(str, v)) return 1;
     sprintf(format, "%%.%df", precision);
