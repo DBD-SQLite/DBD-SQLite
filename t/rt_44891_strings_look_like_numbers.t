@@ -10,10 +10,17 @@ use t::lib::Test;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 9;
+my @values = qw/
+    0 1 1.0 1.0e+001 0000 01010101 10010101
+    0000002100000517
+    0000002200000517
+    0000001e00000517
+    00002.000
+/;
+
+plan tests => @values * 2 + 1;
 
 # no type specification
-my @values = qw/ 0 1 1.0 1.0e+001 /;
 for my $value (@values) {
     my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
     $dbh->do('create table foo (string)');
