@@ -50,7 +50,7 @@ my $has_sqlite;
 my $sqlite3_bin;
 eval {
     $sqlite3_bin = -f 'sqlite3' ? './sqlite3' : 'sqlite3';
-    my $sqlite3_version = `$sqlite3_bin --version`;
+    my $sqlite3_version = `$sqlite3_bin -version`;
     chomp $sqlite3_version;
     $has_sqlite = $sqlite3_version eq $DBD::SQLite::sqlite_version ? 1 : 0;
 };
