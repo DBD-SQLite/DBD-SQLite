@@ -100,6 +100,8 @@ SV* sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook );
 int sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer );
 AV* sqlite_compile_options();
 
+int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh);
+
 #ifdef SvUTF8_on
 
 static SV *

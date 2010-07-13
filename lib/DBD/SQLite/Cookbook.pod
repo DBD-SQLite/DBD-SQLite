@@ -9,6 +9,8 @@ This is the L<DBD::SQLite> cookbook.
 It is intended to provide a place to keep a variety of functions and
 formals for use in callback APIs in L<DBD::SQLite>.
 
+=head1 AGGREGATE FUNCTIONS
+
 =head2 Variance
 
 This is a simple aggregate function which returns a variance. It is
@@ -140,6 +142,35 @@ The function can then be used as:
   FROM results
   GROUP BY group_name;
 
+=head1 FTS3 fulltext indexing
+
+=head2 Sparing database disk space
+
+As explained in L<http://www.sqlite.org/fts3.html#section_6>, each
+FTS3 table C<I<t>> is stored internally within three regular tables
+C<I<t>_content>, C<I<t>_segments> and C<I<t>_segdir>.  The last two
+tables contain the fulltext index.  The first table C<I<t>_content>
+stores the complete documents being indexed ... but if copies of the
+same documents are already stored somewhere else, or can be computed
+from external resources (for example as HTML or MsWord files in the
+filesystem), then this is quite a waste of space. SQLite itself only
+needs the C<I<t>_content> table for implementing the C<offsets()> and
+C<snippet()> functions, which are not always usable anyway (in particular
+when using utf8 characters greater than 255).
+
+So an alternative strategy is to use SQLite only for the fulltext
+index and metadata, and to keep the full documents outside of SQLite :
+to do so, after each insert or update in the FTS3 table, do an update
+in the C<I<t>_content> table, setting the content column(s) to
+NULL. Of course your application will need an algorithm for finding
+the external resource corresponding to any I<docid> stored within
+SQLite. Furthermore, SQLite C<offsets()> and C<snippet()> functions
+cannot be used, so if such functionality is needed, it has to be
+directly programmed within the Perl application.
+In short, this strategy is really a hack, because FTS3 was not originally
+programmed with that behaviour in mind; however it is workable
+and has a strong impact on the size of the database file.
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
@@ -156,6 +187,8 @@ turn them into a separate CPAN distribution.
 =head1 AUTHOR
 
 Adam Kennedy E<lt>adamk@cpan.orgE<gt>
+
+Laurent Dami E<lt>dami@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 

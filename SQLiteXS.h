@@ -19,5 +19,6 @@
 #include <dbd_xsh.h>
 
 #include "sqlite3.h"
+#include "fts3_tokenizer.h"
 
 #endif

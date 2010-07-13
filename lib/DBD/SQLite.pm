@@ -55,6 +55,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_backup_from_file');
         DBD::SQLite::db->install_method('sqlite_backup_to_file');
         DBD::SQLite::db->install_method('sqlite_enable_load_extension');
+        DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
         $methods_are_installed++;
     }
 
@@ -70,6 +71,7 @@ sub driver {
 sub CLONE {
     undef $drh;
 }
+
 
 package DBD::SQLite::dr;
 
@@ -120,13 +122,16 @@ sub connect {
     # Hand off to the actual login function
     DBD::SQLite::db::_login($dbh, $real, $user, $auth, $attr) or return undef;
 
-    # Register the on-demand collation installer and REGEXP function
+    # Register the on-demand collation installer, REGEXP function and
+    # perl tokenizer
     if ( DBD::SQLite::NEWAPI ) {
         $dbh->sqlite_collation_needed( \&install_collation );
         $dbh->sqlite_create_function( "REGEXP", 2, \&regexp );
+        $dbh->sqlite_register_fts3_perl_tokenizer();
     } else {
         $dbh->func( \&install_collation, "collation_needed"  );
         $dbh->func( "REGEXP", 2, \&regexp, "create_function" );
+        $dbh->func( "register_fts3_perl_tokenizer" );
     }
 
     # HACK: Since PrintWarn = 0 doesn't seem to actually prevent warnings
@@ -1644,6 +1649,234 @@ collations in existing database handles: it will only affect new
 I<requests> for collations. In other words, if you want to change
 the behaviour of a collation within an existing C<$dbh>, you
 need to call the L</create_collation> method directly.
+
+=head1 FULLTEXT SEARCH
+
+The FTS3 extension module within SQLite allows users to create special
+tables with a built-in full-text index (hereafter "FTS3 tables"). The
+full-text index allows the user to efficiently query the database for
+all rows that contain one or more instances of a specified word (hereafter
+a "token"), even if the table contains many large documents.
+
+
+=head2 Short introduction to FTS3
+
+The detailed documentation for FTS3 can be found
+at L<http://www.sqlite.org/fts3.html>. Here is a very short example :
+
+  $dbh->do(<<"") or die DBI::errstr;
+  CREATE VIRTUAL TABLE fts_example USING fts3(content)
+  
+  my $sth = $dbh->prepare("INSERT INTO fts_example(content) VALUES (?))");
+  $sth->execute($_) foreach @docs_to_insert;
+  
+  my $results = $dbh->selectall_arrayref(<<"");
+  SELECT docid, snippet(content) FROM fts_example WHERE content MATCH 'foo'
+  
+
+The key points in this example are :
+
+=over
+
+=item *
+
+The syntax for creating FTS3 tables is 
+
+  CREATE VIRTUAL TABLE <table_name> USING fts3(<columns>)
+
+where C<< <columns> >> is a list of column names. Columns may be
+typed, but the type information is ignored. If no columns
+are specified, the default is a single column named C<content>.
+In addition, FTS3 tables have an implicit column called C<docid>
+(or also C<rowid>) for numbering the stored documents.
+
+=item *
+
+Statements for inserting, updating or deleting records 
+use the same syntax as for regular SQLite tables.
+
+=item *
+
+Full-text searches are specified with the C<MATCH> operator, and an
+operand which may be a single word, a word prefix ending with '*', a
+list of words, a "phrase query" in double quotes, or a boolean combination
+of the above. 
+
+=item *
+
+The builtin function C<snippet(...)> builds a formatted excerpt of the
+document text, where the words pertaining to the query are highlighted.
+
+=back
+
+There are many more details to building and searching
+FTS3 tables, so we strongly invite you to read
+the full documentation at at L<http://www.sqlite.org/fts3.html>.
+
+B<Incompatible change> : 
+starting from version 1.31, C<DBD::SQLite> uses the new, recommended
+"Enhanced Query Syntax" for binary set operators (AND, OR, NOT, possibly 
+nested with parenthesis). Previous versions of C<DBD::SQLite> used the
+"Standard Query Syntax" (see L<http://www.sqlite.org/fts3.html#section_3_2>).
+Unfortunately this is a compilation switch, so it cannot be tuned
+at runtime; however, since FTS3 was never advertised in versions prior
+to 1.31, the change should be invisible to the vast majority of 
+C<DBD::SQLite> users. If, however, there are any applications
+that nevertheless were built using the "Standard Query" syntax,
+they have to be migrated; but the conversion 
+function provided in in L<DBD::SQLite::FTS3Transitional>
+is there to help.
+
+
+=head2 Tokenizers
+
+The behaviour of full-text indexes strongly depends on how
+documents are split into I<tokens>; therefore FTS3 table
+declarations can explicitly specify how to perform
+tokenization: 
+
+  CREATE ... USING fts3(<columns>, tokenize=<tokenizer>)
+
+where C<< <tokenizer> >> is a sequence of space-separated
+words that triggers a specific tokenizer, as explained below.
+
+=head3 SQLite builtin tokenizers
+
+SQLite comes with three builtin tokenizers :
+
+=over
+
+=item simple
+
+Under the I<simple> tokenizer, a term is a contiguous sequence of
+eligible characters, where eligible characters are all alphanumeric
+characters, the "_" character, and all characters with UTF codepoints
+greater than or equal to 128. All other characters are discarded when
+splitting a document into terms. They serve only to separate adjacent
+terms.
+
+All uppercase characters within the ASCII range (UTF codepoints less
+than 128), are transformed to their lowercase equivalents as part of
+the tokenization process. Thus, full-text queries are case-insensitive
+when using the simple tokenizer.
+
+=item porter
+
+The I<porter> tokenizer uses the same rules to separate the input
+document into terms, but as well as folding all terms to lower case it
+uses the Porter Stemming algorithm to reduce related English language
+words to a common root.
+
+=item icu
+
+If SQLite is compiled with the SQLITE_ENABLE_ICU
+pre-processor symbol defined, then there exists a built-in tokenizer
+named "icu" implemented using the ICU library, and taking an
+ICU locale identifier as argument (such as "tr_TR" for
+Turkish as used in Turkey, or "en_AU" for English as used in
+Australia). For example:
+
+  CREATE VIRTUAL TABLE thai_text USING fts3(text, tokenize=icu th_TH)
+
+The ICU tokenizer implementation is very simple. It splits the input
+text according to the ICU rules for finding word boundaries and
+discards any tokens that consist entirely of white-space. This may be
+suitable for some applications in some locales, but not all. If more
+complex processing is required, for example to implement stemming or
+discard punctuation, use the perl tokenizer as explained below.
+
+=back
+
+=head3 Perl tokenizers
+
+In addition to the builtin SQLite tokenizers, C<DBD::Sqlite>
+implements a I<perl> tokenizer, that can hook to any tokenizing
+algorithm written in Perl. This is specified as follows :
+
+  CREATE ... USING fts3(<columns>, tokenize=perl '<perl_function>')
+
+where C<< <perl_function> >> is a fully qualified Perl function name
+(i.e. prefixed by the name of the package in which that function is
+declared). So for example if the function is C<my_func> in the main 
+program, write
+
+  CREATE ... USING fts3(<columns>, tokenize=perl 'main::my_func')
+
+That function should return a code reference that takes a string as
+single argument, and returns an iterator (another function), which
+returns a tuple C<< ($term, $len, $start, $end, $index) >> for each
+term. Here is a simple example that tokenizes on words according to
+the current perl locale
+
+  sub locale_tokenizer {
+    return sub {
+      my $string = shift;
+
+      use locale;
+      my $regex      = qr/\w+/;
+      my $term_index = 0;
+
+      return sub { # closure
+        $string =~ /$regex/g or return; # either match, or no more token
+        my ($start, $end) = ($-[0], $+[0]);
+        my $len           = $end-$start;
+        my $term          = substr($string, $start, $len);
+        return ($term, $len, $start, $end, $term_index++);
+      }
+    };
+  }
+
+There must be three levels of subs, in a kind of "Russian dolls" structure,
+because :
+
+=over
+
+=item *
+
+the external, named sub is called whenever accessing a FTS3 table
+with that tokenizer
+
+=item *
+
+the inner, anonymous sub is called whenever a new string
+needs to be tokenized (either for inserting new text into the table,
+or for analyzing a query).
+
+=item *
+
+the innermost, anonymous sub is called repeatedly for retrieving
+all terms within that string.
+
+=back
+
+Instead of writing tokenizers by hand, you can grab one of those
+already implemented in the L<Search::Tokenizer> module :
+
+  use Search::Tokenizer;
+  $dbh->do(<<"") or die DBI::errstr;
+  CREATE ... USING fts3(<columns>, 
+                        tokenize=perl 'Search::Tokenizer::unaccent')
+
+or you can use L<Search::Tokenizer/new> to build
+your own tokenizer.
+
+
+=head2 Incomplete handling of utf8 characters
+
+The current FTS3 implementation in SQLite is far from complete with
+respect to utf8 handling : in particular, variable-length characters
+are not treated correctly by the builtin functions
+C<offsets()> and C<snippet()>.
+
+=head2 Database space for FTS3
+
+FTS3 stores a complete copy of the indexed documents, together with
+the fulltext index. On a large collection of documents, this can
+consume quite a lot of disk space. If copies of documents are also
+available as external resources (for example files on the filesystem),
+that space can sometimes be spared --- see the tip in the 
+L<Cookbook|DBD::SQLite::Cookbook/"Sparing database disk space">.
+
 
 =head1 FOR DBD::SQLITE EXTENSION AUTHORS
 

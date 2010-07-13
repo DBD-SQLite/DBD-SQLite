@@ -196,6 +196,22 @@ backup_to_file(dbh, filename)
     OUTPUT:
         RETVAL
 
+
+
+
+
+static int
+register_fts3_perl_tokenizer(dbh)
+    SV *dbh
+    ALIAS:
+        DBD::SQLite::db::sqlite_register_fts3_perl_tokenizer = 1
+    CODE:
+        RETVAL = sqlite_db_register_fts3_perl_tokenizer(aTHX_ dbh);
+    OUTPUT:
+        RETVAL
+
+
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE
