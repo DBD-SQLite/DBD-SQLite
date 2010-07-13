@@ -1,5 +1,7 @@
 #define PERL_NO_GET_CONTEXT
 
+#define NEED_newSVpvn_flags
+
 #include "SQLiteXS.h"
 
 DBISTATE_DECLARE;
