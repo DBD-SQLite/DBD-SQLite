@@ -158,7 +158,7 @@ sqlite_is_number(pTHX_ const char *v)
     if (digit > 19) return 0; /* too large for i64 */
     if (digit == 19) {
         int c;
-        char tmp[19];
+        char tmp[22];
         strncpy(tmp, v, z - v + 1);
         c = memcmp(tmp, "922337203685477580", 18) * 10;
         if (c == 0) {
@@ -170,7 +170,7 @@ sqlite_is_number(pTHX_ const char *v)
     if (digit > 11) return 0; /* too large for i32 */
     if (digit == 10) {
         int c;
-        char tmp[19];
+        char tmp[14];
         strncpy(tmp, v, z - v + 1);
         c = memcmp(tmp, "2147483648", 10) * 10;
         if (c == 0) {
