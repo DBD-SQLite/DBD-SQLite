@@ -30,6 +30,10 @@ BEGIN {
 	if ($] < 5.008005) {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
+	eval "require Search::Tokenizer";
+	if ($@) {
+		plan skip_all => 'this test requires Search::Tokenizer';
+	}
 }
 use Test::NoWarnings;
 
@@ -75,7 +79,6 @@ for my $use_unicode (0, 1) {
   my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
 
   # create fts3 table
-  use Search::Tokenizer;
   $dbh->do(<<"") or die DBI::errstr;
     CREATE VIRTUAL TABLE try_fts3 
           USING fts3(content, tokenize=perl 'main::locale_tokenizer')
