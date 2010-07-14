@@ -531,13 +531,15 @@ static int perl_tokenizer_Create(
   int argc, const char * const *argv,
   sqlite3_tokenizer **ppTokenizer
 ){
+  dTHX;
+  dSP;
+  int n_retval;
+  SV *retval;
+
   perl_tokenizer *t;
   t = (perl_tokenizer *) sqlite3_malloc(sizeof(*t));
   if( t==NULL ) return SQLITE_NOMEM;
   memset(t, 0, sizeof(*t));
-
-  dTHX;
-  dSP;
 
   ENTER;
   SAVETMPS;
@@ -545,14 +547,14 @@ static int perl_tokenizer_Create(
   /* call the qualified::function::name */
   PUSHMARK(SP);
   PUTBACK;
-  int n_retval = call_pv(argv[0], G_SCALAR);
+  n_retval = call_pv(argv[0], G_SCALAR);
   SPAGAIN;
 
   /* store a copy of the returned coderef into the tokenizer structure */
   if (n_retval != 1) {
     warn("tokenizer_Create returned %d arguments", n_retval);
   }
-  SV *retval = POPs;
+  retval = POPs;
   t->coderef   = newSVsv(retval);
   *ppTokenizer = &t->base;
 
@@ -588,6 +590,12 @@ static int perl_tokenizer_Open(
   const char *pInput, int nBytes,      /* Input buffer */
   sqlite3_tokenizer_cursor **ppCursor  /* OUT: Created tokenizer cursor */
 ){
+  dTHX;
+  dSP;
+  U32 flags;
+  SV *perl_string;
+  int n_retval;
+
   perl_tokenizer *t = (perl_tokenizer *)pTokenizer;
 
   /* allocate and initialize the cursor struct */
@@ -597,7 +605,7 @@ static int perl_tokenizer_Open(
   *ppCursor = &c->base;
 
   /* flags for creating the Perl SV containing the input string */
-  U32 flags = SVs_TEMP; /* will call sv_2mortal */
+  flags = SVs_TEMP; /* will call sv_2mortal */
 
   /* special handling if working with utf8 strings */
   if (last_executed_dbh->unicode) { /* global var ... no better way ! */
@@ -610,8 +618,6 @@ static int perl_tokenizer_Open(
     flags |= SVf_UTF8;
   }
 
-  dTHX;
-  dSP;
   ENTER;
   SAVETMPS;
 
@@ -619,13 +625,13 @@ static int perl_tokenizer_Open(
   if (nBytes < 0) { /* we get -1 from fts3. Don't know why ! */
     nBytes = strlen(pInput);
   } 
-  SV *perl_string = newSVpvn_flags(pInput, nBytes, flags); 
+  perl_string = newSVpvn_flags(pInput, nBytes, flags); 
 
   /* call the tokenizer coderef */
   PUSHMARK(SP);
   XPUSHs(perl_string);
   PUTBACK;
-  int n_retval = call_sv(t->coderef, G_SCALAR);
+  n_retval = call_sv(t->coderef, G_SCALAR);
   SPAGAIN;
 
   /* store the cursor coderef returned by the tokenizer */
@@ -667,7 +673,11 @@ static int perl_tokenizer_Next(
 ){
   perl_tokenizer_cursor *c = (perl_tokenizer_cursor *) pCursor;
   int result;
+  int n_retval;
   STRLEN n_a;
+  char *token;
+  char *byteOffset;
+  I32 hop;
 
   dTHX;
   dSP;
@@ -678,7 +688,7 @@ static int perl_tokenizer_Next(
   /* call the cursor */
   PUSHMARK(SP);
   PUTBACK;
-  int n_retval = call_sv(c->coderef, G_ARRAY);
+  n_retval = call_sv(c->coderef, G_ARRAY);
   SPAGAIN;
 
   /* if we get back an empty list, there is no more token */
@@ -694,7 +704,7 @@ static int perl_tokenizer_Next(
     *piEndOffset   = POPi;
     *piStartOffset = POPi;
     *pnBytes       = POPi;
-    char *token    = POPpx;
+    token          = POPpx;
 
     if (c->pInput) { /* if working with utf8 data */
 
@@ -702,8 +712,8 @@ static int perl_tokenizer_Next(
       *pnBytes = strlen(token); 
 
       /* recompute start/end offsets in bytes, not in chars */
-      I32          hop = *piStartOffset - c->lastCharOffset;
-      char *byteOffset = utf8_hop(c->lastByteOffset, hop);
+                   hop = *piStartOffset - c->lastCharOffset;
+            byteOffset = utf8_hop(c->lastByteOffset, hop);
                    hop = *piEndOffset - *piStartOffset;                
         *piStartOffset = byteOffset - c->pInput;
             byteOffset = utf8_hop(byteOffset, hop);
