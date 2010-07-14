@@ -667,6 +667,7 @@ static int perl_tokenizer_Next(
 ){
   perl_tokenizer_cursor *c = (perl_tokenizer_cursor *) pCursor;
   int result;
+  STRLEN n_a;
 
   dTHX;
   dSP;
