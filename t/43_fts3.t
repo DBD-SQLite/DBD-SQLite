@@ -30,10 +30,6 @@ BEGIN {
 	if ($] < 5.008005) {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
-	eval "require Search::Tokenizer";
-	if ($@) {
-		plan skip_all => 'this test requires Search::Tokenizer';
-	}
 }
 use Test::NoWarnings;
 
