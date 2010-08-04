@@ -107,9 +107,9 @@ extern "C" {
 ** [sqlite3_libversion_number()], [sqlite3_sourceid()],
 ** [sqlite_version()] and [sqlite_source_id()].
 */
-#define SQLITE_VERSION        "3.7.0"
+#define SQLITE_VERSION        "3.7.0.1"
 #define SQLITE_VERSION_NUMBER 3007000
-#define SQLITE_SOURCE_ID      "2010-07-20 20:23:38 13ed106c8c279422a6159e28c6887d13a88b7b8b"
+#define SQLITE_SOURCE_ID      "2010-08-04 12:31:11 042a1abb030a0711386add7eb6e10832cc8b0f57"
 
 /*
 ** CAPI3REF: Run-Time Library Version Numbers
@@ -5240,7 +5240,7 @@ SQLITE_API int sqlite3_db_status(sqlite3*, int op, int *pCur, int *pHiwtr, int r
 ** <dd>^This parameter returns the approximate number of of bytes of heap
 ** memory used by all pager caches associated with the database connection.
 ** ^The highwater mark associated with SQLITE_DBSTATUS_CACHE_USED is always 0.
-** checked out.</dd>)^
+** </dd>
 ** </dl>
 */
 #define SQLITE_DBSTATUS_LOOKASIDE_USED     0

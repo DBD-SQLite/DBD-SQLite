@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.30_04 to be released
-    - Updated to SQLite 3.7.0 (DUNCAND)
+    - Updated to SQLite 3.7.0.1 (DUNCAND)
     - Added support for FTS3 tokenizers written in Perl. Added tests
       and documentation on how to use FTS3. Changed compilation flag
       to use the recommanded -DSQLITE_ENABLE_FTS3_PARENTHESIS
