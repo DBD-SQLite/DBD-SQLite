@@ -8,6 +8,7 @@ use File::Spec ();
 use Test::More ();
 
 use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
+my $parent;
 BEGIN {
 	$VERSION = '1.30_03';
 	@ISA     = 'Exporter';
@@ -15,6 +16,8 @@ BEGIN {
 
 	# Allow tests to load modules bundled in /inc
 	unshift @INC, 'inc';
+
+	$parent = $$;
 }
 
 # Always load the DBI module
@@ -22,6 +25,8 @@ use DBI ();
 
 # Delete temporary files
 sub clean {
+	return
+		if $$ != $parent;
 	unlink( 'foo'         );
 	unlink( 'foo-journal' );
 }
