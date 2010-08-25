@@ -1095,7 +1095,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
         }
         switch(col_type) {
             case SQLITE_INTEGER:
-#if 0
+#if 1
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as integer", i));
 #if defined(USE_64_BIT_INT)
                 sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
@@ -1105,7 +1105,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 break;
 #endif
             case SQLITE_FLOAT:
-#if 0
+#if 1
                 /* fetching as float may lose precision info in the perl world */
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as float", i));
                 sv_setnv(AvARRAY(av)[i], sqlite3_column_double(imp_sth->stmt, i));
