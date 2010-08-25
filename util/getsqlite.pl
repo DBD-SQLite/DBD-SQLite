@@ -22,11 +22,27 @@ rm_rf('sqlite') || rm_rf("sqlite-$version") || rm_rf("sqlite-amalgamation-$versi
 xsystem("tar zxvf sqlite.tar.gz");
 chdir("sqlite") || chdir("sqlite-$version") || chdir("sqlite-amalgamation-$version") || die "SQLite directory not found";
 
+
+
+# extract fts3_tokenizer.h from the amalgamation, because this is needed
+# for compiling dbdimp.c
+open my $amalg, "sqlite3.c"                or die $!;
+open my $fts3_tok, ">", "fts3_tokenizer.h" or die $!;
+
+for (<$amalg>) {
+  print $fts3_tok $_  if    m{^/\*+ Begin file fts3_tokenizer\.h}
+                        ... m{^/\*+ End of fts3_tokenizer\.h};
+}
+close $amalg;
+close $fts3_tok;
+
 xsystem("cp sqlite3.c ../");
 xsystem("cp sqlite3.h ../");
 xsystem("cp sqlite3ext.h ../");
+xsystem("cp fts3_tokenizer.h ../");
 
 exit(0);
+
 
 sub xsystem {
     local $, = ", ";
@@ -36,3 +52,5 @@ sub xsystem {
        die "system(@_) failed: $?";
     }
 }
+
+
