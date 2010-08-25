@@ -928,6 +928,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                 sv_utf8_upgrade(value);
             }
             data = SvPV(value, len);
+#if 0
             numtype = sqlite_is_number(aTHX_ data);
             if (numtype == 1) {
 #if defined(USE_64_BIT_INT)
@@ -940,8 +941,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                 rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
             }
             else {
+#endif
                 rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+#if 0
             }
+#endif
         }
 
         if (value) {

@@ -53,7 +53,7 @@ is( scalar(@$ar), 2, 'Got 2 results' );
 
 # and this is what should be tested
 #TODO: {
-#	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds shown above';
+	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds shown above';
 	$ar = $dbh->selectall_arrayref(
 		'SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?',
 		undef, 1

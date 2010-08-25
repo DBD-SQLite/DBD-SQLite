@@ -34,10 +34,10 @@ my $statement = 'select count(*) from artist where length(name) > ?';
 # ...not with bind args
 $sth = $dbh->prepare($statement);
 ok( $sth->execute(2), "execute: $statement : [2]" );
-#TODO: {
-#	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds.';
+TODO: {
+	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds.';
 	is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement : [2]" );
-#}
+}
 
 ### it does work, however, from the sqlite3 CLI...
 # require Shell;
@@ -60,10 +60,10 @@ is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement" );
 $statement =~ s/1/?/;
 $sth = $dbh->prepare($statement);
 ok( $sth->execute(1), "execute: $statement : [1]" );
-#TODO: {
-#	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds.';
+TODO: {
+	local $TODO = 'This test is currently broken again. Wait for a better fix, or use known workarounds.';
 	is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement [1]" );
-#}
+}
 
 # known workarounds 1: use bind_param explicitly
 
