@@ -10,7 +10,7 @@ use Test::More ();
 use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
 my $parent;
 BEGIN {
-	$VERSION = '1.30_03';
+	$VERSION = '1.30_05';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw/connect_ok dies @CALL_FUNCS/;
 

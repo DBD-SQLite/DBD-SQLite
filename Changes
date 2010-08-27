@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.30_05 Fri 27 Aug 2010
+    - Test::NoWarnings bundled in the "inc" directory was ignored
+      in a new test. (ISHIGAKI)
+
 1.30_04 Wed 25 Aug 2010
     - Updated to SQLite 3.7.2 (DUNCAND)
     - Resolved #60698: "Test failures with SQLite 3.7", using included
