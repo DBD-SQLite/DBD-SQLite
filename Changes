@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.30_06 to be released
+    - Resolved # 60860: Slow but steady memory leak on
+      last_insert_id calls (ISHIGAKI)
+
 1.30_05 Fri 27 Aug 2010
     - Test::NoWarnings bundled in the "inc" directory was ignored
       in a new test. (ISHIGAKI)

@@ -5,7 +5,6 @@
 /************************************************************************
     DBI Specific Stuff - Added by Matt Sergeant
  ************************************************************************/
-#define PERL_POLLUTE
 #define PERL_NO_GET_CONTEXT
 #include <EXTERN.h>
 #include <perl.h>
