@@ -494,7 +494,7 @@ sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, S
 
     croak_if_db_is_null();
 
-    return newSViv((IV)sqlite3_last_insert_rowid(imp_dbh->db));
+    return sv_2mortal(newSViv((IV)sqlite3_last_insert_rowid(imp_dbh->db)));
 }
 
 /* ======================================================================
