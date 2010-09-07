@@ -1723,10 +1723,10 @@ at runtime; however, since FTS3 was never advertised in versions prior
 to 1.31, the change should be invisible to the vast majority of 
 C<DBD::SQLite> users. If, however, there are any applications
 that nevertheless were built using the "Standard Query" syntax,
-they have to be migrated; but the conversion 
-function provided in in L<DBD::SQLite::FTS3Transitional>
-is there to help.
-
+they have to be migrated, because the precedence of the C<OR> operator
+has changed. Conversion from old to new syntax can be 
+automated through L<DBD::SQLite::FTS3Transitional>, published
+in a separate distribution.
 
 =head2 Tokenizers
 
