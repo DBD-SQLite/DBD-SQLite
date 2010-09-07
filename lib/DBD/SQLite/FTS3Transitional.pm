@@ -1,11 +1,14 @@
 package DBD::SQLite::FTS3Transitional;
+
+use 5.006;
 use strict;
 use warnings;
 no warnings 'uninitialized';
+use Exporter ();
 
-use Exporter 'import';
+our $VERSION   = '1.30_06';
+our @ISA       = 'Exporter';
 our @EXPORT_OK = qw/fts3_convert/;
-
 
 sub fts3_convert {
   my $in  = shift;
