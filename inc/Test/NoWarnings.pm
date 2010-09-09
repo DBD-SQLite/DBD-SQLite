@@ -1,40 +1,33 @@
-use strict;
-use warnings;
-
 package Test::NoWarnings;
 
-use Test::Builder;
+use 5.006;
+use strict;
+use warnings;
+use Carp                      ();
+use Exporter                  ();
+use Test::Builder             ();
+use Test::NoWarnings::Warning ();
 
-use Test::NoWarnings::Warning;
+use vars qw( $VERSION @EXPORT_OK @ISA $do_end_test );
+BEGIN {
+	$VERSION   = '1.02';
+	@ISA       = 'Exporter';
+	@EXPORT_OK = qw(
+		clear_warnings had_no_warnings warnings
+	);
 
-my $Test = Test::Builder->new;
-my $PID = $$;
+	# Do we add the warning test at the end?
+	$do_end_test = 0;
+}
 
-use Carp;
+my $TEST     = Test::Builder->new;
+my $PID      = $$;
+my @WARNINGS = ();
 
-use vars qw(
-	$VERSION @EXPORT_OK @ISA $do_end_test
-);
+$SIG{__WARN__} = make_catcher(\@WARNINGS);
 
-$VERSION = '0.084';
-
-require Exporter;
-@ISA = qw( Exporter );
-
-@EXPORT_OK = qw(
-	clear_warnings had_no_warnings warnings
-);
-
-my @warnings;
-
-$SIG{__WARN__} = make_catcher(\@warnings);
-
-$do_end_test = 0;
-
-sub import
-{
+sub import {
 	$do_end_test = 1;
-
 	goto &Exporter::import;
 }
 
@@ -45,16 +38,14 @@ END {
 	had_no_warnings() if $do_end_test;
 }
 
-sub make_warning
-{
+sub make_warning {
 	local $SIG{__WARN__};
 
-	my $msg = shift;
-
+	my $msg     = shift;
 	my $warning = Test::NoWarnings::Warning->new;
 
 	$warning->setMessage($msg);
-	$warning->fillTest($Test);
+	$warning->fillTest($TEST);
 	$warning->fillTrace(__PACKAGE__);
 
 	$Carp::Internal{__PACKAGE__.""}++;
@@ -65,12 +56,10 @@ sub make_warning
 	return $warning;
 }
 
-sub make_catcher
-{
-	# this make a subroutine which can be used in $SIG{__WARN__}
-	# it takes one argument, a ref to an array
-	# it will push the details of the warning onto the end of the array.
-
+# this make a subroutine which can be used in $SIG{__WARN__}
+# it takes one argument, a ref to an array
+# it will push the details of the warning onto the end of the array.
+sub make_catcher {
 	my $array = shift;
 
 	return sub {
@@ -84,8 +73,7 @@ sub make_catcher
 	};
 }
 
-sub had_no_warnings
-{
+sub had_no_warnings {
 	return 0 if $$ != $PID;
 
 	local $SIG{__WARN__};
@@ -93,47 +81,42 @@ sub had_no_warnings
 
 	my $ok;
 	my $diag;
-	if (@warnings == 0)
-	{
+	if ( @WARNINGS == 0 ) {
 		$ok = 1;
-	}
-	else
-	{
+	} else {
 		$ok = 0;
-		$diag = "There were ".@warnings." warning(s)\n";
-		$diag .= join("----------\n", map { $_->toString } @warnings);
+		$diag = "There were ".@WARNINGS." warning(s)\n";
+		$diag .= join "----------\n", map { $_->toString } @WARNINGS;
 	}
 
-	$Test->ok($ok, $name) || $Test->diag($diag);
+	$TEST->ok($ok, $name) || $TEST->diag($diag);
 
 	return $ok;
 }
 
-sub clear_warnings
-{
+sub clear_warnings {
 	local $SIG{__WARN__};
-	@warnings = ();
+	@WARNINGS = ();
 }
 
-sub warnings
-{
+sub warnings {
 	local $SIG{__WARN__};
-	return @warnings;
+	return @WARNINGS;
 }
 
-sub builder
-{
+sub builder {
 	local $SIG{__WARN__};
-	if (@_)
-	{
-		$Test = shift;
+	if ( @_ ) {
+		$TEST = shift;
 	}
-	return $Test;
+	return $TEST;
 }
 
 1;
 
 __END__
+
+=pod
 
 =head1 NAME
 
@@ -223,18 +206,18 @@ module
 
 =head1 EXPORTABLE FUNCTIONS
 
-=head2 had_no_warnings()
+=head2 had_no_warnings
 
 This checks that there have been warnings emitted by your test scripts.
 Usually you will not call this explicitly as it is called automatically when
 your script finishes.
 
-=head2 clear_warnings()
+=head2 clear_warnings
 
 This will clear the array of warnings that have been captured. If the array
 is empty then a call to C<had_no_warnings()> will produce a pass result.
 
-=head2 warnings()
+=head2 warnings
 
 This will return the array of warnings captured so far. Each element of this
 array is an object containing information about the warning. The following
@@ -281,9 +264,13 @@ Get the name of the test that executed before the warning was emitted.
 When counting your tests for the plan, don't forget to include the test that
 runs automatically when your script ends.
 
-=head1 BUGS
+=head1 SUPPORT
 
-None that I know of.
+Bugs should be reported via the CPAN bug tracker at
+
+L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=Test-NoWarnings>
+
+For other issues, contact the author.
 
 =head1 HISTORY
 
@@ -293,13 +280,17 @@ This was previously known as L<Test::Warn::None>
 
 L<Test::Builder>, L<Test::Warn>
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-Written by Fergal Daly <fergal@esatclear.ie>.
+Fergal Daly E<lt>fergal@esatclear.ieE<gt>
+
+Adam Kennedy E<lt>adamk@cpan.orgE<gt>
 
 =head1 COPYRIGHT
 
-Copyright 2003 by Fergal Daly E<lt>fergal@esatclear.ieE<gt>.
+Copyright 2003 - 2007 Fergal Daly.
+
+Some parts copyright 2010 Adam Kennedy.
 
 This program is free software and comes with no warranty. It is distributed
 under the LGPL license

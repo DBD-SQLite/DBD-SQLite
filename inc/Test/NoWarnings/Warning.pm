@@ -1,102 +1,74 @@
-use strict;
-
 package Test::NoWarnings::Warning;
 
-use Carp;
+use 5.006;
+use strict;
+use Carp ();
 
-my $has_st = eval "require Devel::StackTrace" || 0;
+use vars qw{$VERSION};
+BEGIN {
+	$VERSION = '1.02';
 
-sub new
-{
-	my $pkg = shift;
-
-	my %args = @_;
-
-	my $self = bless \%args, $pkg;
-
-	return $self;
+	# Optional stacktrace support
+	eval "require Devel::StackTrace";
 }
 
-sub getTrace
-{
-	my $self = shift;
-
-	return $self->{Trace};
+sub new {
+	my $class = shift;
+	bless { @_ }, $class;
 }
 
-sub fillTrace
-{
+sub getTrace {
+	$_[0]->{Trace};
+}
+
+sub fillTrace {
 	my $self = shift;
 	$self->{Trace} = Devel::StackTrace->new(
 		ignore_class => [__PACKAGE__, @_],
-	) if $has_st;
+	) if $Devel::StackTrace::VERSION;
 }
 
-sub getCarp
-{
-	my $self = shift;
-
-	return $self->{Carp};
+sub getCarp {
+	$_[0]->{Carp};
 }
 
-sub fillCarp
-{
+sub fillCarp {
 	my $self = shift;
-
-	my $msg = shift;
-
-	$Carp::Internal{__PACKAGE__.""}++;
+	my $msg  = shift;
+	$Carp::Internal{ __PACKAGE__ . "" }++;
 	local $Carp::CarpLevel = $Carp::CarpLevel + 1;
 	$self->{Carp} = Carp::longmess($msg);
-	$Carp::Internal{__PACKAGE__.""}--;
+	$Carp::Internal{ __PACKAGE__ . "" }--;
 }
 
-sub getMessage
-{
-	my $self = shift;
-
-	return $self->{Message};
+sub getMessage {
+	$_[0]->{Message};
 }
 
-sub setMessage
-{
-	my $self = shift;
-
-	$self->{Message} = shift;
+sub setMessage {
+	$_[0]->{Message} = $_[1];
 }
 
-sub fillTest
-{
-	my $self = shift;
-
-	my $builder = shift;
-
-	my $prev_test = $builder->current_test;
-	$self->{Test} = $prev_test;
-
-	my @tests = $builder->details;
+sub fillTest {
+	my $self           = shift;
+	my $builder        = shift;
+	my $prev_test      = $builder->current_test;
+	$self->{Test}      = $prev_test;
+	my @tests          = $builder->details;
 	my $prev_test_name = $prev_test ? $tests[$prev_test - 1]->{name} : "";
-	$self->{TestName} =  $prev_test_name;
+	$self->{TestName}  =  $prev_test_name;
 }
 
-sub getTest
-{
-	my $self = shift;
-
-	return $self->{Test};
+sub getTest {
+	$_[0]->{Test};
 }
 
-sub getTestName
-{
-	my $self = shift;
-
-	return $self->{TestName};
+sub getTestName {
+	$_[0]->{TestName};
 }
 
-sub toString
-{
+sub toString {
 	my $self = shift;
-
 	return <<EOM;
 	Previous test $self->{Test} '$self->{TestName}'
 	$self->{Carp}

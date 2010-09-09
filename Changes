@@ -1,8 +1,13 @@
 Changes for Perl extension DBD-SQLite
 
-1.30_06 to be released
+1.30_06 Thu  9 Sep 2010
     - Resolved # 60860: Slow but steady memory leak on
       last_insert_id calls (ISHIGAKI)
+    - Moved DBD::SQLite::FTS3Transitional into a dedicated dist (DAMI)
+    - Updated bundled Test::NoWarnings to 1.02 (ADAMK)
+    - Slightly bumped Test::More and added Test::Builder dependencies,
+      because they are inherited from the bundled Test::NoWarnings (ADAMK)
+    - Upgraded ppport.h to the latest version (ADAMK)
 
 1.30_05 Fri 27 Aug 2010
     - Test::NoWarnings bundled in the "inc" directory was ignored
