@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.31 Wed 15 Sep 2010
+    - Production release, identical to 1.30_06
+
 1.30_06 Thu  9 Sep 2010
     - Resolved # 60860: Slow but steady memory leak on
       last_insert_id calls (ISHIGAKI)
