@@ -90,6 +90,10 @@ for my $use_unicode (0, 1) {
   }
 
   # queries
+SKIP: {
+  skip "These tests require SQLite compiled with ENABLE_FTS3_PARENTHESIS option", scalar @tests
+    unless DBD::SQLite->can('compile_options') &&
+    grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options();
   my $sql = "SELECT docid FROM try_fts3 WHERE content MATCH ?";
   for my $t (@tests) {
     my ($query, @expected) = @$t;
@@ -97,6 +101,9 @@ for my $use_unicode (0, 1) {
     my $results = $dbh->selectcol_arrayref($sql, undef, $query);
     is_deeply($results, \@expected, "$query (unicode is $use_unicode)");
   }
+
+}
+
 }
 
 
