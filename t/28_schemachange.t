@@ -24,6 +24,7 @@ SCOPE: {
 	ok( $dbh->do($create2), $create2 );
 	ok( $dbh->disconnect, '->disconnect ok' );
 }
+my $dbfile = dbfile('foo');
 
 my $pid;
 # diag("Forking... ($$)");
@@ -36,7 +37,7 @@ if ( not defined( $pid = fork() ) ) {
 
 	# diag("Child starting... ($$)");
 	my $dbh = DBI->connect(
-		'dbi:SQLite:dbname=foo', '', ''
+		"dbi:SQLite:dbname=$dbfile", '', ''
 	) or die 'connect failed';
 	$dbh->do($drop2) or die "DROP ok";
 	$dbh->disconnect or die "disconnect ok";

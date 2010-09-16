@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.32_01 to be released
+    - Resolved #61355: Fails testing in parallel (ISHIGAKI)
+
 1.31 Wed 15 Sep 2010
     - Production release, identical to 1.30_06
 

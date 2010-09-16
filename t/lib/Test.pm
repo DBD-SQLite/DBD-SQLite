@@ -9,10 +9,11 @@ use Test::More ();
 
 use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
 my $parent;
+my %dbfiles;
 BEGIN {
 	$VERSION = '1.31';
 	@ISA     = 'Exporter';
-	@EXPORT  = qw/connect_ok dies @CALL_FUNCS/;
+	@EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS/;
 
 	# Allow tests to load modules bundled in /inc
 	unshift @INC, 'inc';
@@ -23,12 +24,18 @@ BEGIN {
 # Always load the DBI module
 use DBI ();
 
+sub dbfile { $dbfiles{$_[0]} }
+
 # Delete temporary files
 sub clean {
 	return
 		if $$ != $parent;
-	unlink( 'foo'         );
-	unlink( 'foo-journal' );
+	for my $dbfile (values %dbfiles) {
+		next if $dbfile eq ':memory:';
+		unlink $dbfile if -f $dbfile;
+		my $journal = $dbfile . '-journal';
+		unlink $journal if -f $journal;
+	}
 }
 
 # Clean up temporary test files both at the beginning and end of the
@@ -40,7 +47,8 @@ END   { clean() }
 sub connect_ok {
 	my $attr = { @_ };
 	my $dbfile = delete $attr->{dbfile} || ':memory:';
-	my @params = ( "dbi:SQLite:dbname=$dbfile", '', '' );
+	$dbfiles{$dbfile} = ($dbfile ne ':memory:') ? $dbfile . $$ : $dbfile;
+	my @params = ( "dbi:SQLite:dbname=$dbfiles{$dbfile}", '', '' );
 	if ( %$attr ) {
 		push @params, $attr;
 	}

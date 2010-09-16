@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use t::lib::Test qw/connect_ok @CALL_FUNCS/;
+use t::lib::Test qw/connect_ok dbfile @CALL_FUNCS/;
 
 BEGIN {
 	use DBD::SQLite;
@@ -22,6 +22,7 @@ plan tests => 6 * @CALL_FUNCS + 1;
 foreach my $call_func (@CALL_FUNCS) {
 	# Connect to the test db and add some stuff:
 	my $foo = connect_ok( dbfile => 'foo', RaiseError => 1 );
+	my $dbfile = dbfile('foo');
 	$foo->do(
 	    'CREATE TABLE online_backup_test( id INTEGER PRIMARY KEY, foo INTEGER )'
 	);
@@ -38,7 +39,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	    { RaiseError => 1 }
 	);
 
-	ok($dbh->$call_func('foo', 'backup_from_file'));
+	ok($dbh->$call_func($dbfile, 'backup_from_file'));
 
 	{
 	    my ($count) = $dbh->selectrow_array(
@@ -54,7 +55,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	$dbh->do("INSERT INTO online_backup_test2 (foo) VALUES ($$)");
 
 	# backup to file (foo):
-	ok($dbh->$call_func('foo', 'backup_to_file'));
+	ok($dbh->$call_func($dbfile, 'backup_to_file'));
 
 	$dbh->disconnect;
 
@@ -71,5 +72,5 @@ foreach my $call_func (@CALL_FUNCS) {
 	}
 	$dbh->disconnect;
 
-	unlink 'foo';
+	unlink $dbfile;
 }

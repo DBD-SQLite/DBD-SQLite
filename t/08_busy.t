@@ -8,7 +8,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok @CALL_FUNCS/;
+use t::lib::Test qw/connect_ok dbfile @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
@@ -29,6 +29,8 @@ foreach my $call_func (@CALL_FUNCS) {
 	    PrintError => 0,
 	    AutoCommit => 0,
 	);
+
+	my $dbfile = dbfile('foo');
 
 	# NOTE: Let's make it clear what we're doing here.
 	# $dbh starts locking with the first INSERT statement.
@@ -77,7 +79,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	    skip("No fork here", 1);
 	} elsif (!$pid) {
 	    # child
-	    my $dbh2 = DBI->connect('dbi:SQLite:foo', '', '', 
+	    my $dbh2 = DBI->connect("dbi:SQLite:$dbfile", '', '', 
 	    {
 	        RaiseError => 1,
 	        PrintError => 0,
@@ -108,6 +110,6 @@ foreach my $call_func (@CALL_FUNCS) {
 	    }
 	    wait;
 	    $dbh->disconnect;
-	    unlink 'foo';
+	    unlink $dbfile;
 	}
 }
