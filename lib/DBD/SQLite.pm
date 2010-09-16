@@ -91,7 +91,7 @@ sub connect {
     if ( $dbname =~ /=/ ) {
         foreach my $attrib ( split(/;/, $dbname) ) {
             my ($key, $value) = split(/=/, $attrib, 2);
-            if ( $key eq 'dbname' ) {
+            if ( $key =~ /^(?:db(?:name)?|database)$/ ) {
                 $real = $value;
             } else {
                 $attr->{$key} = $value;

@@ -12,7 +12,7 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 9 * @CALL_FUNCS + 1;
+plan tests => 18 * @CALL_FUNCS + 1;
 
 my $show_diag = 0;
 foreach my $call_func (@CALL_FUNCS) {
@@ -39,6 +39,20 @@ foreach my $call_func (@CALL_FUNCS) {
 		is( $dbh->{sqlite_unicode}, 1, 'Unicode is on' );
 		$dbh->disconnect;
 		unlink $file;
+	}
+
+	# dbname, db, database
+	SCOPE: {
+		for my $key (qw/database db dbname/) {
+			my $file = 'foo'.$$;
+			unlink $file if -f $file;
+			ok !-f $file, 'database file does not exist';
+			my $dbh = DBI->connect("dbi:SQLite:$key=$file");
+			isa_ok( $dbh, 'DBI::db' );
+			ok -f $file, "database file (specified by $key=$file) now exists";
+			$dbh->disconnect;
+			unlink $file;
+		}
 	}
 
 	# Connect to a memory database
