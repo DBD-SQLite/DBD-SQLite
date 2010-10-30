@@ -329,11 +329,11 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
     dTHX;
     int rc;
     sqlite3_stmt *pStmt;
-    DBIc_ACTIVE_off(imp_dbh);
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit) == FALSE) {
         sqlite_db_rollback(dbh, imp_dbh);
     }
+    DBIc_ACTIVE_off(imp_dbh);
 
 #if 0
     /*
