@@ -142,10 +142,9 @@ static int
 sqlite_is_number(pTHX_ const char *v)
 {
     const char *z = v;
-    int i, neg;
+    int neg;
     int digit = 0;
     int precision = 0;
-    double f;
     char str[30], format[10];
 
     if      (*z == '-') { neg = 1; z++; }
@@ -620,7 +619,9 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         else {
             STRLEN len;
             const char *data;
+#if 0
             int numtype;
+#endif
             if (imp_dbh->unicode) {
                 sv_utf8_upgrade(value);
             }
@@ -2137,7 +2138,7 @@ static int perl_tokenizer_Next(
 
             /* recompute start/end offsets in bytes, not in chars */
             hop            = *piStartOffset - c->lastCharOffset;
-            byteOffset     = utf8_hop(c->lastByteOffset, hop);
+            byteOffset     = utf8_hop((U8*)c->lastByteOffset, hop);
             hop            = *piEndOffset - *piStartOffset;
             *piStartOffset = byteOffset - c->pInput;
             byteOffset     = utf8_hop(byteOffset, hop);
