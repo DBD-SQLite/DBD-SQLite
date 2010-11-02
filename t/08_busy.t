@@ -79,6 +79,12 @@ foreach my $call_func (@CALL_FUNCS) {
 	    skip("No fork here", 1);
 	} elsif (!$pid) {
 	    # child
+
+	    # avoid resource collisions after fork
+	    # http://www.slideshare.net/kazuho/un-5457977
+	    $dbh->{InactiveDestroy} = 1;
+	    undef $dbh;
+
 	    my $dbh2 = DBI->connect("dbi:SQLite:$dbfile", '', '', 
 	    {
 	        RaiseError => 1,
