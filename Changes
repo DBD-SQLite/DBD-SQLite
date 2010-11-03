@@ -6,6 +6,8 @@ Changes for Perl extension DBD-SQLite
     - Resolved #61361: Problems building 1.31 with system SQLite (ISHIGAKI)
     - Resolved #61117: Supporting database as an alias for dbname in
       DSN (ISHIGAKI)
+    - Resolved #62370: Segfaults during operations on disconnected
+      handles (ISHIGAKI)
 
 1.31 Wed 15 Sep 2010
     - Production release, identical to 1.30_06

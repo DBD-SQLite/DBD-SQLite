@@ -272,6 +272,11 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
     dTHX;
     int rc;
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to commit on inactive database handle");
+        return FALSE;
+    }
+
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
         /* We don't need to warn, because the DBI layer will do it for us */
         return TRUE;
@@ -301,6 +306,11 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     int rc;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to rollback on inactive database handle");
+        return FALSE;
+    }
 
     if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
         DBIc_off(imp_dbh, DBIcf_BegunWork);
@@ -370,7 +380,6 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
             sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
         }
     }
-    imp_dbh->db = NULL;
 
     av_undef(imp_dbh->functions);
     SvREFCNT_dec(imp_dbh->functions);
@@ -394,6 +403,8 @@ sqlite_db_destroy(SV *dbh, imp_dbh_t *imp_dbh)
     if (DBIc_ACTIVE(imp_dbh)) {
         sqlite_db_disconnect(dbh, imp_dbh);
     }
+    imp_dbh->db = NULL;
+
     DBIc_IMPSET_off(imp_dbh);
 }
 
@@ -409,7 +420,7 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
     if (strEQ(key, "AutoCommit")) {
         if (SvTRUE(valuesv)) {
             /* commit tran? */
-            if ( (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
+            if ( DBIc_ACTIVE(imp_dbh) && (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) && (!sqlite3_get_autocommit(imp_dbh->db)) ) {
                 sqlite_trace(dbh, imp_dbh, 3, "COMMIT TRAN");
                 rc = sqlite_exec(dbh, "COMMIT TRANSACTION");
                 if (rc != SQLITE_OK) {
@@ -491,6 +502,11 @@ sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, S
 {
     dTHX;
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to get last inserted id on inactive database handle");
+        return FALSE;
+    }
+
     croak_if_db_is_null();
 
     return sv_2mortal(newSViv((IV)sqlite3_last_insert_rowid(imp_dbh->db)));
@@ -505,14 +521,14 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
     D_imp_dbh_from_sth;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
-      sqlite_error(sth, -2, "attempt to prepare on inactive database handle");
-      return FALSE; /* -> undef in lib/DBD/SQLite.pm */
+        sqlite_error(sth, -2, "attempt to prepare on inactive database handle");
+        return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 
 #if 0
     if (*statement == '\0') {
-      sqlite_error(sth, -2, "attempt to prepare empty statement");
-      return FALSE; /* -> undef in lib/DBD/SQLite.pm */
+        sqlite_error(sth, -2, "attempt to prepare empty statement");
+        return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
 #endif
 
@@ -756,6 +772,11 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
     int numFields = DBIc_NUM_FIELDS(imp_sth);
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
     int i;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(sth, -2, "attempt to fetch on inactive database handle");
+        return FALSE;
+    }
 
     croak_if_db_is_null();
     croak_if_stmt_is_null();
@@ -1116,6 +1137,10 @@ sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
 
     if (timeout) {
         imp_dbh->timeout = timeout;
+        if (!DBIc_ACTIVE(imp_dbh)) {
+            sqlite_error(dbh, -2, "attempt to set busy timeout on inactive database handle");
+            return -2;
+        }
         sqlite3_busy_timeout(imp_dbh->db, timeout);
     }
     return imp_dbh->timeout;
@@ -1213,9 +1238,15 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func)
 {
     D_imp_dbh(dbh);
     int rc;
+    SV *func_sv;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to create function on inactive database handle");
+        return FALSE;
+    }
 
     /* Copy the function reference */
-    SV *func_sv = newSVsv(func);
+    func_sv = newSVsv(func);
     av_push( imp_dbh->functions, func_sv );
 
     croak_if_db_is_null();
@@ -1238,6 +1269,11 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 {
     D_imp_dbh(dbh);
     int rc;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to enable load extension on inactive database handle");
+        return FALSE;
+    }
 
     croak_if_db_is_null();
 
@@ -1443,9 +1479,15 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
 {
     D_imp_dbh(dbh);
     int rc;
+    SV *aggr_pkg_copy;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to create aggregate on inactive database handle");
+        return FALSE;
+    }
 
     /* Copy the aggregate reference */
-    SV *aggr_pkg_copy = newSVsv(aggr_pkg);
+    aggr_pkg_copy = newSVsv(aggr_pkg);
     av_push( imp_dbh->aggregates, aggr_pkg_copy );
 
     croak_if_db_is_null();
@@ -1539,6 +1581,11 @@ sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func)
 
     SV *func_sv = newSVsv(func);
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to create collation on inactive database handle");
+        return FALSE;
+    }
+
     croak_if_db_is_null();
 
     /* Check that this is a proper collation function */
@@ -1603,6 +1650,11 @@ sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback)
 {
     D_imp_dbh(dbh);
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to see if collation is needed on inactive database handle");
+        return;
+    }
+
     croak_if_db_is_null();
 
     /* remember the callback within the dbh */
@@ -1645,6 +1697,11 @@ sqlite_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler)
 {
     D_imp_dbh(dbh);
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to set progress handler on inactive database handle");
+        return FALSE;
+    }
+
     croak_if_db_is_null();
 
     if (!SvOK(handler)) {
@@ -1670,6 +1727,11 @@ sqlite_db_commit_hook(pTHX_ SV *dbh, SV *hook)
 {
     D_imp_dbh(dbh);
     void *retval;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to set commit hook on inactive database handle");
+        return &PL_sv_undef;
+    }
 
     croak_if_db_is_null();
 
@@ -1697,6 +1759,11 @@ sqlite_db_rollback_hook(pTHX_ SV *dbh, SV *hook)
 {
     D_imp_dbh(dbh);
     void *retval;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to set rollback hook on inactive database handle");
+        return &PL_sv_undef;
+    }
 
     croak_if_db_is_null();
 
@@ -1751,6 +1818,11 @@ sqlite_db_update_hook(pTHX_ SV *dbh, SV *hook)
 {
     D_imp_dbh(dbh);
     void *retval;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to set update hook on inactive database handle");
+        return &PL_sv_undef;
+    }
 
     croak_if_db_is_null();
 
@@ -1823,6 +1895,11 @@ sqlite_db_set_authorizer(pTHX_ SV *dbh, SV *authorizer)
     D_imp_dbh(dbh);
     int retval;
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to set authorizer on inactive database handle");
+        return FALSE;
+    }
+
     croak_if_db_is_null();
 
     if (!SvOK(authorizer)) {
@@ -1858,6 +1935,11 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
     int rc;
     sqlite3 *pFrom;
     sqlite3_backup *pBackup;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to backup from file on inactive database handle");
+        return FALSE;
+    }
 
     croak_if_db_is_null();
 
@@ -1901,6 +1983,11 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
     int rc;
     sqlite3 *pTo;
     sqlite3_backup *pBackup;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to backup to file on inactive database handle");
+        return FALSE;
+    }
 
     croak_if_db_is_null();
 
@@ -2196,6 +2283,11 @@ int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh)
     sqlite3_stmt *pStmt;
     const char zSql[] = "SELECT fts3_tokenizer(?, ?)";
     sqlite3_tokenizer_module *p = &perl_tokenizer_Module;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to register fts3 tokenizer on inactive database handle");
+        return FALSE;
+    }
 
     rc = sqlite3_prepare_v2(imp_dbh->db, zSql, -1, &pStmt, 0);
     if( rc!=SQLITE_OK ){

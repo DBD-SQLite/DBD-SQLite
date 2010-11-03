@@ -82,8 +82,10 @@ foreach my $call_func (@CALL_FUNCS) {
 
 	    # avoid resource collisions after fork
 	    # http://www.slideshare.net/kazuho/un-5457977
-	    $dbh->{InactiveDestroy} = 1;
-	    undef $dbh;
+	    unless ($^O eq 'MSWin32') {  # ignore fork emulation
+	        $dbh->{InactiveDestroy} = 1;
+	        undef $dbh;
+	    }
 
 	    my $dbh2 = DBI->connect("dbi:SQLite:$dbfile", '', '', 
 	    {
