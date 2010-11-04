@@ -79,9 +79,9 @@ sub connect {
     my ($drh, $dbname, $user, $auth, $attr) = @_;
 
     # Default PrintWarn to the value of $^W
-    unless ( defined $attr->{PrintWarn} ) {
-        $attr->{PrintWarn} = $^W ? 1 : 0;
-    }
+    # unless ( defined $attr->{PrintWarn} ) {
+    #    $attr->{PrintWarn} = $^W ? 1 : 0;
+    # }
 
     my $dbh = DBI::_new_dbh( $drh, {
         Name => $dbname,
@@ -136,9 +136,21 @@ sub connect {
 
     # HACK: Since PrintWarn = 0 doesn't seem to actually prevent warnings
     # in DBD::SQLite we set Warn to false if PrintWarn is false.
-    unless ( $attr->{PrintWarn} ) {
-        $attr->{Warn} = 0;
-    }
+
+    # NOTE: According to the explanation by timbunce,
+    # "Warn is meant to report on bad practices or problems with
+    # the DBI itself (hence always on by default), while PrintWarn
+    # is meant to report warnings coming from the database."
+    # That is, if you want to disable an ineffective rollback warning
+    # etc (due to bad practices), you should turn off Warn,
+    # and to silence other warnings, turn off PrintWarn.
+    # Warn and PrintWarn are independent, and turning off PrintWarn
+    # does not silence those warnings that should be controlled by
+    # Warn.
+
+    # unless ( $attr->{PrintWarn} ) {
+    #     $attr->{Warn} = 0;
+    # }
 
     return $dbh;
 }

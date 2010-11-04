@@ -13,7 +13,7 @@ use Test::More tests => 6;
 use Test::NoWarnings;
 
 SCOPE: {
-	my $dbh = connect_ok( RaiseError => 1, PrintWarn => 0 );
+	my $dbh = connect_ok( RaiseError => 1, PrintWarn => 0, Warn => 0 );
 	ok( ! $dbh->{PrintWarn}, '->{PrintWarn} is false' );
 	ok( $dbh->do("CREATE TABLE f (f1, f2, f3)"), 'CREATE TABLE ok' );
 	ok( $dbh->begin_work, '->begin_work' );
