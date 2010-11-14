@@ -11,7 +11,7 @@ use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
 my $parent;
 my %dbfiles;
 BEGIN {
-	$VERSION = '1.31';
+	$VERSION = '1.32_01';
 	@ISA     = 'Exporter';
 	@EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS/;
 
