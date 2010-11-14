@@ -8,6 +8,8 @@ Changes for Perl extension DBD-SQLite
       DSN (ISHIGAKI)
     - Resolved #62370: Segfaults during operations on disconnected
       handles (ISHIGAKI)
+    - Resolved #61958: REGEXP should return NULL when one of its
+      arguments is NULL (ISHIGAKI)
     - Removed PrintWarn tweak introduced in 1.19_09 (Tim Bunce's
       advice) (ISHIGAKI)
 
