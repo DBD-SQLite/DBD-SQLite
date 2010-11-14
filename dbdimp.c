@@ -449,7 +449,8 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         return TRUE;
     }
     if (strEQ(key, "unicode")) {
-        warn("\"unicode\" attribute will be deprecated. Use \"sqlite_unicode\" instead.");
+        if (DBIc_has(imp_dbh, DBIcf_WARN))
+            warn("\"unicode\" attribute will be deprecated. Use \"sqlite_unicode\" instead.");
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
         sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
         imp_dbh->unicode = 0;
@@ -485,7 +486,8 @@ sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
 #endif
    }
    if (strEQ(key, "unicode")) {
-        warn("\"unicode\" attribute will be deprecated. Use \"sqlite_unicode\" instead.");
+        if (DBIc_has(imp_dbh, DBIcf_WARN))
+            warn("\"unicode\" attribute will be deprecated. Use \"sqlite_unicode\" instead.");
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
        sqlite_trace(dbh, imp_dbh, 3, "Unicode support is disabled for this version of perl.");
        return sv_2mortal(newSViv(0));
