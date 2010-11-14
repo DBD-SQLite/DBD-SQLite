@@ -8,6 +8,8 @@ Changes for Perl extension DBD-SQLite
       DSN (ISHIGAKI)
     - Resolved #62370: Segfaults during operations on disconnected
       handles (ISHIGAKI)
+    - Removed PrintWarn tweak introduced in 1.19_09 (Tim Bunce's
+      advice) (ISHIGAKI)
 
 1.31 Wed 15 Sep 2010
     - Production release, identical to 1.30_06
