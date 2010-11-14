@@ -25,7 +25,7 @@ BEGIN {
 }
 use Test::NoWarnings;
 
-plan tests => 2 * (1 + 2 * @regexes) * @CALL_FUNCS + 1;
+plan tests => 2 * (3 + 2 * @regexes) * @CALL_FUNCS + 1;
 
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang
@@ -70,6 +70,19 @@ foreach my $call_func (@CALL_FUNCS) {
       $sql =~ s/REGEXP/NOT REGEXP/;
       my $db_antimatch = $dbh->selectcol_arrayref($sql);
       is_deeply(\@perl_antimatch, $db_antimatch, "NOT REGEXP '$regex'");
+    }
+
+    # null
+    {
+      my $sql = "SELECT txt from regexp_test WHERE txt REGEXP NULL "
+              .                             "COLLATE perllocale";
+      my $db_match = $dbh->selectcol_arrayref($sql);
+
+      is_deeply([], $db_match, "REGEXP NULL");
+
+      $sql =~ s/REGEXP/NOT REGEXP/;
+      my $db_antimatch = $dbh->selectcol_arrayref($sql);
+      is_deeply([], $db_antimatch, "NOT REGEXP NULL");
     }
   }
 }

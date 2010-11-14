@@ -175,6 +175,7 @@ sub install_collation {
 # (see http://www.sqlite.org/vtab.html#xfindfunction)
 sub regexp {
     use locale;
+    return if !defined $_[0] || !defined $_[1];
     return scalar($_[1] =~ $_[0]);
 }
 
