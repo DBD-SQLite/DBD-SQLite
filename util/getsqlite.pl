@@ -10,17 +10,40 @@ chdir(catdir($FindBin::Bin, updir())) or die "Failed to change to the dist root"
 
 my $version = shift || die "Usage: getsqlite.pl <version>\n";
 
-print("downloading http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz\n");
+# The http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz name format changed starting with 3.7.4
+# We will let user specify any SQLite version in either the old or new format, and normalize.
+my @version_parts;
+if ($version =~ m/^[0-9](?:\.[0-9]+){0,3}$/) {
+    # $version is X.Y+.Z+.W+ style used for SQLite <= 3.7.3
+    @version_parts = map { (0 + $_) } (split /\./, $version);
+}
+elsif ($version =~ m/^[0-9](?:[0-9]{2}){0,3}$/) {
+    # $version is XYYZZWW style used for SQLite >= 3.7.4
+    @version_parts = map { 0 + $_ } ((substr $version, 0, 1), ((substr $version, 1) =~ m/[0-9]{2}/g));
+}
+else {
+    die "improper <version> format for [$version]\n";
+}
+my $version_as_num = sprintf( q{%u%02u%02u%02u}, @version_parts );
+my $version_dotty = join '.', ($version_parts[3] ? @version_parts : @version_parts[0..2]);
+my $is_pre_30704_style = ($version_as_num < 3070400);
+my $version_for_url = $is_pre_30704_style ? $version_dotty : $version_as_num;
+
+
+my $url_to_download = q{http://www.sqlite.org/sqlite-}
+    . ($is_pre_30704_style ? q{amalgamation} : q{autoconf})
+    . qq{-$version_for_url.tar.gz};
+print("downloading $url_to_download\n");
 my $rv = getstore(
-	"http://www.sqlite.org/sqlite-amalgamation-$version.tar.gz", 
+	$url_to_download, 
 	"sqlite.tar.gz",
 );
 die "Failed to download" if $rv != 200;
 print("done\n");
 
-rm_rf('sqlite') || rm_rf("sqlite-$version") || rm_rf("sqlite-amalgamation-$version");
+rm_rf('sqlite') || rm_rf("sqlite-$version_dotty") || rm_rf("sqlite-amalgamation-$version_dotty");
 xsystem("tar zxvf sqlite.tar.gz");
-chdir("sqlite") || chdir("sqlite-$version") || chdir("sqlite-amalgamation-$version") || die "SQLite directory not found";
+chdir("sqlite") || chdir("sqlite-$version_dotty") || chdir("sqlite-amalgamation-$version_dotty") || die "SQLite directory not found";
 
 
 
