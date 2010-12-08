@@ -3,7 +3,7 @@ Changes for Perl extension DBD-SQLite
 1.32_01 to be released
     - Made util/getsqlite.pl work with the amalg distro filename changes
       introd by SQLite 3.7.4, and still with older ones also (DUNCAND)
-    - Updated to SQLite 3.7.3 (DUNCAND)
+    - Updated to SQLite 3.7.4 (DUNCAND)
     - Resolved #61355: Fails testing in parallel (ISHIGAKI)
     - Resolved #61361: Problems building 1.31 with system SQLite (ISHIGAKI)
     - Resolved #61117: Supporting database as an alias for dbname in
