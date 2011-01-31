@@ -8,6 +8,7 @@ BEGIN {
 
 use t::lib::Test     qw/connect_ok/;
 use Test::More;
+use DBD::SQLite;
 
 my @texts = ("il était une bergère",
              "qui gardait ses moutons",
@@ -29,6 +30,9 @@ my @tests = (
 BEGIN {
 	if ($] < 5.008005) {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
+	}
+	if (!grep /ENABLE_FTS3/, DBD::SQLite::compile_options()) {
+		plan skip_all => 'FTS3 is disabled for this DBD::SQLite';
 	}
 }
 use Test::NoWarnings;

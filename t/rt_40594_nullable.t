@@ -6,8 +6,17 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 7;
+use Test::More;
 use t::lib::Test;
+use DBD::SQLite;
+
+BEGIN {
+	if (!grep /^ENABLE_COLUMN_METADATA/, DBD::SQLite::compile_options()) {
+		plan skip_all => "Column metadata is disabled for this DBD::SQLite";
+	}
+}
+
+plan tests => 7;
 
 my $dbh = connect_ok();
 

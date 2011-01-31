@@ -15,6 +15,9 @@ BEGIN {
 		plan skip_all => "this test requires SQLite 3.6.6 and newer";
 		exit;
 	}
+	if (!grep /^ENABLE_FTS3/, DBD::SQLite::compile_options()) {
+		plan skip_all => "FTS3 is disabled for this DBD::SQLite";
+	}
 }
 
 use Test::NoWarnings;
