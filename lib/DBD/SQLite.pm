@@ -1890,6 +1890,44 @@ available as external resources (for example files on the filesystem),
 that space can sometimes be spared --- see the tip in the 
 L<Cookbook|DBD::SQLite::Cookbook/"Sparing database disk space">.
 
+=head1 R* TREE SUPPORT
+
+The RTREE extension module within SQLite adds support for creating
+a R-Tree, a special index for range and multidimensional queries.  This
+allows users to create tables that can be loaded with (as an example)
+geospatial data such as latitude/longitude coordinates for buildings within
+a city :
+
+  CREATE VIRTUAL TABLE city_buildings USING rtree(
+     id,               -- Integer primary key
+     minLong, maxLong, -- Minimum and maximum longitude
+     minLat, maxLat    -- Minimum and maximum latitude
+  );
+
+then query which buildings overlap or are contained within a specified region:
+
+  # IDs that are contained within query coordinates
+  my $contained_sql = <<"";
+  SELECT id FROM try_rtree
+     WHERE  minLong >= ? AND maxLong <= ?
+     AND    minLat  >= ? AND maxLat  <= ?
+  
+  # ... and those that overlap query coordinates
+  my $overlap_sql = <<"";
+  SELECT id FROM try_rtree
+     WHERE    maxLong >= ? AND minLong <= ?
+     AND      maxLat  >= ? AND minLat  <= ?
+  
+  my $contained = $dbh->selectcol_arrayref($contained_sql,undef,
+                        $minLong, $maxLong, $minLat, $maxLat);
+  
+  my $overlapping = $dbh->selectcol_arrayref($overlap_sql,undef,
+                        $minLong, $maxLong, $minLat, $maxLat);  
+
+For more detail, please see the SQLite R-Tree page
+(L<http://www.sqlite.org/rtree.html>). Note that custom R-Tree
+queries using callbacks, as mentioned in the prior link, have not been
+implemented yet.
 
 =head1 FOR DBD::SQLITE EXTENSION AUTHORS
 
@@ -1946,6 +1984,13 @@ Reading/writing into blobs using C<sqlite2_blob_open> / C<sqlite2_blob_close>.
 =head2 Flags for sqlite3_open_v2
 
 Support the full API of sqlite3_open_v2 (flags for opening the file).
+
+=head2 Support for custom callbacks for R-Tree queries
+
+Custom queries of a R-Tree index using a callback are possible with
+the SQLite C API (L<http://www.sqlite.org/rtree.html>), so one could
+potentially use a callback that narrowed the result set down based
+on a specific need, such as querying for overlapping circles.
 
 =head1 SUPPORT
 

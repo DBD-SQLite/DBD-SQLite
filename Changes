@@ -4,6 +4,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #65267 for DBD-SQLite: Add RTree support option;
       skip fts3/metadata tests if those features are disabled
       (ISHIGAKI)
+    - Resolved #65267: Add RTree support option (CJFIELDS)
 
 1.32_01 Fri 10 Dec 2010
     - Made util/getsqlite.pl work with the amalg distro filename changes

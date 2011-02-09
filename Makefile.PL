@@ -219,7 +219,7 @@ my @CC_DEFINE = (
 	# This change MAY POSSIBLY BREAK OLD APPLICATIONS THAT ALREADY 
 	# USED FTS3 ... but sooner or later that change had to be done !
 	'-DSQLITE_ENABLE_FTS3_PARENTHESIS',  # for sqlite >= 3.6.10
-
+	'-DSQLITE_ENABLE_RTREE',             # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_COLUMN_METADATA',
 	'-DNDEBUG=1',
 );
