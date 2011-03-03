@@ -1964,13 +1964,6 @@ system).
 
 The following items remain to be done.
 
-=head2 Warnings Upgrade
-
-We currently use a horridly hacky method to issue and suppress warnings.
-It suffices for now, but just barely.
-
-Migrate all of the warning code to use the recommended L<DBI> warnings.
-
 =head2 Leak Detection
 
 Implement one or more leak detection tests that only run during
