@@ -1,13 +1,14 @@
 Changes for Perl extension DBD-SQLite
 
 1.32_02 to be released
+    - Updated to SQLite 3.7.5 (ISHIGAKI)
     - Resolved #65267 for DBD-SQLite: Add RTree support option;
       skip fts3/metadata tests if those features are disabled
       (ISHIGAKI)
     - Resolved #65267: Add RTree support option (CJFIELDS)
     - Added sqlite_see_if_its_a_number database handle attribute
       to deal with issues caused by (quoted) bind values against
-      numbers such as return values from a function etc.
+      numbers such as return values from a function etc. (ISHIGAKI)
 
 1.32_01 Fri 10 Dec 2010
     - Made util/getsqlite.pl work with the amalg distro filename changes
