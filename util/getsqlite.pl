@@ -43,7 +43,7 @@ print("done\n");
 
 rm_rf('sqlite') || rm_rf("sqlite-$version_dotty") || rm_rf("sqlite-amalgamation-$version_dotty");
 xsystem("tar zxvf sqlite.tar.gz");
-chdir("sqlite") || chdir("sqlite-$version_dotty") || chdir("sqlite-amalgamation-$version_dotty") || die "SQLite directory not found";
+chdir("sqlite") || chdir("sqlite-$version_dotty") || chdir("sqlite-amalgamation-$version_dotty") || chdir("sqlite-autoconf-$version") || die "SQLite directory not found";
 
 
 
