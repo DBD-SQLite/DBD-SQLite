@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 17;
+use Test::More tests => 19;
 use Test::NoWarnings;
 use DBI qw(:sql_types);
 
@@ -74,8 +74,15 @@ is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement : [2]" );
 
 # known workarounds 2: add "+0" to let sqlite convert the binded param into number
 
-$statement =~ s/\?/\?\+0/;
-$sth = $dbh->prepare($statement);
-ok( $sth->execute(2), "execute: $statement : [2]" );
-is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement : [2]" );
+(my $tweaked_statement = $statement) =~ s/\?/\?\+0/;
+$sth = $dbh->prepare($tweaked_statement);
+ok( $sth->execute(2), "execute: $tweaked_statement : [2]" );
+is( $sth->fetchrow_arrayref->[0], 1, "result of: $tweaked_statement : [2]" );
 
+# workaround 3: use sqlite_see_if_its_a_number attribute
+{
+	local $dbh->{sqlite_see_if_its_a_number} = 1;
+	$sth = $dbh->prepare($statement);
+	ok( $sth->execute(2), "execute: $statement : [2]" );
+	is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement : [2]" );
+}

@@ -6,7 +6,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use Test::NoWarnings;
 use DBI qw(:sql_types);
 
@@ -50,6 +50,16 @@ $sth->bind_param(1, 1, { TYPE => SQL_INTEGER });
 $sth->execute;
 $ar = $sth->fetchall_arrayref;
 is( scalar(@$ar), 2, 'Got 2 results' );
+
+# known workaround 3
+{
+	local $dbh->{sqlite_see_if_its_a_number} = 1;
+	my $sth = $dbh->selectall_arrayref(
+		'SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?',
+		undef, 1
+	);
+	is( scalar(@$ar), 2, 'Got 2 results' );
+}
 
 # and this is what should be tested
 #TODO: {

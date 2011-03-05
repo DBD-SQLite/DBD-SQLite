@@ -240,6 +240,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->handle_binary_nulls       = FALSE;
     imp_dbh->allow_multiple_statements = FALSE;
     imp_dbh->use_immediate_transaction = FALSE;
+    imp_dbh->see_if_its_a_number       = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
@@ -439,6 +440,10 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         imp_dbh->use_immediate_transaction = !(! SvTRUE(valuesv));
         return TRUE;
     }
+    if (strEQ(key, "sqlite_see_if_its_a_number")) {
+        imp_dbh->see_if_its_a_number = !(! SvTRUE(valuesv));
+        return TRUE;
+    }
     if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
         sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
@@ -476,6 +481,9 @@ sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
     }
    if (strEQ(key, "sqlite_use_immediate_transaction")) {
        return sv_2mortal(newSViv(imp_dbh->use_immediate_transaction ? 1 : 0));
+   }
+   if (strEQ(key, "sqlite_see_if_its_a_number")) {
+       return sv_2mortal(newSViv(imp_dbh->see_if_its_a_number ? 1 : 0));
    }
    if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
@@ -637,15 +645,17 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         else {
             STRLEN len;
             const char *data;
-#if 0
-            int numtype;
-#endif
+            int numtype = 0;
+
             if (imp_dbh->unicode) {
                 sv_utf8_upgrade(value);
             }
             data = SvPV(value, len);
-#if 0
-            numtype = sqlite_is_number(aTHX_ data);
+
+            if (imp_dbh->see_if_its_a_number) {
+                numtype = sqlite_is_number(aTHX_ data);
+            }
+
             if (numtype == 1) {
 #if defined(USE_64_BIT_INT)
                 rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atoi(data));
@@ -657,11 +667,8 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                 rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
             }
             else {
-#endif
                 rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
-#if 0
             }
-#endif
         }
 
         if (value) {
@@ -816,7 +823,6 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
         }
         switch(col_type) {
             case SQLITE_INTEGER:
-#if 1
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as integer", i));
 #if defined(USE_64_BIT_INT)
                 sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
@@ -824,14 +830,11 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 sv_setnv(AvARRAY(av)[i], (double)sqlite3_column_int64(imp_sth->stmt, i));
 #endif
                 break;
-#endif
             case SQLITE_FLOAT:
-#if 1
                 /* fetching as float may lose precision info in the perl world */
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as float", i));
                 sv_setnv(AvARRAY(av)[i], sqlite3_column_double(imp_sth->stmt, i));
                 break;
-#endif
             case SQLITE_TEXT:
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as text", i));
                 val = (char*)sqlite3_column_text(imp_sth->stmt, i);

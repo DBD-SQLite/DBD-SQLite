@@ -752,7 +752,7 @@ like this while executing:
 
   SELECT bar FROM foo GROUP BY bar HAVING count(*) > "5";
 
-There are two workarounds for this.
+There are three workarounds for this.
 
 =over 4
 
@@ -777,6 +777,32 @@ This is somewhat weird, but works anyway.
     SELECT bar FROM foo GROUP BY bar HAVING count(*) > (? + 0);
   });
   $sth->execute(5);
+
+=item Set C<sqlite_see_if_its_a_number> database handle attribute
+
+As of version 1.32_02, you can use C<sqlite_see_if_its_a_number>
+to let DBD::SQLite to see if the bind values are numbers or not.
+
+  $dbh->{sqlite_see_if_its_a_number} = 1;
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
+  });
+  $sth->execute(5);
+
+You can set it to true when you connect to a database.
+
+  my $dbh = DBI->connect('dbi:SQLite:foo', undef, undef, {
+    AutoCommit => 1,
+    RaiseError => 1,
+    sqlite_see_if_its_a_number => 1,
+  });
+
+This is the most straightforward solution, but as noted above,
+existing data in your databases created by DBD::SQLite have not
+always been stored as numbers, so this *might* cause other obscure
+problems. Use this sparingly when you handle existing databases.
+If you handle databases created by other tools like native C<sqlite3>
+command line tool, this attribute would help you.
 
 =back
 
@@ -1032,6 +1058,12 @@ penalty. See above for details.
 If you set this to true, DBD::SQLite tries to issue a C<begin
 immediate transaction> (instead of C<begin transaction>) when
 necessary. See above for details.
+
+=item sqlite_see_if_its_a_number
+
+If you set this to true, DBD::SQLite tries to see if the bind values
+are number or not, and does not quote if they are numbers. See above
+for details.
 
 =back
 

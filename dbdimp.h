@@ -35,6 +35,7 @@ struct imp_dbh_st {
     SV *collation_needed_callback;
     bool allow_multiple_statements;
     bool use_immediate_transaction;
+    bool see_if_its_a_number;
 };
 
 /* Statement Handle */
