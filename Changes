@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.32_02 to be released
+1.32_02 Mon 7 Mar 2011
     - Updated to SQLite 3.7.5 (ISHIGAKI)
     - Resolved #65267 for DBD-SQLite: Add RTree support option;
       skip fts3/metadata tests if those features are disabled
