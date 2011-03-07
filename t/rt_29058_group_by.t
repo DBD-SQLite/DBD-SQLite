@@ -54,7 +54,7 @@ is( scalar(@$ar), 2, 'Got 2 results' );
 # known workaround 3
 {
 	local $dbh->{sqlite_see_if_its_a_number} = 1;
-	my $sth = $dbh->selectall_arrayref(
+	my $ar = $dbh->selectall_arrayref(
 		'SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?',
 		undef, 1
 	);
