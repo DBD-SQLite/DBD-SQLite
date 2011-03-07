@@ -11,6 +11,7 @@ use vars qw{%COLLATION};
 
 BEGIN {
     $VERSION = '1.32_02';
+    $VERSION = eval $VERSION;
     @ISA     = 'DynaLoader';
 
     # Initialize errors
