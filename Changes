@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.32_03 (or 1.33) to be released
+    - Updated to SQLite 3.7.6 (ISHIGAKI)
+
 1.32_02 Mon 7 Mar 2011
     - Updated to SQLite 3.7.5 (ISHIGAKI)
     - Resolved #65267 for DBD-SQLite: Add RTree support option;
