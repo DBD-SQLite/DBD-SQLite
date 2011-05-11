@@ -714,7 +714,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
              (sql[2] == 'M' || sql[2] == 'm') &&
              (sql[3] == 'M' || sql[3] == 'm') &&
              (sql[4] == 'I' || sql[4] == 'i') &&
-             (sql[5] == 'T' || sql[5] == 't')) ||
+             (sql[5] == 'T' || sql[5] == 't'))) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        }
+        else if (
             ((sql[0] == 'R' || sql[0] == 'r') &&
              (sql[1] == 'O' || sql[1] == 'o') &&
              (sql[2] == 'L' || sql[2] == 'l') &&
@@ -723,8 +727,39 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
              (sql[5] == 'A' || sql[5] == 'a') &&
              (sql[6] == 'C' || sql[6] == 'c') &&
              (sql[7] == 'K' || sql[7] == 'k'))) {
-            DBIc_off(imp_dbh, DBIcf_BegunWork);
-            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+            int l = strlen(sql);
+            bool is_savepoint = FALSE;
+            for(i = 8; i < l; i++) {
+                if (sql[i] == ' ' || sql[i] == '\t') continue;
+                if (sql[i] == 'T' || sql[i] == 't') {
+                    if ((sql[i+0]  == 'T' || sql[i+0]  == 't') &&
+                        (sql[i+1]  == 'R' || sql[i+1]  == 'r') &&
+                        (sql[i+2]  == 'A' || sql[i+2]  == 'a') &&
+                        (sql[i+3]  == 'N' || sql[i+3]  == 'n') &&
+                        (sql[i+4]  == 'S' || sql[i+4]  == 's') &&
+                        (sql[i+5]  == 'A' || sql[i+5]  == 'a') &&
+                        (sql[i+6]  == 'C' || sql[i+6]  == 'c') &&
+                        (sql[i+7]  == 'T' || sql[i+7]  == 't') &&
+                        (sql[i+8]  == 'I' || sql[i+8]  == 'i') &&
+                        (sql[i+9]  == 'O' || sql[i+9]  == 'o') &&
+                        (sql[i+10] == 'N' || sql[i+10] == 'n')) {
+                        i += 10; continue;
+                    }
+                    else if (
+                        (sql[i+0] == 'T' || sql[i+0] == 't') &&
+                        (sql[i+1] == 'O' || sql[i+1] == 'o') &&
+                        (sql[i+2] == ' ' || sql[i+2] == '\t')) {
+                      /* rolling back to a savepoint should not
+                         change AutoCommit status */
+                        is_savepoint = TRUE;
+                    }
+                }
+                break;
+            }
+            if (!is_savepoint) {
+                DBIc_off(imp_dbh, DBIcf_BegunWork);
+                DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+            }
         }
     }
 
