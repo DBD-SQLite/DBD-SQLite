@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.33 to be released
+    - Updated to SQLite 3.7.6.3 (ISHIGAKI)
+
 1.32_03 Thu 12 May 2011
     - Updated to SQLite 3.7.6.2 (ISHIGAKI)
     - Resolved #67843 for DBD-SQLite: savepoint rollback alters AC
