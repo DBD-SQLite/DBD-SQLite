@@ -2,6 +2,9 @@ Changes for Perl extension DBD-SQLite
 
 1.33 to be released
     - Updated to SQLite 3.7.6.3 (ISHIGAKI)
+    - Made util/getsqlite.pl state that it needs fixing to work for
+      SQLite 3.7.5+ when it dies at the last step, and outline what the
+      user needs to do manually instead, until getsqlite is fixed (DUNCAND)
 
 1.32_03 Thu 12 May 2011
     - Updated to SQLite 3.7.6.2 (ISHIGAKI)
