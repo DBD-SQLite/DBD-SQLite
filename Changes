@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.33 Mon 20 May 2011
+    - Production release, no changes from 1.32_04
+
 1.32_04 Fri 20 May 2011
     - Updated to SQLite 3.7.6.3 (ISHIGAKI)
     - Made util/getsqlite.pl state that it needs fixing to work for
