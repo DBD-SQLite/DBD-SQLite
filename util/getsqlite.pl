@@ -43,11 +43,8 @@ print("done\n");
 
 rm_rf('sqlite') || rm_rf("sqlite-$version_dotty") || rm_rf("sqlite-amalgamation-$version_dotty");
 xsystem("tar zxvf sqlite.tar.gz");
-chdir("sqlite") || chdir("sqlite-$version_dotty") || chdir("sqlite-amalgamation-$version_dotty") || chdir("sqlite-autoconf-$version")
-|| die "SQLite directory not found.  getsqlite.pl needs fixing to work for SQLite 3.7.5+,"
-    . " but meanwhile have a look at its source after line 48 and copy the primary files"
-    . " from the unpacked tarball over their counterparts in the root DBD::SQLite"
-    . " dir before you 'make': sqlite3.c, sqlite3.h, sqlite3ext.h, fts3_tokenizer.h";
+chdir("sqlite") || chdir("sqlite-$version_dotty") || chdir("sqlite-amalgamation-$version_dotty") || chdir("sqlite-autoconf-$version") || chdir("sqlite-autoconf-$version_as_num")
+|| die "SQLite directory not found.";
 
 
 
