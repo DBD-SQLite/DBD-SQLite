@@ -75,8 +75,11 @@ foreach my $call_func (@CALL_FUNCS) {
 	my $pid = fork;
 	if (!defined($pid)) {
 	    # fork failed
-	    skip("No fork here", 1);
-	    skip("No fork here", 1);
+	    SKIP: {
+	        skip("No fork here", 3);
+	    }
+	    $dbh->disconnect;
+	    unlink $dbfile;
 	} elsif (!$pid) {
 	    # child
 
