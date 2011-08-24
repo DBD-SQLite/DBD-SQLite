@@ -40,6 +40,8 @@ create_function(dbh, name, argc, func)
     OUTPUT:
         RETVAL
 
+#ifndef SQLITE_OMIT_LOAD_EXTENSION
+
 static int
 enable_load_extension(dbh, onoff)
     SV *dbh
@@ -52,6 +54,8 @@ enable_load_extension(dbh, onoff)
     }
     OUTPUT:
         RETVAL
+
+#endif
 
 static int
 create_aggregate(dbh, name, argc, aggr)

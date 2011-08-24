@@ -86,7 +86,11 @@ struct aggrInfo {
 
 
 int sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func);
+
+#ifndef SQLITE_OMIT_LOAD_EXTENSION
 int sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
+#endif
+
 int sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr );
 int sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func);
 int sqlite_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler);

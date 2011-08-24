@@ -1304,6 +1304,8 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func)
     return TRUE;
 }
 
+#ifndef SQLITE_OMIT_LOAD_EXTENSION
+
 int
 sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 {
@@ -1325,6 +1327,8 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
     }
     return TRUE;
 }
+
+#endif
 
 static void
 sqlite_db_aggr_new_dispatcher(pTHX_ sqlite3_context *context, aggrInfo *aggr_info)
