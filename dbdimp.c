@@ -1,6 +1,7 @@
 #define PERL_NO_GET_CONTEXT
 
 #define NEED_newSVpvn_flags
+#define NEED_sv_2pvbyte
 
 #include "SQLiteXS.h"
 
