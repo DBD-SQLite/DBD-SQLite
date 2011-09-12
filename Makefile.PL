@@ -3,6 +3,7 @@ use 5.006;
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
+use File::Spec;
 
 # Some dependencies need to be more aggressive on Windows
 sub WINLIKE () {
