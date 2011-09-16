@@ -249,6 +249,14 @@ my @CC_OPTIONS = (
 	) : () ),
 );
 
+# RT #70135: These flags are valid only for gcc/g++
+if ($Config{cc} =~ /^g?cc/) {
+	push @CC_OPTIONS,
+		CCFLAGS   => $Config{ccflags}   . '  -Wl,-Bsymbolic',
+		LDFLAGS   => $Config{ldflags}   . '  -Wl,-Bsymbolic',
+		LDDLFLAGS => $Config{lddlflags} . '  -Wl,-Bsymbolic';
+}
+
 #####################################################################
 # Hand off to ExtUtils::MakeMaker
 
