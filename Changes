@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.34_01 to be released
-    - Updated to SQLite 3.7.7.1 (DUNCAND)
+    - Updated to SQLite 3.7.8 (ISHIGAKI)
     - Made util/getsqlite.pl work properly for SQLite 3.7.5+ (ISHIGAKI)
     - Cookbook: don't use globals (Yuriy Kaminskiy)
     - Resolved #70135 and hopefully other mod_perl/CentOS issues like
