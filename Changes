@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.34_01 to be released
+1.34_01 Thu 22 Sep 2011
     - Updated to SQLite 3.7.8 (ISHIGAKI)
     - Made util/getsqlite.pl work properly for SQLite 3.7.5+ (ISHIGAKI)
     - Cookbook: don't use globals (Yuriy Kaminskiy)
