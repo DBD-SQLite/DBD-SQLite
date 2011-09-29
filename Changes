@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.34_02 to be released
+    - Resolved #71311: binding output columns as SQL_BLOB returns
+      nothing (ISHIGAKI)
+
 1.34_01 Thu 22 Sep 2011
     - Updated to SQLite 3.7.8 (ISHIGAKI)
     - Made util/getsqlite.pl work properly for SQLite 3.7.5+ (ISHIGAKI)

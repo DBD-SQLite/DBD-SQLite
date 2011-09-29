@@ -106,6 +106,26 @@ sqlite_type_to_odbc_type(int type)
     }
 }
 
+static int
+sqlite_type_from_odbc_type(int type)
+{
+    switch(type) {
+        case SQL_INTEGER:
+        case SQL_SMALLINT:
+        case SQL_TINYINT:
+        case SQL_BIGINT:
+            return SQLITE_INTEGER;
+        case SQL_FLOAT:
+        case SQL_REAL:
+        case SQL_DOUBLE:
+            return SQLITE_FLOAT;
+        case SQL_BLOB:
+            return SQLITE_BLOB;
+        default:
+            return SQLITE_TEXT;
+    }
+}
+
 static void
 sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
 {
@@ -854,7 +874,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
         SV **sql_type = av_fetch(imp_sth->col_types, i, 0);
         if (sql_type && SvOK(*sql_type)) {
             if (SvIV(*sql_type)) {
-                col_type = SvIV(*sql_type);
+                col_type = sqlite_type_from_odbc_type(SvIV(*sql_type));
             }
         }
         switch(col_type) {
