@@ -7,9 +7,10 @@ BEGIN {
 }
 
 use t::lib::Test qw/connect_ok/;
-use Test::More;
+use Test::More tests => 32;
 use DBI qw/:sql_types/;
 
+my $id = 0;
 for my $has_pk (0..1) {
 	my $dbh = connect_ok(RaiseError => 1, PrintWarn => 0, PrintError => 0);
 	if ($has_pk) {
@@ -21,29 +22,54 @@ for my $has_pk (0..1) {
 
 	{
 		my $sth = $dbh->prepare('insert into foo values (?, ?)');
-		$sth->bind_param(1, 1);
+		$sth->bind_param(1, ++$id);
 		$sth->bind_param(2, 1);
-		eval { $sth->execute };
-		ok !$@, "inserted without errors";
+		my $ret = eval { $sth->execute };
+		ok defined $ret, "inserted without errors";
 
-		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, 1);
+		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
 		ok $value && $value == 1, "got correct value";
 	}
 
 	{
 		my $sth = $dbh->prepare('insert into foo values (?, ?)');
-		$sth->bind_param(1, 2);
-		$sth->bind_param(2, 'foo'); # may seem weird, but that's sqlite
-		eval { $sth->execute };
+		$sth->bind_param(1, ++$id);
+		$sth->bind_param(2, 1.5);
+		my $ret = eval { $sth->execute };
 
 		if ($has_pk) {
+			ok !defined $ret, "returns undef";
 			ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
 		}
 		else {
-			ok !$@, "inserted without errors";
+			ok defined $ret, "inserted without errors";
 		}
 
-		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, 2);
+		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
+
+		if ($has_pk) {
+			ok !$value , "not inserted/indexed";
+		}
+		else {
+			ok $value && $value == 1.5, "got correct value";
+		}
+	}
+
+	{
+		my $sth = $dbh->prepare('insert into foo values (?, ?)');
+		$sth->bind_param(1, ++$id);
+		$sth->bind_param(2, 'foo'); # may seem weird, but that's sqlite
+		my $ret = eval { $sth->execute };
+
+		if ($has_pk) {
+			ok !defined $ret, "returns undef";
+			ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
+		}
+		else {
+			ok defined $ret, "inserted without errors";
+		}
+
+		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
 
 		if ($has_pk) {
 			ok !$value , "not inserted/indexed";
@@ -55,29 +81,40 @@ for my $has_pk (0..1) {
 
 	{
 		my $sth = $dbh->prepare('insert into foo values (?, ?)');
-		$sth->bind_param(1, 3);
+		$sth->bind_param(1, ++$id);
 		$sth->bind_param(2, 3, SQL_INTEGER);
-		eval { $sth->execute };
-		ok !$@, "inserted without errors";
+		my $ret = eval { $sth->execute };
+		ok defined $ret, "inserted without errors";
 
-		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, 3);
+		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
 		ok $value && $value == 3, "got correct value";
 	}
 
 	{
 		my $sth = $dbh->prepare('insert into foo values (?, ?)');
-		$sth->bind_param(1, 4);
+		$sth->bind_param(1, ++$id);
+		$sth->bind_param(2, 3.5, SQL_INTEGER);
+		my $ret = eval { $sth->execute };
+		ok !defined $ret, "returns undef";
+		ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
+
+		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
+		ok !$value, "not inserted/indexed";
+	}
+
+	{
+		my $sth = $dbh->prepare('insert into foo values (?, ?)');
+		$sth->bind_param(1, ++$id);
 		$sth->bind_param(2, 'qux', SQL_INTEGER);
 
 		# only dies if type is explicitly specified
-		eval { $sth->execute };
+		my $ret = eval { $sth->execute };
+		ok !defined $ret, "returns undef";
 		ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
 
-		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, 4);
+		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
 		ok !$value, "not inserted/indexed";
 	}
 
 	$dbh->disconnect;
 }
-
-done_testing;

@@ -688,7 +688,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                 rc = sqlite3_bind_int(imp_sth->stmt, i+1, atoi(data));
 #endif
             }
-            else if (numtype == 2) {
+            else if (numtype == 2 && sql_type != SQLITE_INTEGER) {
                 rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
             }
             else {
