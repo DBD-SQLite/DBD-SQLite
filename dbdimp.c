@@ -639,7 +639,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     for (i = 0; i < num_params; i++) {
         SV *value       = av_shift(imp_sth->params);
         SV *sql_type_sv = av_shift(imp_sth->params);
-        int sql_type    = SvIV(sql_type_sv);
+        int sql_type    = sqlite_type_from_odbc_type(SvIV(sql_type_sv));
 
         sqlite_trace(sth, imp_sth, 4, form("params left in 0x%p: %ld", imp_sth->params, 1+av_len(imp_sth->params)));
         sqlite_trace(sth, imp_sth, 4, form("bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
@@ -648,17 +648,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             sqlite_trace(sth, imp_sth, 5, "binding null");
             rc = sqlite3_bind_null(imp_sth->stmt, i+1);
         }
-        else if (sql_type >= SQL_NUMERIC && sql_type <= SQL_SMALLINT) {
-#if defined(USE_64_BIT_INT)
-            rc = sqlite3_bind_int64(imp_sth->stmt, i+1, SvIV(value));
-#else
-            rc = sqlite3_bind_int(imp_sth->stmt, i+1, SvIV(value));
-#endif
-        }
-        else if (sql_type >= SQL_FLOAT && sql_type <= SQL_DOUBLE) {
-            rc = sqlite3_bind_double(imp_sth->stmt, i+1, SvNV(value));
-        }
-        else if (sql_type == SQL_BLOB) {
+        else if (sql_type == SQLITE_BLOB) {
             STRLEN len;
             char * data = SvPVbyte(value, len);
             rc = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
@@ -673,7 +663,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             data = SvPV(value, len);
 
-            if (imp_dbh->see_if_its_a_number) {
+            if (imp_dbh->see_if_its_a_number || sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
                 numtype = sqlite_is_number(aTHX_ data);
             }
 
@@ -688,6 +678,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                 rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
             }
             else {
+                if (sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
+                    sqlite_error(sth, imp_sth->retval, form("datatype mismatch: bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
+
+                    return -2; /* -> undef in SQLite.xsi */
+                }
                 rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
             }
         }
