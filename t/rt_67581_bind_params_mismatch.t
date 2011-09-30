@@ -11,7 +11,7 @@ use Test::More;
 use DBI qw/:sql_types/;
 
 for my $has_pk (0..1) {
-	my $dbh = connect_ok(RaiseError => 1);
+	my $dbh = connect_ok(RaiseError => 1, PrintWarn => 0, PrintError => 0);
 	if ($has_pk) {
 		$dbh->do('create table foo (id integer, v integer primary key)');
 	}
