@@ -160,13 +160,17 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
  * applyNumericAffinity, sqlite3Atoi64, etc from sqlite3.c
  */
 static int
-sqlite_is_number(pTHX_ const char *v)
+sqlite_is_number(pTHX_ const char *v, bool strict)
 {
     const char *z = v;
     int neg;
     int digit = 0;
     int precision = 0;
     char str[30], format[10];
+
+    if (!strict) {
+        while (*z == ' ') { z++; v++; }
+    }
 
     if      (*z == '-') { neg = 1; z++; }
     else if (*z == '+') { neg = 0; z++; }
@@ -663,8 +667,18 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             data = SvPV(value, len);
 
-            if (imp_dbh->see_if_its_a_number || sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
-                numtype = sqlite_is_number(aTHX_ data);
+            /*
+             *  XXX: For backward compatibility, it'd be better to
+             *  accept a value like " 4" as an integer for an integer
+             *  type column (see t/19_bindparam.t), at least when
+             *  we explicitly specify its type. However, we should
+             *  keep spaces when we just guess.
+             */
+            if (imp_dbh->see_if_its_a_number) {
+                numtype = sqlite_is_number(aTHX_ data, TRUE);
+            }
+            else if (sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
+                numtype = sqlite_is_number(aTHX_ data, FALSE);
             }
 
             if (numtype == 1) {
