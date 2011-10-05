@@ -21,6 +21,12 @@ use Test::NoWarnings;
 
 plan tests => 17;
 
+sub insert_artist { _do("INSERT INTO artist (artistid, artistname) VALUES (?, ?)", @_ ); }
+sub insert_track {  _do("INSERT INTO track (trackid, trackname, trackartist) VALUES (?, ?, ?)", @_); }
+sub update_track {  _do("UPDATE track SET trackartist = ? WHERE trackname = ?", @_); }
+
+sub _do { eval { $dbh->do(shift, undef, @_) }; }
+
 # following tests are from http://www.sqlite.org/foreignkeys.html
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
@@ -76,9 +82,3 @@ ok update_track(3, "Mr. Bojangles");
 # without violating the foreign key constraint:
 
 ok insert_track(15, "Boogie Woogie", 3);
-
-sub insert_artist { _do("INSERT INTO artist (artistid, artistname) VALUES (?, ?)", @_ ); }
-sub insert_track {  _do("INSERT INTO track (trackid, trackname, trackartist) VALUES (?, ?, ?)", @_); }
-sub update_track {  _do("UPDATE track SET trackartist = ? WHERE trackname = ?", @_); }
-
-sub _do { eval { $dbh->do(shift, undef, @_) }; }
