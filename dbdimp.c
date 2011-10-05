@@ -2241,6 +2241,7 @@ static int perl_tokenizer_Close(sqlite3_tokenizer_cursor *pCursor){
 
     dTHX;
     sv_free(c->coderef);
+    if (c->pToken) sqlite3_free(c->pToken);
     sqlite3_free(c);
     return SQLITE_OK;
 }
