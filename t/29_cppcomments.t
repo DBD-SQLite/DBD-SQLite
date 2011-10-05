@@ -8,7 +8,6 @@ BEGIN {
 
 use Test::More;
 use t::lib::Test;
-use Fatal qw(open);
 
 my @c_files = (<*.c>, <*.h>, <*.xs>);
 plan tests => scalar(@c_files);
@@ -20,7 +19,7 @@ foreach my $file (@c_files) {
         next;
     }
 
-    open my $fh, '<', $file;
+    open my $fh, '<', $file or die "$file: $!";
     my $line = 0;
     while (<$fh>) {
         $line++;
