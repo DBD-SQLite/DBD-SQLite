@@ -5,9 +5,15 @@ Changes for Perl extension DBD-SQLite
     - Resolved #67581: bind_param SQL_INTEGER numifies value;
       Now DBD::SQLite croaks if you explicitly specify datatype
       (with bind_param) and datatype mismatch happens (ISHIGAKI)
+    - Datatype set in the bind_param(_array) becomes sticky now
+      (as per DBI spec). This potentially affects code depending on
+      current undocumented and broken behavior. (Yuriy Kaminskiy)
 
     - Resolved #71311: binding output columns as SQL_BLOB returns
       nothing (ISHIGAKI)
+    - Bsymbolic flag was not portable enough and was not silently
+      ignored under MacOSX. Needs to check harder to see if the
+      linker supports the option. (ISHIGAKI)
 
 1.34_01 Thu 22 Sep 2011
     - Updated to SQLite 3.7.8 (ISHIGAKI)

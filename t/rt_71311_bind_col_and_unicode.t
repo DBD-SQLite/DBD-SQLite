@@ -37,6 +37,7 @@ my $str  = "\x{20ac}";
 	$sth->bind_param(2, $blob, {TYPE => SQL_BLOB});
 	$sth->execute;
 
+	$sth->bind_param(2, undef, SQL_VARCHAR);
 	$sth->execute(4, $str);
 
 	$sth->bind_param(1, 5);;

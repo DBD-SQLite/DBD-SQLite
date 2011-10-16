@@ -641,11 +641,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     }
 
     for (i = 0; i < num_params; i++) {
-        SV *value       = av_shift(imp_sth->params);
-        SV *sql_type_sv = av_shift(imp_sth->params);
-        int sql_type    = sqlite_type_from_odbc_type(SvIV(sql_type_sv));
+        SV **pvalue      = av_fetch(imp_sth->params, 2*i,   0);
+        SV **sql_type_sv = av_fetch(imp_sth->params, 2*i+1, 0);
+        SV *value        = pvalue ? *pvalue : &PL_sv_undef;
+        int sql_type     = sqlite_type_from_odbc_type(sql_type_sv ? SvIV(*sql_type_sv) : SQL_UNKNOWN_TYPE);
 
-        sqlite_trace(sth, imp_sth, 4, form("params left in 0x%p: %ld", imp_sth->params, 1+av_len(imp_sth->params)));
         sqlite_trace(sth, imp_sth, 4, form("bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
 
         if (!SvOK(value)) {
@@ -701,10 +701,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
         }
 
-        if (value) {
-            SvREFCNT_dec(value);
-        }
-        SvREFCNT_dec(sql_type_sv);
         if (rc != SQLITE_OK) {
             sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
             return -4; /* -> undef in SQLite.xsi */
@@ -1158,7 +1154,9 @@ sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
     pos = 2 * (SvIV(param) - 1);
     sqlite_trace(sth, imp_sth, 3, form("bind into 0x%p: %"IVdf" => %s (%"IVdf") pos %d", imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos));
     av_store(imp_sth->params, pos, SvREFCNT_inc(value));
-    av_store(imp_sth->params, pos+1, newSViv(sql_type));
+    if (sql_type) {
+        av_store(imp_sth->params, pos+1, newSViv(sql_type));
+    }
 
     return TRUE;
 }
