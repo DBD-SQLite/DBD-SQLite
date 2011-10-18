@@ -250,16 +250,18 @@ my @CC_OPTIONS = (
 );
 
 # RT #70135: See if ld supports Bsymbolic; 
-for my $path (File::Spec->path) {
-	if (MM->maybe_command("$path/ld")) {
-		my $output = `$path/ld --help`;
-		if ($output =~ /Bsymbolic/) {
-			push @CC_OPTIONS,
-				CCFLAGS   => $Config{ccflags}   . '  -Wl,-Bsymbolic',
-				LDFLAGS   => $Config{ldflags}   . '  -Wl,-Bsymbolic',
-				LDDLFLAGS => $Config{lddlflags} . '  -Wl,-Bsymbolic';
+unless ($^O eq 'MSWin32' && $Config{ld} =~ /link/) {
+	for my $path (File::Spec->path) {
+		if (MM->maybe_command("$path/ld")) {
+			my $output = `$path/ld --help`;
+			if ($output =~ /Bsymbolic/) {
+				push @CC_OPTIONS,
+					CCFLAGS   => $Config{ccflags}   . ' -Wl,-Bsymbolic',
+					LDFLAGS   => $Config{ldflags}   . ' -Wl,-Bsymbolic',
+					LDDLFLAGS => $Config{lddlflags} . ' -Wl,-Bsymbolic';
+			}
+			last;
 		}
-		last;
 	}
 }
 
