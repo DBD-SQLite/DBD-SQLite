@@ -1150,8 +1150,8 @@ sqlite_bind_ph(SV *sth, imp_sth_t *imp_sth,
             sqlite_error(sth, -2, "InOut bind params not implemented");
             return FALSE; /* -> &sv_no in SQLite.xsi */
         }
+        pos = 2 * (SvIV(param) - 1);
     }
-    pos = 2 * (SvIV(param) - 1);
     sqlite_trace(sth, imp_sth, 3, form("bind into 0x%p: %"IVdf" => %s (%"IVdf") pos %d", imp_sth->params, SvIV(param), SvPV_nolen_undef_ok(value), sql_type, pos));
     av_store(imp_sth->params, pos, SvREFCNT_inc(value));
     if (sql_type) {
