@@ -14,6 +14,7 @@ Changes for Perl extension DBD-SQLite
     - Bsymbolic flag was not portable enough and was not silently
       ignored under MacOSX. Needs to check harder to see if the
       linker supports the option. (ISHIGAKI)
+    - Fixed binding named parameters. (Yuriy Kaminskiy)
 
 1.34_01 Thu 22 Sep 2011
     - Updated to SQLite 3.7.8 (ISHIGAKI)
