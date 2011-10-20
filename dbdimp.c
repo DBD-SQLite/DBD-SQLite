@@ -581,6 +581,7 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
         sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
         if (imp_sth->stmt) {
             rc = sqlite3_finalize(imp_sth->stmt);
+            imp_sth->stmt = NULL;
             if (rc != SQLITE_OK) {
                 sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
             }
@@ -827,7 +828,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             if (sqlite3_reset(imp_sth->stmt) != SQLITE_OK) {
                 sqlite_error(sth, imp_sth->retval, sqlite3_errmsg(imp_dbh->db));
             }
-            imp_sth->stmt = NULL;
             return -6; /* -> undef in SQLite.xsi */
     }
 }
@@ -991,6 +991,7 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
 
             /* finalize sth when active connection */
             rc = sqlite3_finalize(imp_sth->stmt);
+            imp_sth->stmt = NULL;
             if (rc != SQLITE_OK) {
                 sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
             }
