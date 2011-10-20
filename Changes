@@ -17,6 +17,9 @@ Changes for Perl extension DBD-SQLite
     - Fixed binding named parameters. (Yuriy Kaminskiy)
     - Moved check for bind_ph/is_inout so it always error-out.
       (Yuriy Kaminskiy)
+    - Don't set imp_sth->stmt to NULL on error path (Yuriy Kaminskiy)
+    - Explained an issue of rollback with unfinished statements.
+      (ISHIGAKI)
 
 1.34_01 Thu 22 Sep 2011
     - Updated to SQLite 3.7.8 (ISHIGAKI)
