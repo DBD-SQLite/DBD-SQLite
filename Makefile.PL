@@ -295,6 +295,7 @@ WriteMakefile(
 		# any build-time dependencies that MakeMaker will put into
 		# the requires field.
 		META_ADD => {
+			dynamic_config => 1,
 			configure_requires => {
 				'ExtUtils::MakeMaker' => '6.48',
 				# This is not allowed to be computed
@@ -324,7 +325,7 @@ WriteMakefile(
 				directory => [ qw{
 					t inc util
 				} ],
-			}
+			},
 		},
 	),
 	OBJECT           => ( $sqlite_local
