@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.34_02 to be released
+1.34_02 Fri 21 Oct 2011
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #67581: bind_param SQL_INTEGER numifies value;
       Now DBD::SQLite croaks if you explicitly specify datatype
