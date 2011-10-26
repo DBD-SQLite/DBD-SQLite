@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test qw/connect_ok/;
-use Test::More tests => 32;
+use Test::More tests => 38;
 use DBI qw/:sql_types/;
 
 my $id = 0;
@@ -38,6 +38,7 @@ for my $has_pk (0..1) {
 		my $ret = eval { $sth->execute };
 
 		if ($has_pk) {
+			ok $@, "died correctly";
 			ok !defined $ret, "returns undef";
 			ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
 		}
@@ -62,6 +63,7 @@ for my $has_pk (0..1) {
 		my $ret = eval { $sth->execute };
 
 		if ($has_pk) {
+			ok $@, "died correctly";
 			ok !defined $ret, "returns undef";
 			ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
 		}
@@ -95,6 +97,7 @@ for my $has_pk (0..1) {
 		$sth->bind_param(1, ++$id);
 		$sth->bind_param(2, 3.5, SQL_INTEGER);
 		my $ret = eval { $sth->execute };
+		ok $@, "died correctly";
 		ok !defined $ret, "returns undef";
 		ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
 
@@ -109,6 +112,7 @@ for my $has_pk (0..1) {
 
 		# only dies if type is explicitly specified
 		my $ret = eval { $sth->execute };
+		ok $@, "died correctly";
 		ok !defined $ret, "returns undef";
 		ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
 
