@@ -694,7 +694,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             else {
                 if (sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
-                    sqlite_error(sth, imp_sth->retval, form("datatype mismatch: bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
+                    sqlite_error(sth, -2, form("datatype mismatch: bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
 
                     return -2; /* -> undef in SQLite.xsi */
                 }
