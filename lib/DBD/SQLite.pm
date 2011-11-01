@@ -10,7 +10,7 @@ use vars qw{$err $errstr $drh $sqlite_version $sqlite_version_number};
 use vars qw{%COLLATION};
 
 BEGIN {
-    $VERSION = '1.34_02';
+    $VERSION = '1.34_03';
     @ISA     = 'DynaLoader';
 
     # Initialize errors
@@ -56,6 +56,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_backup_to_file');
         DBD::SQLite::db->install_method('sqlite_enable_load_extension');
         DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
+
         $methods_are_installed++;
     }
 

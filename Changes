@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.34_03 to be released
+1.34_03 Tue 1 Nov 2011
     - Adding an explicit dynamic_config => 1 (ADAMK)
     - bind_param SQL_INTEGER error now actually dies with RaiseError.
       (ISHIGAKI)
