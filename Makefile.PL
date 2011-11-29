@@ -191,6 +191,10 @@ if ( 0 ) {
 
 @ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
 
+
+
+
+
 #####################################################################
 # Prepare Compiler Options
 
@@ -211,17 +215,11 @@ if ( $sqlite_inc ) {
 }
 
 my @CC_DEFINE = (
-	# '-DSQLITE_CORE',
-	'-DSQLITE_ENABLE_FTS3',
-
-	# L. Dami 10.07.2010 : now enabling new FTS3 syntax, because 
-	# that's the recommendation from SQLite for new applications
-	# (used to be "Disabled until we have a test for this").
-	# This change MAY POSSIBLY BREAK OLD APPLICATIONS THAT ALREADY 
-	# USED FTS3 ... but sooner or later that change had to be done !
-	'-DSQLITE_ENABLE_FTS3_PARENTHESIS',  # for sqlite >= 3.6.10
-	'-DSQLITE_ENABLE_RTREE',             # for sqlite >= 3.6.10
+	'-DSQLITE_ENABLE_FTS4',
+	'-DSQLITE_ENABLE_FTS3_PARENTHESIS', # for sqlite >= 3.6.10
+	'-DSQLITE_ENABLE_RTREE',            # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_COLUMN_METADATA',
+	'-DSQLITE_ENABLE_STAT3',
 	'-DNDEBUG=1',
 );
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
@@ -232,8 +230,10 @@ unless ( $Config{usethreads} ) {
 }
 if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
 	# HP-UX 10.20 does not have pread () at all
-	push @CC_DEFINE, '-DSQLITE_OMIT_LOAD_EXTENSION',
-		'-UUSE_PREAD', '-UUSE_PREAD64',
+	push @CC_DEFINE,
+		'-DSQLITE_OMIT_LOAD_EXTENSION',
+		'-UUSE_PREAD',
+		'-UUSE_PREAD64',
 		'-USQLITE_ENABLE_LOCKING_STYLE',
 		'-DMAP_FAILED="((void *)-1)"';
 }
@@ -264,6 +264,10 @@ unless ($^O eq 'MSWin32' && $Config{ld} =~ /link/) {
 		}
 	}
 }
+
+
+
+
 
 #####################################################################
 # Hand off to ExtUtils::MakeMaker

@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.36_01 Tue 29 Nov 2011
+    - Enabled SQLITE_ENABLE_FTS4
+    - Enabled SQLITE_ENABLE_STAT3
+
 1.35 Tue 29 Nov 2011
     - Updated to SQLite 3.7.9 (ISHIGAKI)
     - One small potential break case if you are using FTS4 and ^
