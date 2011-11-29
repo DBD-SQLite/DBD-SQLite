@@ -1,7 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
-1.34_04 to be released
+1.35 Tue 29 Nov 2011
     - Updated to SQLite 3.7.9 (ISHIGAKI)
+    - One small potential break case if you are using FTS4 and ^
 
 1.34_03 Tue 1 Nov 2011
     - Adding an explicit dynamic_config => 1 (ADAMK)
