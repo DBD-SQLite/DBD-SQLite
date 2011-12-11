@@ -1533,7 +1533,7 @@ library is old or compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
 A subset of SQLite C constants are made available to Perl,
 because they may be needed when writing
 hooks or authorizer callbacks. For accessing such constants,
-the C<DBD::Sqlite> module must be explicitly C<use>d at compile
+the C<DBD::SQLite> module must be explicitly C<use>d at compile
 time. For example, an authorizer that forbids any
 DELETE operation would be written as follows :
 
@@ -1863,7 +1863,7 @@ discard punctuation, use the perl tokenizer as explained below.
 
 =head3 Perl tokenizers
 
-In addition to the builtin SQLite tokenizers, C<DBD::Sqlite>
+In addition to the builtin SQLite tokenizers, C<DBD::SQLite>
 implements a I<perl> tokenizer, that can hook to any tokenizing
 algorithm written in Perl. This is specified as follows :
 
