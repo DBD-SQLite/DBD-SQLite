@@ -2124,6 +2124,10 @@ static int perl_tokenizer_Create(
     int n_retval;
     SV *retval;
 
+    if (!argc) {
+        return SQLITE_ERROR;
+    }
+
     perl_tokenizer *t;
     t = (perl_tokenizer *) sqlite3_malloc(sizeof(*t));
     if( t==NULL ) return SQLITE_NOMEM;

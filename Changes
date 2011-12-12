@@ -3,6 +3,7 @@ Changes for Perl extension DBD-SQLite
 1.36_01 Tue 29 Nov 2011
     - Enabled SQLITE_ENABLE_FTS4
     - Enabled SQLITE_ENABLE_STAT3
+    - Resolved #73159: FTS tokenizer segfault (ISHIGAKI)
 
 1.35 Tue 29 Nov 2011
     - Updated to SQLite 3.7.9 (ISHIGAKI)
