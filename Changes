@@ -1,9 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
-1.36_01 Tue 29 Nov 2011
+1.36_01 to be released
     - Enabled SQLITE_ENABLE_FTS4
     - Enabled SQLITE_ENABLE_STAT3
     - Resolved #73159: FTS tokenizer segfault (ISHIGAKI)
+    - Resolved #73787: sqlite_see_if_its_a_number causes a buffer
+      overflow (ISHIGAKI)
 
 1.35 Tue 29 Nov 2011
     - Updated to SQLite 3.7.9 (ISHIGAKI)

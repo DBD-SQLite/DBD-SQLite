@@ -166,7 +166,7 @@ sqlite_is_number(pTHX_ const char *v, bool strict)
     int neg;
     int digit = 0;
     int precision = 0;
-    char str[30], format[10];
+    char format[10];
 
     if (!strict) {
         while (*z == ' ') { z++; v++; }
@@ -192,7 +192,7 @@ sqlite_is_number(pTHX_ const char *v, bool strict)
     }
 #else
     if (digit > 11) return 0; /* too large for i32 */
-    if (digit == 10) {
+    if (digit == 11) {
         int c;
         char tmp[14];
         strncpy(tmp, v, z - v + 1);
@@ -215,12 +215,10 @@ sqlite_is_number(pTHX_ const char *v, bool strict)
         while (isdigit(*z)) { z++; }
     }
 
-    sprintf(str, "%i", atoi(v));
-    if (strEQ(str, v)) return 1;
+    if (strEQ(form("%i", atoi(v)), v)) return 1;
     if (precision) {
         sprintf(format, "%%.%df", precision);
-        sprintf(str, format, atof(v));
-        if (strEQ(str, v)) return 2;
+        if (strEQ(form(format, atof(v)), v)) return 2;
     }
     return 0;
 }
