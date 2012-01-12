@@ -114,11 +114,9 @@ progress_handler(dbh, n_opcodes, handler)
         RETVAL
 
 static int
-trace(dbh, callback)
+sqlite_trace(dbh, callback)
     SV *dbh
     SV *callback
-    ALIAS:
-        DBD::SQLite::db::sqlite_trace = 1
     CODE:
     {
         RETVAL = sqlite_db_trace(aTHX_ dbh, callback );

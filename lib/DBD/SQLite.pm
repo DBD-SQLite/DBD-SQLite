@@ -1161,6 +1161,11 @@ methods. If you need to use an older L<DBI>, you can call these like this:
 
   $dbh->func( ..., "(method name without sqlite_ prefix)" );
 
+Exception: C<sqlite_trace> should always be called as is, even with C<func()>
+method (to avoid conflict with DBI's trace() method).
+
+  $dbh->func( ..., "sqlite_trace");
+
 =head2 $dbh->sqlite_last_insert_rowid()
 
 This method returns the last inserted rowid. If you specify an INTEGER PRIMARY
