@@ -113,6 +113,32 @@ progress_handler(dbh, n_opcodes, handler)
     OUTPUT:
         RETVAL
 
+static int
+trace(dbh, callback)
+    SV *dbh
+    SV *callback
+    ALIAS:
+        DBD::SQLite::db::sqlite_trace = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_trace(aTHX_ dbh, callback );
+    }
+    OUTPUT:
+        RETVAL
+
+static int
+profile(dbh, callback)
+    SV *dbh
+    SV *callback
+    ALIAS:
+        DBD::SQLite::db::sqlite_profile = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_profile(aTHX_ dbh, callback );
+    }
+    OUTPUT:
+        RETVAL
+
 SV*
 commit_hook(dbh, hook)
     SV *dbh

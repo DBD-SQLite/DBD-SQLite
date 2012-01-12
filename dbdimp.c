@@ -1993,6 +1993,130 @@ sqlite_db_set_authorizer(pTHX_ SV *dbh, SV *authorizer)
     return retval;
 }
 
+#ifndef SQLITE_OMIT_TRACE
+void
+sqlite_db_trace_dispatcher(void *callback, const char *sql)
+{
+    dTHX;
+    dSP;
+    int n_retval, i;
+    int retval = 0;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs( sv_2mortal( newSVpv( sql, 0 ) ) );
+    PUTBACK;
+
+    n_retval = call_sv( callback, G_SCALAR );
+    SPAGAIN;
+    if ( n_retval != 1 ) {
+        warn( "callback returned %d arguments", n_retval );
+    }
+    for(i = 0; i < n_retval; i++) {
+        retval = POPi;
+    }
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+}
+
+int
+sqlite_db_trace(pTHX_ SV *dbh, SV *func)
+{
+    D_imp_dbh(dbh);
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to set trace on inactive database handle");
+        return FALSE;
+    }
+
+    croak_if_db_is_null();
+
+    if (!SvOK(func)) {
+        /* remove previous callback */
+        sqlite3_trace( imp_dbh->db, NULL, NULL );
+    }
+    else {
+        SV *func_sv = newSVsv(func);
+
+        /* Copy the func ref so that it can be deallocated at disconnect */
+        av_push( imp_dbh->functions, func_sv );
+
+        /* Register the func within sqlite3 */
+        sqlite3_trace( imp_dbh->db,
+                       sqlite_db_trace_dispatcher,
+                       func_sv );
+    }
+    return TRUE;
+}
+#endif
+
+void
+sqlite_db_profile_dispatcher(void *callback, const char *sql, sqlite3_uint64 elapsed)
+{
+    dTHX;
+    dSP;
+    int n_retval, i;
+    int retval = 0;
+
+    ENTER;
+    SAVETMPS;
+    PUSHMARK(SP);
+    XPUSHs( sv_2mortal( newSVpv( sql, 0 ) ) );
+    /*
+     * The profile callback time is in units of nanoseconds,
+     * however the current implementation is only capable of
+     * millisecond resolution so the six least significant digits
+     * in the time are meaningless.
+     * (http://sqlite.org/c3ref/profile.html)
+     */
+    XPUSHs( sv_2mortal( newSViv( elapsed / 1000000 ) ) );
+    PUTBACK;
+
+    n_retval = call_sv( callback, G_SCALAR );
+    SPAGAIN;
+    if ( n_retval != 1 ) {
+        warn( "callback returned %d arguments", n_retval );
+    }
+    for(i = 0; i < n_retval; i++) {
+        retval = POPi;
+    }
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+}
+
+int
+sqlite_db_profile(pTHX_ SV *dbh, SV *func)
+{
+    D_imp_dbh(dbh);
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to profile on inactive database handle");
+        return FALSE;
+    }
+
+    croak_if_db_is_null();
+
+    if (!SvOK(func)) {
+        /* remove previous callback */
+        sqlite3_profile( imp_dbh->db, NULL, NULL );
+    }
+    else {
+        SV *func_sv = newSVsv(func);
+
+        /* Copy the func ref so that it can be deallocated at disconnect */
+        av_push( imp_dbh->functions, func_sv );
+
+        /* Register the func within sqlite3 */
+        sqlite3_profile( imp_dbh->db,
+                         sqlite_db_profile_dispatcher,
+                         func_sv );
+    }
+    return TRUE;
+}
+
 /* Accesses the SQLite Online Backup API, and fills the currently loaded
  * database from the passed filename.
  * Usual usage of this would be when you're operating on the :memory:

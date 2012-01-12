@@ -56,6 +56,8 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_backup_to_file');
         DBD::SQLite::db->install_method('sqlite_enable_load_extension');
         DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
+        DBD::SQLite::db->install_method('sqlite_trace');
+        DBD::SQLite::db->install_method('sqlite_profile');
 
         $methods_are_installed++;
     }
@@ -1521,6 +1523,59 @@ sqlite3 extensions. After the call, you can load extensions like this:
   $dbh->sqlite_enable_load_extension(1);
   $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
   or die "Cannot prepare: " . $dbh->errstr();
+
+=head2 $dbh->sqlite_trace( $code_ref )
+
+This method registers a trace callback to be invoked whenever
+SQL statements are being run.
+
+The callback will be called as
+
+  $code_ref->($statement)
+
+where
+
+=over
+
+=item $statement
+
+is a UTF-8 rendering of the SQL statement text as the statement
+first begins executing.
+
+=back
+
+Additional callbacks might occur as each triggered subprogram is
+entered. The callbacks for triggers contain a UTF-8 SQL comment
+that identifies the trigger.
+
+See also L<DBI/TRACING> for better tracing options.
+
+=head2 $dbh->sqlite_profile( $code_ref )
+
+This method registers a profile callback to be invoked whenever
+a SQL statement finishes.
+
+The callback will be called as
+
+  $code_ref->($statement, $elapsed_time)
+
+where
+
+=over
+
+=item $statement
+
+is the original statement text (without bind parameters).
+
+=item $elapsed_time
+
+is an estimate of wall-clock time of how long that statement took to run (in milliseconds).
+
+=back
+
+This method is considered experimental and is subject to change in future versions of SQLite.
+
+See also L<DBI::Profile> for better profiling options.
 
 =head2 DBD::SQLite::compile_options()
 

@@ -6,6 +6,9 @@ Changes for Perl extension DBD-SQLite
     - Resolved #73159: FTS tokenizer segfault (ISHIGAKI)
     - Resolved #73787: sqlite_see_if_its_a_number causes a buffer
       overflow (ISHIGAKI)
+    - Implemented sqlite_trace and sqlite_profile methods for simpler
+      tracing/profiling; use DBI_TRACE/DBI_PROFILE for more
+      complicated cases (ISHIGAKI)
 
 1.35 Tue 29 Nov 2011
     - Updated to SQLite 3.7.9 (ISHIGAKI)
