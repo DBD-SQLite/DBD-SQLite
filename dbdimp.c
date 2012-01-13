@@ -216,7 +216,7 @@ sqlite_is_number(pTHX_ const char *v, bool strict)
     }
 
 #if defined(USE_64_BIT_INT)
-    if (strEQ(form("%lli", _atoi64(v)), v)) return 1;
+    if (strEQ(form("%lli", atoll(v)), v)) return 1;
 #else
     if (strEQ(form("%i", atoi(v)), v)) return 1;
 #endif
