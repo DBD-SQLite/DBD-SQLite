@@ -5,8 +5,9 @@ Changes for Perl extension DBD-SQLite
     - Updated to SQLite 3.7.10 (ISHIGAKI)
       Note that this release changed the default schema format
       number, that means newly created database files will be
-      unreadable by version prior to SQLite 3.3.0 (2006-01-10)
-      unless you explicitly issue "PRAGMA legacy_file_format=ON".
+      unreadable by SQLite version prior to 3.3.0 (2006-01-10)
+      (or DBD::SQLite prior to 1.12) unless you explicitly issue
+      "PRAGMA legacy_file_format=ON".
 
     - Enabled SQLITE_ENABLE_FTS4
     - Enabled SQLITE_ENABLE_STAT3
