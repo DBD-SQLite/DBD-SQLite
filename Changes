@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.36_01 to be released
+1.36_01 Thu 19 Jan 2012
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Updated to SQLite 3.7.10 (ISHIGAKI)
       Note that this release changed the default schema format
