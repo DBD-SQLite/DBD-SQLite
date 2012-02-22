@@ -1,5 +1,13 @@
 Changes for Perl extension DBD-SQLite
 
+1.36_02 please release this
+    - Downgraded SQLite to 3.7.9, as 3.7.10 turned out to be
+      broken on the latest MacOS X (due to a missing symbol),
+      and broke other modules that typically use temporary tables
+      under a few environments too. As of this writing, would-be
+      3.7.11 seems fine, but it would take another month to be
+      released. (ISHIGAKI)
+
 1.36_01 Thu 19 Jan 2012
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Updated to SQLite 3.7.10 (ISHIGAKI)
