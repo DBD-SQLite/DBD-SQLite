@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.36_03 to be released
+    - Updated to SQLite 3.7.11 (ISHIGAKI)
+    - Fix >32bit integer truncation and other sqlite_set_result
+      condition issue (Yuriy Kaminskiy)
+
 1.36_02 Thu 23 Feb 2012
     - Downgraded SQLite to 3.7.9, as 3.7.10 turned out to be
       broken on the latest MacOS X (due to a missing symbol),
