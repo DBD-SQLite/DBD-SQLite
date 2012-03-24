@@ -146,7 +146,11 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
         sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
     }
     else if ( SvIOK(result) ) {
+#if defined(USE_64_BIT_INT)
+        sqlite3_result_int64( context, SvIV(result));
+#else
         sqlite3_result_int( context, SvIV(result));
+#endif
     } else if ( SvNOK(result) && ( sizeof(NV) == sizeof(double) || SvNVX(result) == (double) SvNVX(result) ) ) {
         sqlite3_result_double( context, SvNV(result));
     } else {
