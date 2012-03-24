@@ -147,7 +147,7 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
     }
     else if ( SvIOK(result) ) {
         sqlite3_result_int( context, SvIV(result));
-    } else if ( !is_error && SvIOK(result) ) {
+    } else if ( SvNOK(result) && ( sizeof(NV) == sizeof(double) || SvNVX(result) == (double) SvNVX(result) ) ) {
         sqlite3_result_double( context, SvNV(result));
     } else {
         s = SvPV(result, len);
