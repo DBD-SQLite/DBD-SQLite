@@ -142,8 +142,12 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
     if ( !SvOK(result) ) {
         sqlite3_result_null( context );
     } else if( SvIOK_UV(result) ) {
-        s = SvPV(result, len);
-        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+        if ((UV)(sqlite3_int64)UV_MAX == UV_MAX)
+            sqlite3_result_int64( context, (sqlite3_int64)SvUV(result));
+        else {
+            s = SvPV(result, len);
+            sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+        }
     }
     else if ( SvIOK(result) ) {
 #if defined(USE_64_BIT_INT)
@@ -1241,11 +1245,24 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
         SV *arg;
         STRLEN len;
         int type = sqlite3_value_type(value[i]);
+        sqlite_int64 iv;
 
         /* warn("func dispatch type: %d, value: %s\n", type, sqlite3_value_text(value[i])); */
         switch(type) {
             case SQLITE_INTEGER:
-                arg = sv_2mortal(newSViv(sqlite3_value_int(value[i])));
+                iv = sqlite3_value_int64(value[i]);
+                if ( iv >= IV_MIN && iv <= IV_MAX ) {
+                    /* ^^^ compile-time constant (= true) when IV == int64 */
+                    arg = sv_2mortal(newSViv((IV)iv));
+                }
+                else if ( iv >= 0 && iv <= UV_MAX ) {
+                    /* warn("integer overflow, cast to UV"); */
+                    arg = sv_2mortal(newSVuv((UV)iv));
+                }
+                else {
+                    /* warn("integer overflow, cast to NV"); */
+                    arg = sv_2mortal(newSVnv((NV)iv));
+                }
                 break;
             case SQLITE_FLOAT:
                 arg = sv_2mortal(newSVnv(sqlite3_value_double(value[i])));

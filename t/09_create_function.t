@@ -11,7 +11,7 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 27 * @CALL_FUNCS + 1;
+plan tests => 29 * @CALL_FUNCS + 1;
 
 sub now {
     return time();
@@ -118,6 +118,13 @@ foreach my $call_func (@CALL_FUNCS) {
 
 	$result = $dbh->selectrow_arrayref( "SELECT noop(1.0625)" );
 	is_deeply( $result, [ 1.0625 ], "SELECT noop(1.0625)" );
+
+	# 2147483648 == 1<<31
+	$result = $dbh->selectrow_arrayref( "SELECT noop(2147483648)" );
+	is_deeply( $result, [ 2147483648 ], "SELECT noop(2147483648)" );
+
+	$result = $dbh->selectrow_arrayref( "SELECT typeof(noop(2147483648))" );
+	is_deeply( $result, [ 'integer' ], "SELECT typeof(noop(2147483648))" );
 
 	$dbh->disconnect;
 }
