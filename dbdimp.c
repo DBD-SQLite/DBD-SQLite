@@ -694,7 +694,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 
             if (numtype == 1) {
 #if defined(USE_64_BIT_INT)
-                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atoi(data));
+                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atoll(data));
 #else
                 rc = sqlite3_bind_int(imp_sth->stmt, i+1, atoi(data));
 #endif
