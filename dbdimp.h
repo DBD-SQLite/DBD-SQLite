@@ -142,10 +142,8 @@ newUTF8SVpvn(char *s, STRLEN len) {
 
 #endif /* #ifdef SvUTF8_on */
 
-#ifdef USE_64_BIT_INT
-#  ifdef _MSC_VER
-#    define atoll _atoi64
-#  endif
+#ifdef _MSC_VER
+#  define atoll _atoi64
 #endif
 
 #endif /* #ifndef _DBDIMP_H */
