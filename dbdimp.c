@@ -712,7 +712,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                     if (DBIc_has(imp_dbh, DBIcf_PrintWarn))
                         warn(
                             "datatype mismatch: bind param (%d) %s as %s",
-                            i, sql_type, SvPV_nolen_undef_ok(value),
+                            i, SvPV_nolen_undef_ok(value),
                             (sql_type == SQLITE_INTEGER ? "integer" : "float")
                         );
                 }
