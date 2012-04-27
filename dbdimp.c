@@ -186,7 +186,6 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     else if (*z == '+') { neg = 0; z++; d++; has_plus = 1; }
     else                { neg = 0; }
     if (!isdigit(*z)) return 0;
-    z++;
     while (isdigit(*z)) { digit++; z++; }
 #if defined(USE_64_BIT_INT)
     if (digit > 19) return 0; /* too large for i64 */
