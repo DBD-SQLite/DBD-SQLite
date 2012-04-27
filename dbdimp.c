@@ -704,9 +704,17 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             else {
                 if (sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
-                    sqlite_error(sth, -2, form("datatype mismatch: bind %d type %d as %s", i, sql_type, SvPV_nolen_undef_ok(value)));
-
-                    return -2; /* -> undef in SQLite.xsi */
+                    /*
+                     * die on datatype mismatch did more harm than good
+                     * especially when DBIC heavily depends on this
+                     * explicit type specification
+                     */
+                    if (DBIc_has(imp_dbh, DBIcf_PrintWarn))
+                        warn(
+                            "datatype mismatch: bind param (%d) %s as %s",
+                            i, sql_type, SvPV_nolen_undef_ok(value),
+                            (sql_type == SQLITE_INTEGER ? "integer" : "float")
+                        );
                 }
                 rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
             }
