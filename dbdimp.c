@@ -168,7 +168,7 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
  * applyNumericAffinity, sqlite3Atoi64, etc from sqlite3.c
  */
 static int
-sqlite_is_number(pTHX_ const char *v, bool strict)
+sqlite_is_number(pTHX_ const char *v, int sql_type)
 {
     const char *z = v;
     int neg;
@@ -176,7 +176,7 @@ sqlite_is_number(pTHX_ const char *v, bool strict)
     int precision = 0;
     char format[10];
 
-    if (!strict) {
+    if (sql_type != SQLITE_NULL) {
         while (*z == ' ') { z++; v++; }
     }
 
@@ -228,7 +228,7 @@ sqlite_is_number(pTHX_ const char *v, bool strict)
 #else
     if (strEQ(form("%i", atoi(v)), v)) return 1;
 #endif
-    if (precision) {
+    if (precision || sql_type == SQLITE_FLOAT) {
         sprintf(format, "%%.%df", precision);
         if (strEQ(form(format, atof(v)), v)) return 2;
     }
@@ -686,10 +686,10 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
              *  keep spaces when we just guess.
              */
             if (imp_dbh->see_if_its_a_number) {
-                numtype = sqlite_is_number(aTHX_ data, TRUE);
+                numtype = sqlite_is_number(aTHX_ data, SQLITE_NULL);
             }
             else if (sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {
-                numtype = sqlite_is_number(aTHX_ data, FALSE);
+                numtype = sqlite_is_number(aTHX_ data, sql_type);
             }
 
             if (numtype == 1) {
@@ -907,7 +907,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
 #else
                 val = (char*)sqlite3_column_text(imp_sth->stmt, i);
-                if (sqlite_is_number(aTHX_ val, TRUE) == 1) {
+                if (sqlite_is_number(aTHX_ val, SQLITE_NULL) == 1) {
                     sv_setiv(AvARRAY(av)[i], atoi(val));
                 } else {
                     sv_setpv(AvARRAY(av)[i], val);
