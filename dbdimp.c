@@ -179,7 +179,7 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     char format[10];
 
     if (sql_type != SQLITE_NULL) {
-        while (*z == ' ') { z++; v++; }
+        while (*z == ' ') { z++; v++; d++; }
     }
 
     if      (*z == '-') { neg = 1; z++; d++; }
