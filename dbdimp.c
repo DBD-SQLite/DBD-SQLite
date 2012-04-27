@@ -906,7 +906,13 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
 #if defined(USE_64_BIT_INT)
                 sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
 #else
-                sv_setnv(AvARRAY(av)[i], (double)sqlite3_column_int64(imp_sth->stmt, i));
+                val = (char*)sqlite3_column_text(imp_sth->stmt, i);
+                if (sqlite_is_number(aTHX_ val, TRUE) == 1) {
+                    sv_setiv(AvARRAY(av)[i], atoi(val));
+                } else {
+                    sv_setpv(AvARRAY(av)[i], val);
+                    SvUTF8_off(AvARRAY(av)[i]);
+                }
 #endif
                 break;
             case SQLITE_FLOAT:
