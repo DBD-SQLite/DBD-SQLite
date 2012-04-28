@@ -175,7 +175,8 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     int neg;
     int digit = 0;
     int precision = 0;
-    int has_plus = 0;
+    bool has_plus = TRUE;
+    bool maybe_int = TRUE;
     char format[10];
 
     if (sql_type != SQLITE_NULL) {
@@ -183,12 +184,12 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     }
 
     if      (*z == '-') { neg = 1; z++; d++; }
-    else if (*z == '+') { neg = 0; z++; d++; has_plus = 1; }
+    else if (*z == '+') { neg = 0; z++; d++; has_plus = TRUE; }
     else                { neg = 0; }
     if (!isdigit(*z)) return 0;
     while (isdigit(*z)) { digit++; z++; }
 #if defined(USE_64_BIT_INT)
-    if (digit > 19) return 0; /* too large for i64 */
+    if (digit > 19) maybe_int = FALSE; /* too large for i64 */
     if (digit == 19) {
         int c;
         char tmp[22];
@@ -197,10 +198,10 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
         if (c == 0) {
             c = tmp[18] - '7' - neg;
         }
-        if (c > 0) return 0;
+        if (c > 0) maybe_int = FALSE;
     }
 #else
-    if (digit > 10) return 0; /* too large for i32 */
+    if (digit > 10) maybe_int = FALSE; /* too large for i32 */
     if (digit == 10) {
         int c;
         char tmp[14];
@@ -209,27 +210,32 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
         if (c == 0) {
             c = tmp[9] - '7' - neg;
         }
-        if (c > 0) return 0;
+        if (c > 0) maybe_int = FALSE;
     }
 #endif
     if (*z == '.') {
+        maybe_int = FALSE;
         z++;
         if (!isdigit(*z)) return 0;
         while (isdigit(*z)) { precision++; z++; }
     }
     if (*z == 'e' || *z == 'E') {
+        maybe_int = FALSE;
         z++;
         if (*z == '+' || *z == '-') { z++; }
         if (!isdigit(*z)) return 0;
         while (isdigit(*z)) { z++; }
     }
+    if (*z && !isdigit(*z)) return 0;
 
+    if (maybe_int || sql_type == SQLITE_INTEGER) {
 #if defined(USE_64_BIT_INT)
-    if (strEQ(form((has_plus ? "+%lli" : "%lli"), atoll(v)), v)) return 1;
+        if (strEQ(form((has_plus ? "+%lli" : "%lli"), atoll(v)), v)) return 1;
 #else
-    if (strEQ(form((has_plus ? "+%i" : "%i"), atoi(v)), v)) return 1;
+        if (strEQ(form((has_plus ? "+%i" : "%i"), atoi(v)), v)) return 1;
 #endif
-    if (precision || sql_type == SQLITE_FLOAT) {
+    }
+    if (sql_type != SQLITE_INTEGER) {
         sprintf(format, (has_plus ? "+%%.%df" : "%%.%df"), precision);
         if (strEQ(form(format, atof(v)), v)) return 2;
     }
