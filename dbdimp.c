@@ -175,7 +175,7 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     int neg;
     int digit = 0;
     int precision = 0;
-    bool has_plus = TRUE;
+    bool has_plus = FALSE;
     bool maybe_int = TRUE;
     char format[10];
 
