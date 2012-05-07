@@ -7,9 +7,11 @@ Changes for Perl extension DBD-SQLite
     - Fix integer overflow in passing argument to perl function
       (Yuriy Kaminskiy)
     - Convert unsigned -> int64 when possible (Yuriy Kaminskiy)
-    - turned datatype mismatch error (introduced in 1.34_02) into
+    - Turned datatype mismatch error (introduced in 1.34_02) into
       a warning (you can disable this warning by setting PrintWarn
       attribute to false). (ISHIGAKI)
+    - Refactored sqlite_is_number to fix various corner cases
+      (ISHIGAKI)
 
 1.36_02 Thu 23 Feb 2012
     - Downgraded SQLite to 3.7.9, as 3.7.10 turned out to be
