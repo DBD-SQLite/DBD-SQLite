@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test qw/connect_ok/;
-use Test::More tests => 38;
+use Test::More tests => 34;
 use DBI qw/:sql_types/;
 
 my $id = 0;
@@ -97,12 +97,23 @@ for my $has_pk (0..1) {
 		$sth->bind_param(1, ++$id);
 		$sth->bind_param(2, 3.5, SQL_INTEGER);
 		my $ret = eval { $sth->execute };
-		ok $@, "died correctly";
-		ok !defined $ret, "returns undef";
-		ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
+
+		if ($has_pk) {
+			ok $@, "died correctly";
+			ok !defined $ret, "returns undef";
+			ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
+		}
+		else {
+			ok defined $ret, "inserted without errors";
+		}
 
 		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
-		ok !$value, "not inserted/indexed";
+		if ($has_pk) {
+			ok !$value, "not inserted/indexed";
+		}
+		else {
+			ok $value && $value eq '3.5', "got correct value";
+		}
 	}
 
 	{
@@ -112,12 +123,23 @@ for my $has_pk (0..1) {
 
 		# only dies if type is explicitly specified
 		my $ret = eval { $sth->execute };
-		ok $@, "died correctly";
-		ok !defined $ret, "returns undef";
-		ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
+
+		if ($has_pk) {
+			ok $@, "died correctly";
+			ok !defined $ret, "returns undef";
+			ok $sth->errstr && $sth->errstr =~ /datatype mismatch/, "insert failed: type mismatch";
+		}
+		else {
+			ok defined $ret, "inserted without errors";
+		}
 
 		my ($value) = $dbh->selectrow_array('select v from foo where id = ?', undef, $id);
-		ok !$value, "not inserted/indexed";
+		if ($has_pk) {
+			ok !$value, "not inserted/indexed";
+		}
+		else {
+			ok $value && $value eq 'qux', "got correct value";
+		}
 	}
 
 	$dbh->disconnect;
