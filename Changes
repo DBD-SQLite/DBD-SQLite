@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.36_04 to be released
+    - Updated to SQLite 3.7.12 (ISHIGAKI)
+
 1.36_03 Mon 7 May 2012
     - Updated to SQLite 3.7.11 (ISHIGAKI)
     - Fix >32bit integer truncation and other sqlite_set_result
