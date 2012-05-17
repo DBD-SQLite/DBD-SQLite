@@ -238,6 +238,10 @@ if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
 		'-DMAP_FAILED="((void *)-1)"';
 }
 if ($^O eq 'darwin') {
+	my ($osmajor, $osminor) = split /\./, $Config{osvers};
+	if ($osmajor < 8 or ($osmajor == 8 && $osminor <= 11)) {
+		push @CC_DEFINE, '-DSQLITE_WITHOUT_ZONEMALLOC=1';
+	}
 	push @CC_DEFINE, '-DSQLITE_ENABLE_LOCKING_STYLE=0';
 }
 
