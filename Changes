@@ -2,6 +2,9 @@ Changes for Perl extension DBD-SQLite
 
 1.36_04 to be released
     - Updated to SQLite 3.7.12 (ISHIGAKI)
+    - Tweaked Makefile.PL to behave better during the Bsymbolic
+      check (HMBRAND)
+    - Added SQLITE_WITHOUT_ZONEMALLOC for older MacOS X (ISHIGAKI)
 
 1.36_03 Mon 7 May 2012
     - Updated to SQLite 3.7.11 (ISHIGAKI)
