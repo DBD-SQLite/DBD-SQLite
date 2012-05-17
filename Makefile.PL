@@ -253,7 +253,8 @@ my @CC_OPTIONS = (
 unless ($^O eq 'MSWin32' && $Config{ld} =~ /link/) {
 	for my $path (File::Spec->path) {
 		if (MM->maybe_command("$path/ld")) {
-			my $output = `$path/ld --help 2>&1`;
+			my $devnull = File::Spec->devnull;
+			my $output = `$path/ld --help 2>$devnull`;
 			if ($output =~ /Bsymbolic/) {
 				push @CC_OPTIONS,
 					CCFLAGS   => $Config{ccflags}   . ' -Wl,-Bsymbolic',
