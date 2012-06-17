@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.38_01 to be released
+    - Updated to SQLite 3.17.13 (ISHIGAKI)
+
 1.37 Thu 12 Jun 2012
     - Updated to SQLite 3.7.12.1 (ISHIGAKI)
 
