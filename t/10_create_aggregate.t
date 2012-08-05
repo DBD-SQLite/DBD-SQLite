@@ -110,7 +110,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	local $SIG{__WARN__} = sub { $last_warn = join "", @_ };
 	foreach my $fail ( qw/ new step finalize/ ) {
 	    $last_warn = '';  
-	    my $aggr = new fail_aggregate( $fail );
+	    my $aggr = fail_aggregate->new( $fail );
 	    ok($dbh->$call_func( "fail_$fail", -1, $aggr, 'create_aggregate' ));
 	    $result = $dbh->selectrow_arrayref( "SELECT fail_$fail() FROM aggr_test" );
 	#   ok( !$result && $DBI::errstr =~ /$fail\(\) failed on request/ );
@@ -124,7 +124,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	    ok( !defined $result->[0] && $last_warn =~ /$fail\(\) failed on request/ );
 	}
 
-	my $aggr = new fail_aggregate( 'undef' );
+	my $aggr = fail_aggregate->new( 'undef' );
 	$last_warn = '';
 	ok($dbh->$call_func( "fail_undef", -1, $aggr, 'create_aggregate' ));
 	$result = $dbh->selectrow_arrayref( "SELECT fail_undef() FROM aggr_test" );
