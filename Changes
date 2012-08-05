@@ -1,5 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
+   - added support for foreign_key_info (DAMI)
+
 1.38_01 to be released
     - Updated to SQLite 3.17.13 (ISHIGAKI)
 

@@ -29,6 +29,7 @@ __PACKAGE__->bootstrap($VERSION);
 # New or old API?
 use constant NEWAPI => ($DBI::VERSION >= 1.608);
 
+# global registry of collation functions, initialized with 2 builtins
 tie %COLLATION, 'DBD::SQLite::_WriteOnceHash';
 $COLLATION{perl}       = sub { $_[0] cmp $_[1] };
 $COLLATION{perllocale} = sub { use locale; $_[0] cmp $_[1] };
@@ -38,7 +39,7 @@ my $methods_are_installed = 0;
 sub driver {
     return $drh if $drh;
 
-    if (!$methods_are_installed && $DBI::VERSION >= 1.608) {
+    if (!$methods_are_installed && DBD::SQLite::NEWAPI ) {
         DBI->setup_driver('DBD::SQLite');
 
         DBD::SQLite::db->install_method('sqlite_last_insert_rowid');
@@ -416,6 +417,120 @@ sub primary_key_info {
     );
     return $sth;
 }
+
+
+our %DBI_code_for_rule = ( # from DBI doc; curiously, they are not exported
+                           # by the DBI module.
+  # codes for update/delete constraints
+  'CASCADE'             => 0,
+  'RESTRICT'            => 1,
+  'SET NULL'            => 2,
+  'NO ACTION'           => 3,
+  'SET DEFAULT'         => 4,
+
+  # codes for deferrability
+  'INITIALLY DEFERRED'  => 5,
+  'INITIALLY IMMEDIATE' => 6,
+  'NOT DEFERRABLE'      => 7,
+ );
+
+
+my @FOREIGN_KEY_INFO_ODBC = (
+  'PKTABLE_CAT',       # The primary (unique) key table catalog identifier.
+  'PKTABLE_SCHEM',     # The primary (unique) key table schema identifier.
+  'PKTABLE_NAME',      # The primary (unique) key table identifier.
+  'PKCOLUMN_NAME',     # The primary (unique) key column identifier.
+  'FKTABLE_CAT',       # The foreign key table catalog identifier.
+  'FKTABLE_SCHEM',     # The foreign key table schema identifier.
+  'FKTABLE_NAME',      # The foreign key table identifier.
+  'FKCOLUMN_NAME',     # The foreign key column identifier.
+  'KEY_SEQ',           # The column sequence number (starting with 1).
+  'UPDATE_RULE',       # The referential action for the UPDATE rule.
+  'DELETE_RULE',       # The referential action for the DELETE rule.
+  'FK_NAME',           # The foreign key name.
+  'PK_NAME',           # The primary (unique) key name.
+  'DEFERRABILITY',     # The deferrability of the foreign key constraint.
+  'UNIQUE_OR_PRIMARY', # qualifies the key referenced by the foreign key
+);
+
+# Column names below are not used, but listed just for completeness's sake.
+# Maybe we could add an option so that the user can choose which field
+# names will be returned; the DBI spec is not very clear about ODBC vs. CLI.
+my @FOREIGN_KEY_INFO_SQL_CLI = qw(
+  UK_TABLE_CAT 
+  UK_TABLE_SCHEM
+  UK_TABLE_NAME
+  UK_COLUMN_NAME
+  FK_TABLE_CAT
+  FK_TABLE_SCHEM
+  FK_TABLE_NAME
+  FK_COLUMN_NAME
+  ORDINAL_POSITION
+  UPDATE_RULE
+  DELETE_RULE
+  FK_NAME
+  UK_NAME
+  DEFERABILITY
+  UNIQUE_OR_PRIMARY
+ );
+
+sub foreign_key_info {
+  my $dbh = shift;
+  my %arg;
+  @arg{qw/PK_CATALOG PK_SCHEMA PK_TABLE
+          FK_CATALOG FK_SCHEMA FK_TABLE/} = @_;
+
+  # check arguments
+  $arg{FK_TABLE}
+    or return $dbh->DBI::set_err($DBI::stderr, '6th arg FK_TABLE is mandatory');
+  foreach my $arg_name (qw/PK_CATALOG PK_SCHEMA FK_CATALOG FK_SCHEMA/) {
+    !$arg{$arg_name} || $arg{$arg_name} eq '%'
+      or $dbh->DBI::set_err(0, "arg $arg_name will be ignored");
+  }
+
+  # get info from a PRAGMA statement
+  my $fk_sth = $dbh->prepare("PRAGMA foreign_key_list($arg{FK_TABLE})");
+  $fk_sth->execute;
+
+  # accumulate results (create rows of appropriate structure)
+  my @rows;
+  while (my $row = $fk_sth->fetchrow_hashref) {
+    next if $arg{PK_TABLE} && $arg{PK_TABLE} ne $row->{table};
+    push @rows, [
+      undef,                                  # PKTABLE_CAT
+      undef,                                  # PKTABLE_SCHEM
+      $row->{table},                          # PKTABLE_NAME
+      $row->{to},                             # PKCOLUMN_NAME
+      undef,                                  # FKTABLE_CAT
+      undef,                                  # FKTABLE_SCHEM
+      $arg{FK_TABLE},                         # FKTABLE_NAME
+      $row->{from},                           # FKCOLUMN_NAME
+      $row->{seq} + 1,                        # KEY_SEQ
+      $DBI_code_for_rule{$row->{on_update}},  # UPDATE_RULE
+      $DBI_code_for_rule{$row->{on_delete}},  # DELETE_RULE
+      undef,                                  # FK_NAME
+      undef,                                  # PK_NAME
+      undef,                                  # DEFERRABILITY
+      undef,                                  # UNIQUE_OR_PRIMARY
+     ];
+    # not used: $row->{id}, $row->{match}
+    # CAVEAT : the PRAGMA does not report about DEFERRABILITY clauses
+  }
+
+  # return rows as a 'sponge' statement handle
+  my $sponge_dbh = DBI->connect("DBI:Sponge:", '','')
+    or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
+  my $sponge_sth = $sponge_dbh->prepare( "foreign_key_info $arg{FK_TABLE}", {
+    NAME          => \@FOREIGN_KEY_INFO_ODBC,
+    rows          => \@rows,
+    NUM_OF_FIELDS => scalar(@FOREIGN_KEY_INFO_ODBC),
+  }) or return $dbh->DBI::set_err(
+    $sponge_dbh->err,
+    $sponge_dbh->errstr,
+   );
+  return $sponge_sth;
+};
+
 
 sub type_info_all {
     return; # XXX code just copied from DBD::Oracle, not yet thought about
@@ -1149,6 +1264,79 @@ As noted above, SQLite does not have the concept of catalogs, so the
 first argument of the mothods is usually C<undef>, and you'll usually
 set C<undef> for the second one (unless you want to know the primary
 keys of temporary tables).
+
+
+=head2 foreign_key_info
+
+  $sth = $dbh->foreign_key_info(undef, undef, $optional_pk_table,
+                                undef, undef, $fk_table);
+
+Returns information about foreign key constraints, as specified in
+L<DBI/foreign_key_info>, but with some limitations : 
+
+=over
+
+=item *
+
+argument C<$fk_table> is mandatory (this is name of the table that contains
+the foreign key(s))
+
+=item *
+
+all other arguments are unused, except the optional C<$pk_table>
+that may act as an additional filter (the result will only contain
+the foreign keys in C<$fk_table> which correspond to C<$pk_table>'s
+primary key).
+
+=item *
+
+information in rows returned by the C<$sth> is incomplete with
+respect to the L<DBI/foreign_key_info> specification. All requested fields
+are present, but the content is C<undef> for some of them.
+
+=back
+
+The following nonempty fields are returned :
+
+B<PKTABLE_NAME>:
+The primary (unique) key table identifier.
+
+B<PKCOLUMN_NAME>:
+The primary (unique) key column identifier.
+
+B<FKTABLE_NAME>:
+The foreign key table identifier.
+
+B<FKCOLUMN_NAME>:
+The foreign key column identifier.
+
+B<KEY_SEQ>:
+The column sequence number (starting with 1), when
+several columns belong to a same constraint.
+
+B<UPDATE_RULE>:
+The referential action for the UPDATE rule.
+The following codes are defined:
+
+  CASCADE              0
+  RESTRICT             1
+  SET NULL             2
+  NO ACTION            3
+  SET DEFAULT          4
+
+Default is 3 ('NO ACTION').
+
+B<DELETE_RULE>:
+The referential action for the DELETE rule.
+The codes are the same as for UPDATE_RULE.
+
+Unfortunately, the B<DEFERRABILITY> field is always C<undef>;
+as a matter of fact, deferrability clauses are supported by SQLite,
+but they can't be reported because the C<PRAGMA foreign_key_list>
+tells nothing about them.
+
+B<Note>: foreign key support in SQLite must be explicitly turned on through
+a C<PRAGMA> command; see L</"Foreign keys"> earlier in this manual.
 
 =head1 DRIVER PRIVATE METHODS
 
