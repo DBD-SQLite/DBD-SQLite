@@ -230,7 +230,11 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
 
     if (maybe_int || sql_type == SQLITE_INTEGER) {
 #if defined(USE_64_BIT_INT)
+    #if defined(HAS_ATOLL)
         if (strEQ(form((has_plus ? "+%lli" : "%lli"), atoll(v)), v)) return 1;
+    #else
+        if (strEQ(form((has_plus ? "+%li" : "%li"), atol(v)), v)) return 1;
+    #endif
 #else
         if (strEQ(form((has_plus ? "+%i" : "%i"), atoi(v)), v)) return 1;
 #endif
@@ -701,7 +705,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 
             if (numtype == 1) {
 #if defined(USE_64_BIT_INT)
+    #if defined(HAS_ATOLL)
                 rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atoll(data));
+    #else
+                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atol(data));
+    #endif
 #else
                 rc = sqlite3_bind_int(imp_sth->stmt, i+1, atoi(data));
 #endif
