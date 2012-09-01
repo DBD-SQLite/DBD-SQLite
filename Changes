@@ -1,6 +1,13 @@
 Changes for Perl extension DBD-SQLite
 
 1.38_01 to be released
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Set sqlite_use_immediate_transaction to true by default
+      (See RT #56444). This usually shouldn't matter, but if you
+      really need the deferred transaction (which had long been the
+      default), explicitly set sqlite_use_immediate_transaction
+      to false. (ISHIGAKI)
+
     - Updated to SQLite 3.17.13 (ISHIGAKI)
     - added support for foreign_key_info (DAMI)
     - Resolved #77617: atoll () sometimes just is atol () (GAAS)
