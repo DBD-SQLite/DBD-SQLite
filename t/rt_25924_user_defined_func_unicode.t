@@ -17,9 +17,6 @@ BEGIN {
 }
 use Test::NoWarnings;
 
-eval "require utf8";
-die $@ if $@;
-
 foreach my $call_func (@CALL_FUNCS) {
 	my $dbh = connect_ok( sqlite_unicode => 1 );
 	ok($dbh->$call_func( "perl_uc", 1, \&perl_uc, "create_function" ));
@@ -32,6 +29,7 @@ END_SQL
 
 	my @words = qw{Bergère hôte hétaïre hêtre};
 	foreach my $word (@words) {
+		# rt48048: don't need to "use utf8" nor "require utf8"
 		utf8::upgrade($word);
 		ok( $dbh->do("INSERT INTO foo VALUES ( ? )", {}, $word), 'INSERT' );
 		my $foo = $dbh->selectall_arrayref("SELECT perl_uc(bar) FROM foo");

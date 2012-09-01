@@ -22,17 +22,12 @@ use Test::NoWarnings;
 use File::Temp ();
 use File::Spec::Functions ':ALL';
 
-# Don't use this, it annoys the MinimumVersion scanner
-# use utf8;
-
-eval "require utf8";
-die $@ if $@;
-
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
 foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿') {
 	if ($^O eq 'cygwin') {
 		next if (($subdir eq 'adatbázis') || ($subdir eq '¿¿¿ ¿¿¿¿¿¿'));
 	}
+	# rt48048: don't need to "use utf8" nor "require utf8"
 	utf8::upgrade($subdir);
 	ok(
 		mkdir(catdir($dir, $subdir)),
