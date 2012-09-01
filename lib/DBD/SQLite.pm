@@ -5,24 +5,14 @@ use strict;
 use DBI   1.57 ();
 use DynaLoader ();
 
-use vars qw($VERSION @ISA);
-use vars qw{$err $errstr $drh $sqlite_version $sqlite_version_number};
-use vars qw{%COLLATION};
+our $VERSION = '1.37';
+our @ISA     = 'DynaLoader';
 
-BEGIN {
-    $VERSION = '1.37';
-    @ISA     = 'DynaLoader';
+# sqlite_version cache (set in the XS bootstrap)
+our ($sqlite_version, $sqlite_version_number);
 
-    # Initialize errors
-    $err     = undef;
-    $errstr  = undef;
-
-    # Driver singleton
-    $drh = undef;
-
-    # sqlite_version cache
-    $sqlite_version = undef;
-}
+# not sure if we still need these...
+our ($err, $errstr);
 
 __PACKAGE__->bootstrap($VERSION);
 
@@ -30,10 +20,12 @@ __PACKAGE__->bootstrap($VERSION);
 use constant NEWAPI => ($DBI::VERSION >= 1.608);
 
 # global registry of collation functions, initialized with 2 builtins
+our %COLLATION;
 tie %COLLATION, 'DBD::SQLite::_WriteOnceHash';
 $COLLATION{perl}       = sub { $_[0] cmp $_[1] };
 $COLLATION{perllocale} = sub { use locale; $_[0] cmp $_[1] };
 
+our $drh;
 my $methods_are_installed = 0;
 
 sub driver {

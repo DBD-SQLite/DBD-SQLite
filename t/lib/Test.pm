@@ -7,14 +7,15 @@ use Exporter   ();
 use File::Spec ();
 use Test::More ();
 
-use vars qw{$VERSION @ISA @EXPORT @CALL_FUNCS};
+our $VERSION = '1.37';
+our @ISA     = 'Exporter';
+our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS/;
+our @CALL_FUNCS;
+
 my $parent;
 my %dbfiles;
-BEGIN {
-	$VERSION = '1.37';
-	@ISA     = 'Exporter';
-	@EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS/;
 
+BEGIN {
 	# Allow tests to load modules bundled in /inc
 	unshift @INC, 'inc';
 
