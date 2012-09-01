@@ -7,13 +7,15 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 3;
+use Test::More tests => 6;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
 	AutoCommit => 0,
 	RaiseError => 1,
 );
+
+ok $dbh->{sqlite_use_immediate_transaction}, "sqlite_use_immediate_transaction is true by default";
 
 $dbh->do("CREATE TABLE MST (id, lbl)");
 $dbh->do("CREATE TABLE TRN (no, id, qty)");
@@ -42,3 +44,12 @@ while(my $raD = $sth->fetchrow_arrayref()) {
 }
 
 $dbh->rollback;
+
+{
+	my $dbh = connect_ok(
+		AutoCommit => 0,
+		RaiseError => 1,
+		sqlite_use_immediate_transaction => 0,
+	);
+	ok !$dbh->{sqlite_use_immediate_transaction}, "sqlite_use_immediate_transaction is false if you set explicitly";
+}

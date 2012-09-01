@@ -285,7 +285,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->timeout                   = SQL_TIMEOUT;
     imp_dbh->handle_binary_nulls       = FALSE;
     imp_dbh->allow_multiple_statements = FALSE;
-    imp_dbh->use_immediate_transaction = FALSE;
+    imp_dbh->use_immediate_transaction = TRUE;
     imp_dbh->see_if_its_a_number       = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
