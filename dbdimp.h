@@ -106,6 +106,7 @@ int sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer );
 AV* sqlite_compile_options();
 int sqlite_db_trace(pTHX_ SV *dbh, SV *func);
 int sqlite_db_profile(pTHX_ SV *dbh, SV *func);
+HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *columnname);
 
 int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh);
 

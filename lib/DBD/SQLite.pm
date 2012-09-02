@@ -51,6 +51,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
         DBD::SQLite::db->install_method('sqlite_trace');
         DBD::SQLite::db->install_method('sqlite_profile');
+        DBD::SQLite::db->install_method('sqlite_table_column_metadata');
 
         $methods_are_installed++;
     }

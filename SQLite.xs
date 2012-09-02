@@ -224,8 +224,18 @@ backup_to_file(dbh, filename)
     OUTPUT:
         RETVAL
 
-
-
+HV*
+table_column_metadata(dbh, dbname, tablename, columnname)
+    SV* dbh
+    SV* dbname
+    SV* tablename
+    SV* columnname
+    ALIAS:
+        DBD::SQLite::db::sqlite_table_column_metadata = 1
+    CODE:
+        RETVAL = sqlite_db_table_column_metadata(aTHX_ dbh, dbname, tablename, columnname);
+    OUTPUT:
+        RETVAL
 
 
 static int

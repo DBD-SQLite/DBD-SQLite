@@ -1412,6 +1412,43 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 
 #endif
 
+HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *columnname)
+{
+    D_imp_dbh(dbh);
+    const char *datatype, *collseq;
+    int notnull, primary, autoinc;
+    HV *metadata = newHV();
+
+    /* dbname may be NULL but (table|column)name may not be NULL */ 
+    if (!tablename) {
+        sqlite_error(dbh, -2, "table_column_metadata requires a table name");
+        return FALSE;
+    }
+    if (!columnname) {
+        sqlite_error(dbh, -2, "table_column_metadata requires a column name");
+        return FALSE;
+    }
+
+#ifdef SQLITE_ENABLE_COLUMN_METADATA
+    int rc = sqlite3_table_column_metadata(
+       imp_dbh->db,
+       dbname ? SvPV_nolen(dbname) : NULL,
+       SvPV_nolen(tablename),
+       SvPV_nolen(columnname),
+       &datatype, &collseq, &notnull, &primary, &autoinc);
+#endif
+
+    if (rc == SQLITE_OK) {
+        hv_store(metadata, "data_type", 9, newSVpv(datatype, 0), 0);
+        hv_store(metadata, "collation_name", 14, newSVpv(collseq, 0), 0);
+        hv_store(metadata, "not_null", 8, newSViv(notnull), 0);
+        hv_store(metadata, "primary", 7, newSViv(primary), 0);
+        hv_store(metadata, "auto_increment", 14, newSViv(autoinc), 0);
+    }
+
+    return metadata;
+}
+
 static void
 sqlite_db_aggr_new_dispatcher(pTHX_ sqlite3_context *context, aggrInfo *aggr_info)
 {
