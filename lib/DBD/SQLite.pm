@@ -1755,6 +1755,10 @@ This method is considered experimental and is subject to change in future versio
 
 See also L<DBI::Profile> for better profiling options.
 
+=head2 $dbh->sqlite_table_column_metadata( $dbname, $tablename, $columnname )
+
+is for internal use only.
+
 =head2 DBD::SQLite::compile_options()
 
 Returns an array of compile options (available since sqlite 3.6.23,
