@@ -1422,11 +1422,11 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
     /* dbname may be NULL but (table|column)name may not be NULL */ 
     if (!tablename || !SvPOK(tablename)) {
         sqlite_error(dbh, -2, "table_column_metadata requires a table name");
-        return FALSE;
+        return metadata;
     }
     if (!columnname || !SvPOK(columnname)) {
         sqlite_error(dbh, -2, "table_column_metadata requires a column name");
-        return FALSE;
+        return metadata;
     }
 
 #ifdef SQLITE_ENABLE_COLUMN_METADATA

@@ -10,9 +10,9 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 11 * @CALL_FUNCS + 1;
+plan tests => 15 * @CALL_FUNCS + 1;
 for my $call_func (@CALL_FUNCS) {
-	my $dbh = connect_ok();
+	my $dbh = connect_ok(RaiseError => 1);
 	$dbh->do('create table foo (id integer primary key autoincrement, "name space", unique_col integer unique)');
 
 	{
@@ -31,5 +31,21 @@ for my $call_func (@CALL_FUNCS) {
 		is $data->{data_type} => undef, "data type is not defined";
 		ok !$data->{primary}, "name space is not a primary key";
 		ok !$data->{not_null}, "name space is not null";
+	}
+
+	# exceptions
+	{
+		local $SIG{__WARN__} = sub {};
+		eval { $dbh->$call_func(undef, undef, 'name space', 'table_column_metadata') };
+		ok $@, "successfully died when tablename is undef";
+
+		eval { $dbh->$call_func(undef, '', 'name space', 'table_column_metadata') };
+		ok !$@, "not died when tablename is an empty string";
+
+		eval { $dbh->$call_func(undef, 'foo', undef, 'table_column_metadata') };
+		ok $@, "successfully died when columnname is undef";
+
+		eval { $dbh->$call_func(undef, 'foo', '', 'table_column_metadata') };
+		ok !$@, "not died when columnname is an empty string";
 	}
 }
