@@ -12,6 +12,8 @@ Changes for Perl extension DBD-SQLite
     - added support for foreign_key_info (DAMI)
     - Resolved #77617: atoll () sometimes just is atol () (GAAS)
     - Resolved #48084: improper "require utf8" in tests (ISHIGAKI)
+    - Resolved #77724: bug in primary_key_info with regard to column
+      names containing whitespace (ISHIGAKI)
 
 1.37 Thu 12 Jun 2012
     - Updated to SQLite 3.7.12.1 (ISHIGAKI)
