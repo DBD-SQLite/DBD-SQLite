@@ -1522,7 +1522,7 @@ Here is a simple aggregate function which returns the variance
   
       my $sigma = 0;
       foreach my $v ( @$self ) {
-          $sigma += ($x - $mu)**2;
+          $sigma += ($v - $mu)**2;
       }
       $sigma = $sigma / ($n - 1);
   
