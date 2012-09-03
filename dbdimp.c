@@ -1420,11 +1420,11 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
     HV *metadata = newHV();
 
     /* dbname may be NULL but (table|column)name may not be NULL */ 
-    if (!tablename) {
+    if (!tablename || !SvPOK(tablename)) {
         sqlite_error(dbh, -2, "table_column_metadata requires a table name");
         return FALSE;
     }
-    if (!columnname) {
+    if (!columnname || !SvPOK(columnname)) {
         sqlite_error(dbh, -2, "table_column_metadata requires a column name");
         return FALSE;
     }
@@ -1432,7 +1432,7 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
 #ifdef SQLITE_ENABLE_COLUMN_METADATA
     int rc = sqlite3_table_column_metadata(
        imp_dbh->db,
-       dbname ? SvPV_nolen(dbname) : NULL,
+       (dbname && SvPOK(dbname)) ? SvPV_nolen(dbname) : NULL,
        SvPV_nolen(tablename),
        SvPV_nolen(columnname),
        &datatype, &collseq, &notnull, &primary, &autoinc);
