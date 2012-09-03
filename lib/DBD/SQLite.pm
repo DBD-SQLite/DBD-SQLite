@@ -362,36 +362,31 @@ END_SQL
 sub primary_key_info {
     my ($dbh, $catalog, $schema, $table, $attr) = @_;
 
-    # Escape the schema and table name
-    $schema =~ s/([\\_%])/\\$1/g if defined $schema;
-    my $escaped = $table;
-    $escaped =~ s/([\\_%])/\\$1/g;
-    $attr ||= {};
-    $attr->{Escape} = '\\';
-    my $sth_tables = $dbh->table_info($catalog, $schema, $escaped, undef, $attr);
-
-    # This is a hack but much simpler than using pragma index_list etc
-    # also the pragma doesn't list 'INTEGER PRIMARY KEY' autoinc PKs!
-    my @pk_info;
-    while ( my $row = $sth_tables->fetchrow_hashref ) {
-        my $sql = $row->{sqlite_sql} or next;
-        next unless $sql =~ /(.*?)\s*PRIMARY\s+KEY\s*(?:\(\s*(.*?)\s*\))?/si;
-        my @pk = split /\s*,\s*/, $2 || '';
-        unless ( @pk ) {
-            my $prefix = $1;
-            $prefix =~ s/.*create\s+table\s+.*?\(\s*//si;
-            $prefix = (split /\s*,\s*/, $prefix)[-1];
-            @pk = (split /\s+/, $prefix)[0]; # take first word as name
+    unless ($schema) {
+        # for backward compat
+        my $table_info = $dbh->table_info($catalog, $schema, $table);
+        while(my $info = $table_info->fetchrow_hashref) {
+            next unless uc $info->{TABLE_TYPE} eq 'TABLE';
+            if ($info->{TABLE_NAME} eq $table) {
+                $schema = $info->{TABLE_SCHEM};
+                last;
+            }
         }
-        my $key_seq = 0;
-        foreach my $pk_field (@pk) {
-            $pk_field =~ s/(["'`])(.+)\1/$2/; # dequote
-            $pk_field =~ s/\[(.+)\]/$1/; # dequote
+    }
+
+    # placeholder doesn't seem to work here
+    my $quoted_table = $dbh->quote($table);
+    my $psth = $dbh->prepare("PRAGMA table_info($quoted_table)");
+    $psth->execute;
+
+    my @pk_info;
+    while(my $col = $psth->fetchrow_hashref) {
+        if ($col->{pk}) {  # we now have this!
             push @pk_info, {
-                TABLE_SCHEM => $row->{TABLE_SCHEM},
-                TABLE_NAME  => $row->{TABLE_NAME},
-                COLUMN_NAME => $pk_field,
-                KEY_SEQ     => ++$key_seq,
+                TABLE_SCHEM => $schema,
+                TABLE_NAME  => $table,
+                COLUMN_NAME => $col->{name},
+                KEY_SEQ     => scalar @pk_info + 1,
                 PK_NAME     => 'PRIMARY KEY',
             };
         }
