@@ -1417,6 +1417,7 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
     D_imp_dbh(dbh);
     const char *datatype, *collseq;
     int notnull, primary, autoinc;
+    int rc;
     HV *metadata = newHV();
 
     /* dbname may be NULL but (table|column)name may not be NULL */ 
@@ -1430,7 +1431,7 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
     }
 
 #ifdef SQLITE_ENABLE_COLUMN_METADATA
-    int rc = sqlite3_table_column_metadata(
+    rc = sqlite3_table_column_metadata(
        imp_dbh->db,
        (dbname && SvPOK(dbname)) ? SvPV_nolen(dbname) : NULL,
        SvPV_nolen(tablename),
