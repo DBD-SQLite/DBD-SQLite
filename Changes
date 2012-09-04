@@ -8,7 +8,7 @@ Changes for Perl extension DBD-SQLite
       been the default), set sqlite_use_immediate_transaction
       to false explicitly. (ISHIGAKI)
 
-    - Updated to SQLite 3.17.13 (ISHIGAKI)
+    - Updated to SQLite 3.17.14 (ISHIGAKI)
     - added support for foreign_key_info (DAMI)
     - Resolved #77617: atoll () sometimes just is atol () (GAAS)
     - Resolved #48084: improper "require utf8" in tests (ISHIGAKI)
