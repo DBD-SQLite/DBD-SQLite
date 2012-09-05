@@ -1093,7 +1093,10 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
                 /* char *dot = instr(fieldname, ".");     */
                 /* if (dot)  drop table name from field name */
                 /*    fieldname = ++dot;     */
-                av_store(av, n, newSVpv(fieldname, 0));
+                SV *sv_fieldname = newSVpv(fieldname, 0);
+                if (imp_dbh->unicode)
+                    SvUTF8_on(sv_fieldname);
+                av_store(av, n, sv_fieldname);
             }
         }
     }
