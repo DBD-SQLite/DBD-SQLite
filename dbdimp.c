@@ -1443,11 +1443,11 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
 #endif
 
     if (rc == SQLITE_OK) {
-        hv_store(metadata, "data_type", 9, datatype ? newSVpv(datatype, 0) : newSV(0), 0);
-        hv_store(metadata, "collation_name", 14, collseq ? newSVpv(collseq, 0) : newSV(0), 0);
-        hv_store(metadata, "not_null", 8, newSViv(notnull), 0);
-        hv_store(metadata, "primary", 7, newSViv(primary), 0);
-        hv_store(metadata, "auto_increment", 14, newSViv(autoinc), 0);
+        hv_stores(metadata, "data_type", datatype ? newSVpv(datatype, 0) : newSV(0));
+        hv_stores(metadata, "collation_name", collseq ? newSVpv(collseq, 0) : newSV(0));
+        hv_stores(metadata, "not_null", newSViv(notnull));
+        hv_stores(metadata, "primary", newSViv(primary));
+        hv_stores(metadata, "auto_increment", newSViv(autoinc));
     }
 
     return metadata;
