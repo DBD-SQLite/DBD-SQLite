@@ -16,6 +16,7 @@ Changes for Perl extension DBD-SQLite
       names containing whitespace (ISHIGAKI)
     - Resolved #79364: variance example of the doc (ISHIGAKI)
     - Resolved #78833: utf8 flag for column names (JAMADAM)
+    - Resolved #64177: ping() wipes out the errstr (ISHIGAKI)
 
 1.37 Thu 12 Jun 2012
     - Updated to SQLite 3.7.12.1 (ISHIGAKI)
