@@ -237,6 +237,15 @@ table_column_metadata(dbh, dbname, tablename, columnname)
     OUTPUT:
         RETVAL
 
+SV*
+db_filename(dbh)
+    SV* dbh
+    ALIAS:
+        DBD::SQLite::db::sqlite_db_filename = 1
+    CODE:
+        RETVAL = sqlite_db_filename(aTHX_ dbh);
+    OUTPUT:
+        RETVAL
 
 static int
 register_fts3_perl_tokenizer(dbh)

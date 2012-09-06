@@ -1240,6 +1240,18 @@ sqlite_compile_options()
     return (AV*)sv_2mortal((SV*)av);
 }
 
+SV *
+sqlite_db_filename(pTHX_ SV *dbh)
+{
+    D_imp_dbh(dbh);
+    const char *filename;
+
+    croak_if_db_is_null();
+
+    filename = sqlite3_db_filename(imp_dbh->db, "main");
+    return filename ? newSVpv(filename, 0) : &PL_sv_undef;
+}
+
 int
 sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
 {

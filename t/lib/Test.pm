@@ -47,8 +47,8 @@ END   { clean() }
 # A simplified connect function for the most common case
 sub connect_ok {
 	my $attr = { @_ };
-	my $dbfile = delete $attr->{dbfile} || ':memory:';
-	$dbfiles{$dbfile} = ($dbfile ne ':memory:') ? $dbfile . $$ : $dbfile;
+	my $dbfile = defined $attr->{dbfile} ? delete $attr->{dbfile} : ':memory:';
+	$dbfiles{$dbfile} = (defined $dbfile && length $dbfile && $dbfile ne ':memory:') ? $dbfile . $$ : $dbfile;
 	my @params = ( "dbi:SQLite:dbname=$dbfiles{$dbfile}", '', '' );
 	if ( %$attr ) {
 		push @params, $attr;

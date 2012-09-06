@@ -52,6 +52,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_trace');
         DBD::SQLite::db->install_method('sqlite_profile');
         DBD::SQLite::db->install_method('sqlite_table_column_metadata');
+        DBD::SQLite::db->install_method('sqlite_db_filename', { O => 0x0004 });
 
         $methods_are_installed++;
     }
@@ -209,6 +210,17 @@ sub do {
 
     # always return true if no error
     return ($rows == 0) ? "0E0" : $rows;
+}
+
+sub ping {
+    my $dbh = shift;
+
+    # $file may be undef (ie. in-memory/temporary database)
+    my $file = DBD::SQLite::NEWAPI ? $dbh->sqlite_db_filename
+                                   : $dbh->func("db_filename");
+
+    return 0 if $file && !-f $file;
+    return $dbh->FETCH('Active') ? 1 : 0;
 }
 
 sub _get_version {
@@ -1318,6 +1330,12 @@ tells nothing about them.
 B<Note>: foreign key support in SQLite must be explicitly turned on through
 a C<PRAGMA> command; see L</"Foreign keys"> earlier in this manual.
 
+=head2 ping
+
+  my $bool = $dbh->ping;
+
+returns true if the database file exists (or the database is in-memory), and the database connection is active.
+
 =head1 DRIVER PRIVATE METHODS
 
 The following methods can be called via the func() method with a little
@@ -1347,6 +1365,10 @@ method instead. The usage of this is:
 
 Running C<$h-E<gt>last_insert_id("","","","")> is the equivalent of running
 C<$dbh-E<gt>sqlite_last_insert_rowid()> directly.
+
+=head2 $dbh->sqlite_db_filename()
+
+Retrieve the current (main) database filename. If the database is in-memory or temporary, this returns C<undef>.
 
 =head2 $dbh->sqlite_busy_timeout()
 
