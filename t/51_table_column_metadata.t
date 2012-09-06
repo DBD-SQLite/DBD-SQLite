@@ -10,7 +10,7 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 15 * @CALL_FUNCS + 1;
+plan tests => 16 * @CALL_FUNCS + 1;
 for my $call_func (@CALL_FUNCS) {
 	my $dbh = connect_ok(RaiseError => 1);
 	$dbh->do('create table foo (id integer primary key autoincrement, "name space", unique_col integer unique)');
@@ -47,5 +47,10 @@ for my $call_func (@CALL_FUNCS) {
 
 		eval { $dbh->$call_func(undef, 'foo', '', 'table_column_metadata') };
 		ok !$@, "not died when columnname is an empty string";
+
+		$dbh->disconnect;
+
+		eval { $dbh->$call_func(undef, 'foo', 'name space', 'table_column_metadata') };
+		ok $@, "successfully died when dbh is inactive";
 	}
 }

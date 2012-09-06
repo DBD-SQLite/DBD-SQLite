@@ -1436,6 +1436,13 @@ sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *co
     int rc;
     HV *metadata = (HV*)sv_2mortal((SV*)newHV());
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to fetch table column metadata on inactive database handle");
+        return metadata;
+    }
+
+    croak_if_db_is_null();
+
     /* dbname may be NULL but (table|column)name may not be NULL */ 
     if (!tablename || !SvPOK(tablename)) {
         sqlite_error(dbh, -2, "table_column_metadata requires a table name");
