@@ -1427,13 +1427,14 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
 
 #endif
 
-HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *columnname)
+HV*
+sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *columnname)
 {
     D_imp_dbh(dbh);
     const char *datatype, *collseq;
     int notnull, primary, autoinc;
     int rc;
-    HV *metadata = newHV();
+    HV *metadata = (HV*)sv_2mortal((SV*)newHV());
 
     /* dbname may be NULL but (table|column)name may not be NULL */ 
     if (!tablename || !SvPOK(tablename)) {
