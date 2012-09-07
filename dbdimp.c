@@ -1240,6 +1240,85 @@ sqlite_compile_options()
     return (AV*)sv_2mortal((SV*)av);
 }
 
+#define _stores_status(op, key) \
+    if (sqlite3_status(op, &cur, &hi, reset) == SQLITE_OK) { \
+        anon = (HV*)sv_2mortal((SV*)newHV()); \
+        hv_stores(anon, "current", newSViv(cur)); \
+        hv_stores(anon, "highwater", newSViv(hi)); \
+        hv_stores(hv, key, newRV_inc((SV*)anon)); \
+    }
+
+#define _stores_dbstatus(op, key) \
+    if (sqlite3_db_status(imp_dbh->db, op, &cur, &hi, reset) == SQLITE_OK) { \
+        anon = (HV*)sv_2mortal((SV*)newHV()); \
+        hv_stores(anon, "current", newSViv(cur)); \
+        hv_stores(anon, "highwater", newSViv(hi)); \
+        hv_stores(hv, key, newRV_inc((SV*)anon)); \
+    }
+
+#define _stores_ststatus(op, key) \
+    hv_stores(hv, key, newSViv(sqlite3_stmt_status(imp_sth->stmt, op, reset)))
+
+HV *
+_sqlite_status(int reset)
+{
+    dTHX;
+    int cur, hi;
+    HV *hv = (HV*)sv_2mortal((SV*)newHV());
+    HV *anon;
+
+    _stores_status(SQLITE_STATUS_MEMORY_USED, "memory_used");
+    _stores_status(SQLITE_STATUS_PAGECACHE_USED, "pagecache_used");
+    _stores_status(SQLITE_STATUS_PAGECACHE_OVERFLOW, "pagecache_overflow");
+    _stores_status(SQLITE_STATUS_SCRATCH_USED, "scratch_used");
+
+    _stores_status(SQLITE_STATUS_SCRATCH_OVERFLOW, "scratch_overflow");
+
+    _stores_status(SQLITE_STATUS_MALLOC_SIZE, "malloc_size");
+    _stores_status(SQLITE_STATUS_PARSER_STACK, "parser_stack");
+    _stores_status(SQLITE_STATUS_PAGECACHE_SIZE, "pagecache_size");
+    _stores_status(SQLITE_STATUS_SCRATCH_SIZE, "scratch_size");
+    _stores_status(SQLITE_STATUS_MALLOC_COUNT, "malloc_count");
+    _stores_status(SQLITE_STATUS_SCRATCH_OVERFLOW, "scratch_overflow");
+
+    return hv;
+}
+
+HV *
+_sqlite_db_status(pTHX_ SV* dbh, int reset)
+{
+    D_imp_dbh(dbh);
+    int cur, hi;
+    HV *hv = (HV*)sv_2mortal((SV*)newHV());
+    HV *anon;
+
+    _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_USED, "lookaside_used");
+    _stores_dbstatus(SQLITE_DBSTATUS_CACHE_USED, "cache_used");
+    _stores_dbstatus(SQLITE_DBSTATUS_SCHEMA_USED, "schema_used");
+    _stores_dbstatus(SQLITE_DBSTATUS_STMT_USED, "stmt_used");
+    _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_HIT, "lookaside_hit");
+    _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_MISS_SIZE, "lookaside_miss_size");
+    _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_MISS_FULL, "lookaside_miss_full");
+    _stores_dbstatus(SQLITE_DBSTATUS_CACHE_HIT, "cache_hit");
+    _stores_dbstatus(SQLITE_DBSTATUS_CACHE_MISS, "cache_miss");
+    _stores_dbstatus(SQLITE_DBSTATUS_CACHE_WRITE, "cache_write");
+
+    return hv;
+}
+
+HV *
+_sqlite_st_status(pTHX_ SV* sth, int reset)
+{
+    D_imp_sth(sth);
+    HV *hv = (HV*)sv_2mortal((SV*)newHV());
+
+    _stores_ststatus(SQLITE_STMTSTATUS_FULLSCAN_STEP, "fullscan_step");
+    _stores_ststatus(SQLITE_STMTSTATUS_SORT, "sort");
+    _stores_ststatus(SQLITE_STMTSTATUS_AUTOINDEX, "autoindex");
+
+    return hv;
+}
+
 SV *
 sqlite_db_filename(pTHX_ SV *dbh)
 {
