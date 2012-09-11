@@ -9,7 +9,7 @@ Changes for Perl extension DBD-SQLite
       to false explicitly. (ISHIGAKI)
 
     - Updated to SQLite 3.17.14 (ISHIGAKI)
-    - Added support for foreign_key_info (DAMI)
+    - Added support for foreign_key_info (DAMI/ISHIGAKI)
     - Added several methods to retrieve internal information such as
       table_column_metadata/db_filename/*_status (ISHIGAKI)
     - Resolved #77617: atoll () sometimes just is atol () (GAAS)

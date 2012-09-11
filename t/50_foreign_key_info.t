@@ -55,7 +55,7 @@ CREATE TABLE song(
 __EOSQL__
 
 
-plan tests => @sql_statements + 17;
+plan tests => @sql_statements + 16;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
@@ -106,14 +106,3 @@ for ($fk_data->{songartist}) {
 for ($fk_data->{songalbum}) {
   is($_->{KEY_SEQ}, 2, "FK song, key seq 2");
 }
-
-dies(sub {$dbh->foreign_key_info(undef, undef, 'artist',
-                                 undef, undef, undef)}, qr/mandatory/, 
-     "6th arg is mandatory");
-
-# use YAML;
-# print STDERR Dump $fk_data;
-
-
-
-

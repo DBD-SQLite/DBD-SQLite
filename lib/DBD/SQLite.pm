@@ -478,62 +478,65 @@ my @FOREIGN_KEY_INFO_SQL_CLI = qw(
  );
 
 sub foreign_key_info {
-  my $dbh = shift;
-  my %arg;
-  @arg{qw/PK_CATALOG PK_SCHEMA PK_TABLE
-          FK_CATALOG FK_SCHEMA FK_TABLE/} = @_;
+    my ($dbh, $pk_catalog, $pk_schema, $pk_table, $fk_catalog, $fk_schema, $fk_table) = @_;
 
-  # check arguments
-  $arg{FK_TABLE}
-    or return $dbh->DBI::set_err($DBI::stderr, '6th arg FK_TABLE is mandatory');
-  foreach my $arg_name (qw/PK_CATALOG PK_SCHEMA FK_CATALOG FK_SCHEMA/) {
-    !$arg{$arg_name} || $arg{$arg_name} eq '%'
-      or $dbh->DBI::set_err(0, "arg $arg_name will be ignored");
-  }
+    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}});
 
-  # get info from a PRAGMA statement
-  my $fk_sth = $dbh->prepare("PRAGMA foreign_key_list($arg{FK_TABLE})");
-  $fk_sth->execute;
+    my @fk_info;
+    for my $database (@$databases) {
+        my $dbname = $database->{name};
+        next if defined $fk_schema && $fk_schema ne '%' && $fk_schema ne $dbname;
 
-  # accumulate results (create rows of appropriate structure)
-  my @rows;
-  while (my $row = $fk_sth->fetchrow_hashref) {
-    next if $arg{PK_TABLE} && $arg{PK_TABLE} ne $row->{table};
-    push @rows, [
-      undef,                                  # PKTABLE_CAT
-      undef,                                  # PKTABLE_SCHEM
-      $row->{table},                          # PKTABLE_NAME
-      $row->{to},                             # PKCOLUMN_NAME
-      undef,                                  # FKTABLE_CAT
-      undef,                                  # FKTABLE_SCHEM
-      $arg{FK_TABLE},                         # FKTABLE_NAME
-      $row->{from},                           # FKCOLUMN_NAME
-      $row->{seq} + 1,                        # KEY_SEQ
-      $DBI_code_for_rule{$row->{on_update}},  # UPDATE_RULE
-      $DBI_code_for_rule{$row->{on_delete}},  # DELETE_RULE
-      undef,                                  # FK_NAME
-      undef,                                  # PK_NAME
-      undef,                                  # DEFERRABILITY
-      undef,                                  # UNIQUE_OR_PRIMARY
-     ];
-    # not used: $row->{id}, $row->{match}
-    # CAVEAT : the PRAGMA does not report about DEFERRABILITY clauses
-  }
+        my $quoted_dbname = $dbh->quote_identifier($dbname);
+        my $master_table =
+            ($dbname eq 'main') ? 'sqlite_master' :
+            ($dbname eq 'temp') ? 'sqlite_temp_master' :
+            $quoted_dbname.'.sqlite_master';
 
-  # return rows as a 'sponge' statement handle
-  my $sponge_dbh = DBI->connect("DBI:Sponge:", '','')
-    or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
-  my $sponge_sth = $sponge_dbh->prepare( "foreign_key_info $arg{FK_TABLE}", {
-    NAME          => \@FOREIGN_KEY_INFO_ODBC,
-    rows          => \@rows,
-    NUM_OF_FIELDS => scalar(@FOREIGN_KEY_INFO_ODBC),
-  }) or return $dbh->DBI::set_err(
-    $sponge_dbh->err,
-    $sponge_dbh->errstr,
-   );
-  return $sponge_sth;
-};
+        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table");
+        for my $table (@$tables) {
+            my $tbname = $table->[0];
+            next if defined $fk_table && $fk_table ne '%' && $fk_table ne $tbname;
 
+            my $quoted_tbname = $dbh->quote_identifier($tbname);
+            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.foreign_key_list($quoted_tbname)") or die $dbh->errstr;
+            $sth->execute;
+            while(my $row = $sth->fetchrow_hashref) {
+                next if defined $pk_table && $pk_table ne '%' && $pk_table ne $row->{table};
+
+                push @fk_info, {
+                    PKTABLE_CAT   => undef,
+                    PKTABLE_SCHEM => undef,
+                    PKTABLE_NAME  => $row->{table},
+                    PKCOLUMN_NAME => $row->{to},
+                    FKTABLE_CAT   => undef,
+                    FKTABLE_SCHEM => $dbname,
+                    FKTABLE_NAME  => $tbname,
+                    FKCOLUMN_NAME => $row->{from},
+                    KEY_SEQ       => $row->{seq} + 1,
+                    UPDATE_RULE   => $DBI_code_for_rule{$row->{on_update}},
+                    DELETE_RULE   => $DBI_code_for_rule{$row->{on_delete}},
+                    FK_NAME       => undef,
+                    PK_NAME       => undef,
+                    DEFERRABILITY => undef,
+                    UNIQUE_OR_PRIMARY => undef,
+                };
+            }
+        }
+    }
+
+    my $sponge_dbh = DBI->connect("DBI:Sponge:", "", "")
+        or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
+    my $sponge_sth = $sponge_dbh->prepare("foreign_key_info", {
+        NAME          => \@FOREIGN_KEY_INFO_ODBC,
+        rows          => [ map { [@{$_}{@FOREIGN_KEY_INFO_ODBC} ] } @fk_info ],
+        NUM_OF_FIELDS => scalar(@FOREIGN_KEY_INFO_ODBC),
+    }) or return $dbh->DBI::set_err(
+        $sponge_dbh->err,
+        $sponge_dbh->errstr,
+    );
+    return $sponge_sth;
+}
 
 sub type_info_all {
     return; # XXX code just copied from DBD::Oracle, not yet thought about
@@ -1263,25 +1266,13 @@ keys of temporary tables).
 
 =head2 foreign_key_info
 
-  $sth = $dbh->foreign_key_info(undef, undef, $optional_pk_table,
-                                undef, undef, $fk_table);
+  $sth = $dbh->foreign_key_info(undef, $pk_schema, $pk_table,
+                                undef, $fk_schema, $fk_table);
 
 Returns information about foreign key constraints, as specified in
 L<DBI/foreign_key_info>, but with some limitations : 
 
 =over
-
-=item *
-
-argument C<$fk_table> is mandatory (this is name of the table that contains
-the foreign key(s))
-
-=item *
-
-all other arguments are unused, except the optional C<$pk_table>
-that may act as an additional filter (the result will only contain
-the foreign keys in C<$fk_table> which correspond to C<$pk_table>'s
-primary key).
 
 =item *
 
