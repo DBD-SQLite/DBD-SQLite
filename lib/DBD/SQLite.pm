@@ -517,13 +517,15 @@ sub foreign_key_info {
                         }
                         if (keys %$cols) {
                             $table_info{$row->{table}} = {
-                                schema  => $db,
+                                schema  => $db->{name},
                                 columns => $cols,
                             };
                             last;
                         }
                     }
                 }
+
+                next if defined $pk_schema && $pk_schema ne '%' && $pk_schema ne $table_info{$row->{table}}{schema};
 
                 push @fk_info, {
                     PKTABLE_CAT   => undef,
@@ -1341,6 +1343,9 @@ Unfortunately, the B<DEFERRABILITY> field is always C<undef>;
 as a matter of fact, deferrability clauses are supported by SQLite,
 but they can't be reported because the C<PRAGMA foreign_key_list>
 tells nothing about them.
+
+B<UNIQUE_OR_PRIMARY>:
+Whether the column is primary or unique.
 
 B<Note>: foreign key support in SQLite must be explicitly turned on through
 a C<PRAGMA> command; see L</"Foreign keys"> earlier in this manual.

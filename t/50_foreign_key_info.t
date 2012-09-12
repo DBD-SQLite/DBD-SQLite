@@ -36,7 +36,9 @@ CREATE TABLE editor (
   editorname  TEXT
 );
 
-CREATE TABLE album (
+ATTACH DATABASE ':memory:' AS remote;
+
+CREATE TABLE remote.album (
   albumartist INTEGER NOT NULL REFERENCES artist(artistid)
                                  ON DELETE RESTRICT
                                  ON UPDATE CASCADE,
@@ -56,7 +58,7 @@ CREATE TABLE song(
 __EOSQL__
 
 
-plan tests => @sql_statements + 18;
+plan tests => @sql_statements + 20;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
@@ -98,6 +100,18 @@ $sth = $dbh->foreign_key_info(undef, undef, 'foobar',
                               undef, undef, 'album');
 $fk_data = $sth->fetchall_hashref('FKCOLUMN_NAME');
 is_deeply([keys %$fk_data], [], "FK album with PK foobar, 0 result");
+
+
+$sth = $dbh->foreign_key_info(undef, undef, undef,
+                              undef, 'remote', undef);
+$fk_data = $sth->fetchall_hashref('FKCOLUMN_NAME');
+is_deeply([sort keys %$fk_data], [qw/albumartist albumeditor/], "FK remote.*, 2 results");
+
+
+$sth = $dbh->foreign_key_info(undef, 'remote', undef,
+                              undef, undef, undef);
+$fk_data = $sth->fetchall_hashref('FKCOLUMN_NAME');
+is_deeply([sort keys %$fk_data], [qw/songalbum songartist/], "FK with PK remote.*, 2 results");
 
 
 $sth = $dbh->foreign_key_info(undef, undef, undef,
