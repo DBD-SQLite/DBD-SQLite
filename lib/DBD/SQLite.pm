@@ -499,7 +499,7 @@ sub foreign_key_info {
             next if defined $fk_table && $fk_table ne '%' && $fk_table ne $tbname;
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
-            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.foreign_key_list($quoted_tbname)") or die $dbh->errstr;
+            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.foreign_key_list($quoted_tbname)");
             $sth->execute;
             while(my $row = $sth->fetchrow_hashref) {
                 next if defined $pk_table && $pk_table ne '%' && $pk_table ne $row->{table};
