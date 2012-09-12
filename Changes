@@ -19,6 +19,8 @@ Changes for Perl extension DBD-SQLite
     - Resolved #79364: variance example of the doc (ISHIGAKI)
     - Resolved #78833: utf8 flag for column names (JAMADAM)
     - Resolved #64177: ping() wipes out the errstr (ISHIGAKI)
+    - Resolved #79576: (patch) bind_param don't work with PADTMP
+      scalars (VOVKASM)
 
 1.37 Thu 12 Jun 2012
     - Updated to SQLite 3.7.12.1 (ISHIGAKI)
