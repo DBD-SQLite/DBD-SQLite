@@ -483,6 +483,7 @@ sub foreign_key_info {
     my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}});
 
     my @fk_info;
+    my %table_info;
     for my $database (@$databases) {
         my $dbname = $database->{name};
         next if defined $fk_schema && $fk_schema ne '%' && $fk_schema ne $dbname;
@@ -504,9 +505,29 @@ sub foreign_key_info {
             while(my $row = $sth->fetchrow_hashref) {
                 next if defined $pk_table && $pk_table ne '%' && $pk_table ne $row->{table};
 
+                unless ($table_info{$row->{table}}) {
+                    my $quoted_tb = $dbh->quote_identifier($row->{table});
+                    for my $db (@$databases) {
+                        my $quoted_db = $dbh->quote_identifier($db->{name});
+                        my $t_sth = $dbh->prepare("PRAGMA $quoted_db.table_info($quoted_tb)");
+                        $t_sth->execute;
+                        my $cols = {};
+                        while(my $r = $t_sth->fetchrow_hashref) {
+                            $cols->{$r->{name}} = $r->{pk};
+                        }
+                        if (keys %$cols) {
+                            $table_info{$row->{table}} = {
+                                schema  => $db,
+                                columns => $cols,
+                            };
+                            last;
+                        }
+                    }
+                }
+
                 push @fk_info, {
                     PKTABLE_CAT   => undef,
-                    PKTABLE_SCHEM => undef,
+                    PKTABLE_SCHEM => $table_info{$row->{table}}{schema},
                     PKTABLE_NAME  => $row->{table},
                     PKCOLUMN_NAME => $row->{to},
                     FKTABLE_CAT   => undef,
@@ -519,7 +540,7 @@ sub foreign_key_info {
                     FK_NAME       => undef,
                     PK_NAME       => undef,
                     DEFERRABILITY => undef,
-                    UNIQUE_OR_PRIMARY => undef,
+                    UNIQUE_OR_PRIMARY => $table_info{$row->{table}}{columns}{$row->{to}} ? 'PRIMARY' : 'UNIQUE',
                 };
             }
         }

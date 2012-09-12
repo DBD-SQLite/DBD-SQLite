@@ -26,8 +26,9 @@ my @sql_statements = split /\n\n/, <<__EOSQL__;
 PRAGMA foreign_keys = ON;
 
 CREATE TABLE artist (
-  artistid    INTEGER PRIMARY KEY AUTOINCREMENT,
-  artistname  TEXT
+  artistid    INTEGER,
+  artistname  TEXT,
+  UNIQUE(artistid)
 );
 
 CREATE TABLE editor (
@@ -55,7 +56,7 @@ CREATE TABLE song(
 __EOSQL__
 
 
-plan tests => @sql_statements + 16;
+plan tests => @sql_statements + 18;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
@@ -74,6 +75,7 @@ for ($fk_data->{albumartist}) {
   is($_->{KEY_SEQ},        1,           "FK albumartist, key seq");
   is($_->{DELETE_RULE}, $R->{RESTRICT}, "FK albumartist, delete rule");
   is($_->{UPDATE_RULE}, $R->{CASCADE},  "FK albumartist, update rule");
+  is($_->{UNIQUE_OR_PRIMARY}, 'UNIQUE', "FK albumartist, unique");
 }
 for ($fk_data->{albumeditor}) {
   is($_->{PKTABLE_NAME},  "editor",   "FK albumeditor, table name");
@@ -82,6 +84,7 @@ for ($fk_data->{albumeditor}) {
   # rules are 'NO ACTION' by default
   is($_->{DELETE_RULE}, $R->{'NO ACTION'}, "FK albumeditor, delete rule");
   is($_->{UPDATE_RULE}, $R->{'NO ACTION'}, "FK albumeditor, update rule");
+  is($_->{UNIQUE_OR_PRIMARY}, 'PRIMARY', "FK albumeditor, primary");
 }
 
 
