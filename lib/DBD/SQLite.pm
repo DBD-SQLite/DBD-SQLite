@@ -377,40 +377,46 @@ END_SQL
 sub primary_key_info {
     my ($dbh, $catalog, $schema, $table, $attr) = @_;
 
-    unless ($schema) {
-        # for backward compat
-        my $table_info = $dbh->table_info($catalog, $schema, $table);
-        while(my $info = $table_info->fetchrow_hashref) {
-            next unless uc $info->{TABLE_TYPE} eq 'TABLE';
-            if ($info->{TABLE_NAME} eq $table) {
-                $schema = $info->{TABLE_SCHEM};
-                last;
-            }
-        }
-    }
-
-    # placeholder doesn't seem to work here
-    my $quoted_table = $dbh->quote($table);
-    my $psth = $dbh->prepare("PRAGMA table_info($quoted_table)");
-    $psth->execute;
+    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}});
 
     my @pk_info;
-    while(my $col = $psth->fetchrow_hashref) {
-        if ($col->{pk}) {  # we now have this!
-            push @pk_info, {
-                TABLE_SCHEM => $schema,
-                TABLE_NAME  => $table,
-                COLUMN_NAME => $col->{name},
-                KEY_SEQ     => scalar @pk_info + 1,
-                PK_NAME     => 'PRIMARY KEY',
-            };
+    for my $database (@$databases) {
+        my $dbname = $database->{name};
+        next if defined $schema && $schema ne '%' && $schema ne $dbname;
+
+        my $quoted_dbname = $dbh->quote_identifier($dbname);
+
+        my $master_table =
+            ($dbname eq 'main') ? 'sqlite_master' :
+            ($dbname eq 'temp') ? 'sqlite_temp_master' :
+            $quoted_dbname.'.sqlite_master';
+
+        my $sth = $dbh->prepare("SELECT name FROM $master_table WHERE type = ?");
+        $sth->execute("table");
+        while(my $row = $sth->fetchrow_hashref) {
+            my $tbname = $row->{name};
+            next if defined $table && $table ne '%' && $table ne $tbname;
+
+            my $quoted_tbname = $dbh->quote_identifier($tbname);
+            my $t_sth = $dbh->prepare("PRAGMA $quoted_dbname.table_info($quoted_tbname)");
+            $t_sth->execute;
+            while(my $col = $t_sth->fetchrow_hashref) {
+                next unless $col->{pk};
+                push @pk_info, {
+                    TABLE_SCHEM => $dbname,
+                    TABLE_NAME  => $tbname,
+                    COLUMN_NAME => $col->{name},
+                    KEY_SEQ     => scalar @pk_info + 1,
+                    PK_NAME     => 'PRIMARY KEY',
+                };
+            }
         }
     }
 
     my $sponge = DBI->connect("DBI:Sponge:", '','')
         or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
     my @names = qw(TABLE_CAT TABLE_SCHEM TABLE_NAME COLUMN_NAME KEY_SEQ PK_NAME);
-    my $sth = $sponge->prepare( "primary_key_info $table", {
+    my $sth = $sponge->prepare( "primary_key_info", {
         rows          => [ map { [ @{$_}{@names} ] } @pk_info ],
         NUM_OF_FIELDS => scalar @names,
         NAME          => \@names,
