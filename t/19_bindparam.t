@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 33;
+use Test::More tests => 39;
 use Test::NoWarnings;
 use DBI ':sql_types';
 
@@ -48,6 +48,13 @@ SCOPE: {
 	ok( $sth->bind_param(1, 5, SQL_INTEGER), 'bind 3' );
 	ok( $sth->bind_param(2, undef), 'bind 4' );
 	ok( $sth->execute, '->execute' );
+
+	# Works with PADTMPs?
+	my @values = (6, "Larry");
+	for (my $i=0; $i<2; $i++) {
+		ok( $sth->bind_param($i+1, "$values[$i]"), 'bind '.($i+5) );
+	}
+	ok( $sth->execute, '->execute' );
 }
 
 # Reconnect
@@ -75,4 +82,7 @@ SCOPE: {
 	ok( $sth->fetch, '->fetch' );
 	is( $id,   5,   'id = 5'   );
 	is( $name, undef, 'name = undef' );
+	ok( $sth->fetch, '->fetch' );
+	is( $id,   6,   'id = 6'   );
+	is( $name, 'Larry', 'name = Larry' );
 }
