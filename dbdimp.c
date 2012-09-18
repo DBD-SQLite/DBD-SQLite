@@ -1242,18 +1242,18 @@ sqlite_compile_options()
 
 #define _stores_status(op, key) \
     if (sqlite3_status(op, &cur, &hi, reset) == SQLITE_OK) { \
-        anon = (HV*)sv_2mortal((SV*)newHV()); \
+        anon = newHV(); \
         hv_stores(anon, "current", newSViv(cur)); \
         hv_stores(anon, "highwater", newSViv(hi)); \
-        hv_stores(hv, key, newRV_inc((SV*)anon)); \
+        hv_stores(hv, key, newRV_noinc((SV*)anon)); \
     }
 
 #define _stores_dbstatus(op, key) \
     if (sqlite3_db_status(imp_dbh->db, op, &cur, &hi, reset) == SQLITE_OK) { \
-        anon = (HV*)sv_2mortal((SV*)newHV()); \
+        anon = newHV(); \
         hv_stores(anon, "current", newSViv(cur)); \
         hv_stores(anon, "highwater", newSViv(hi)); \
-        hv_stores(hv, key, newRV_inc((SV*)anon)); \
+        hv_stores(hv, key, newRV_noinc((SV*)anon)); \
     }
 
 #define _stores_ststatus(op, key) \
@@ -1264,7 +1264,7 @@ _sqlite_status(int reset)
 {
     dTHX;
     int cur, hi;
-    HV *hv = (HV*)sv_2mortal((SV*)newHV());
+    HV *hv = newHV();
     HV *anon;
 
     _stores_status(SQLITE_STATUS_MEMORY_USED, "memory_used");
@@ -1289,7 +1289,7 @@ _sqlite_db_status(pTHX_ SV* dbh, int reset)
 {
     D_imp_dbh(dbh);
     int cur, hi;
-    HV *hv = (HV*)sv_2mortal((SV*)newHV());
+    HV *hv = newHV();
     HV *anon;
 
     _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_USED, "lookaside_used");
@@ -1310,7 +1310,7 @@ HV *
 _sqlite_st_status(pTHX_ SV* sth, int reset)
 {
     D_imp_sth(sth);
-    HV *hv = (HV*)sv_2mortal((SV*)newHV());
+    HV *hv = newHV();
 
     _stores_ststatus(SQLITE_STMTSTATUS_FULLSCAN_STEP, "fullscan_step");
     _stores_ststatus(SQLITE_STMTSTATUS_SORT, "sort");
@@ -1513,7 +1513,7 @@ sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *co
     const char *datatype, *collseq;
     int notnull, primary, autoinc;
     int rc;
-    HV *metadata = (HV*)sv_2mortal((SV*)newHV());
+    HV *metadata = newHV();
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(dbh, -2, "attempt to fetch table column metadata on inactive database handle");
