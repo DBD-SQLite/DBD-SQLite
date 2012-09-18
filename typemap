@@ -1,0 +1,21 @@
+HV * T_HVREF_REFCOUNT_FIXED
+
+INPUT
+T_HVREF_REFCOUNT_FIXED
+        STMT_START {
+                SV* const xsub_tmp_sv = $arg;
+                SvGETMAGIC(xsub_tmp_sv);
+                if (SvROK(xsub_tmp_sv) && SvTYPE(SvRV(xsub_tmp_sv)) == SVt_PVHV){
+                    $var = (HV*)SvRV(xsub_tmp_sv);
+                }
+                else{
+                    Perl_croak(aTHX_ \"%s: %s is not a HASH reference\",
+                                ${$ALIAS?\q[GvNAME(CvGV(cv))]:\qq[\"$pname\"]},
+                                \"$var\");
+                }
+        } STMT_END
+
+OUTPUT
+T_HVREF_REFCOUNT_FIXED
+        $arg = newRV_noinc((SV*)$var);
+
