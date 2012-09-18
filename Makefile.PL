@@ -341,7 +341,6 @@ WriteMakefile(
 		? '$(O_FILES)'
 		: 'SQLite.o dbdimp.o'
 	),
-	OPTIMIZE         => '-O2',
 	clean            => {
 		FILES => 'SQLite.xsi config.h tv.log *.old',
 	},
