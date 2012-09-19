@@ -12,6 +12,8 @@ Changes for Perl extension DBD-SQLite
     - Added support for foreign_key_info (DAMI/ISHIGAKI)
     - Added several methods to retrieve internal information such as
       table_column_metadata/db_filename/*_status (ISHIGAKI/VOVKASM)
+    - Added sqlite_load_extension so that extensions can add
+      functions internally (ISHIGAKI)
     - Resolved #77617: atoll () sometimes just is atol () (GAAS)
     - Resolved #48084: improper "require utf8" in tests (ISHIGAKI)
     - Resolved #77724: bug in primary_key_info with regard to column
