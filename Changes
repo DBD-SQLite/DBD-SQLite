@@ -20,6 +20,7 @@ Changes for Perl extension DBD-SQLite
       names containing whitespace (ISHIGAKI)
     - Resolved #79364: variance example of the doc (ISHIGAKI)
     - Resolved #78833: utf8 flag for column names (JAMADAM)
+      (This hopefully resolved #72418 as well)
     - Resolved #64177: ping() wipes out the errstr (ISHIGAKI)
     - Resolved #79576: (patch) bind_param don't work with PADTMP
       scalars (VOVKASM)
