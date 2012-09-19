@@ -360,7 +360,7 @@ sub postamble {
 	my $postamble = eval {
 		DBI::DBD::dbd_postamble(@_)
 	};
-    if (-e 'sqlite3.c' && -e 'sqlite3.h') {
+    if (-e 'sqlite3.c' && -e 'sqlite3.h' && -e 'sqlite3ext.h') {
 		my $S = $^O eq 'MSWin32' ? '\\' : '/';  # only Win32 (not cygwin)
 		my $share = "\$(INST_LIB)${S}auto${S}share${S}dist${S}\$(DISTNAME)";
 		my $perm_dir = $ExtUtils::MakeMaker::VERSION >= 6.52 ? '$(PERM_DIR)' : '755';
@@ -370,6 +370,7 @@ config ::
 \t\$(NOECHO) \$(CHMOD) $perm_dir "$share"
 \t\$(NOECHO) \$(CP) "sqlite3.c" "$share${S}sqlite3.c"
 \t\$(NOECHO) \$(CP) "sqlite3.h" "$share${S}sqlite3.h"
+\t\$(NOECHO) \$(CP) "sqlite3ext.h" "$share${S}sqlite3ext.h"
 SHARE
 	}
 	return $postamble;
