@@ -1504,6 +1504,28 @@ sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff)
     return TRUE;
 }
 
+int
+sqlite_db_load_extension(pTHX_ SV *dbh, const char *file, const char *proc)
+{
+    D_imp_dbh(dbh);
+    int rc;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to load extension on inactive database handle");
+        return FALSE;
+    }
+
+    croak_if_db_is_null();
+
+    /* COMPAT: sqlite3_load_extension is only available for 3003006 or newer */
+    rc = sqlite3_load_extension( imp_dbh->db, file, proc, NULL );
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, form("sqlite_load_extension failed with error %s", sqlite3_errmsg(imp_dbh->db)));
+        return FALSE;
+    }
+    return TRUE;
+}
+
 #endif
 
 HV*

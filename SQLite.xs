@@ -55,6 +55,20 @@ enable_load_extension(dbh, onoff)
     OUTPUT:
         RETVAL
 
+static int
+load_extension(dbh, file, proc = 0)
+    SV *dbh
+    const char *file
+    const char *proc
+    ALIAS:
+        DBD::SQLite::db::sqlite_load_extension = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_load_extension(aTHX_ dbh, file, proc);
+    }
+    OUTPUT:
+        RETVAL
+
 #endif
 
 static int

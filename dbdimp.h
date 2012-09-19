@@ -89,6 +89,7 @@ int sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *fun
 
 #ifndef SQLITE_OMIT_LOAD_EXTENSION
 int sqlite_db_enable_load_extension(pTHX_ SV *dbh, int onoff);
+int sqlite_db_load_extension(pTHX_ SV *dbh, const char *file, const char *proc);
 #endif
 
 int sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr );

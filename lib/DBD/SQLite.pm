@@ -48,6 +48,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_backup_from_file');
         DBD::SQLite::db->install_method('sqlite_backup_to_file');
         DBD::SQLite::db->install_method('sqlite_enable_load_extension');
+        DBD::SQLite::db->install_method('sqlite_load_extension');
         DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
         DBD::SQLite::db->install_method('sqlite_trace', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_profile', { O => 0x0004 });
@@ -1744,6 +1745,10 @@ sqlite3 extensions. After the call, you can load extensions like this:
   $dbh->sqlite_enable_load_extension(1);
   $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
   or die "Cannot prepare: " . $dbh->errstr();
+
+=head2 $dbh->sqlite_load_extension( $file, $proc )
+
+Loading an extension by a select statement (with the "load_extension" sqlite3 function like above) has some limitations. If you need to, say, create other functions from an extension, use this method. $file (a path to the extension) is mandatory, and $proc (an entry point name) is optional. You need to call C<sqlite_enable_load_extension> before calling C<sqlite_load_extension>.
 
 =head2 $dbh->sqlite_trace( $code_ref )
 
