@@ -293,6 +293,12 @@ WriteMakefile(
 			'Win32' => '0.30',
 		) : () ),
 	},
+	# XXX: VOVKASM suggested to remove this OPTIMIZE line to use
+	# the same optimization as perl itself. However, it turned out
+	# this change broke a test under some environment, and thus, may
+	# break other applications eventually. I'm not sure if this is
+	# worth the trouble.
+	OPTIMIZE => '-O2',
 	OPTIONAL( '6.48',
 		MIN_PERL_VERSION => '5.006',
 	),

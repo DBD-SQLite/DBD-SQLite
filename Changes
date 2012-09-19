@@ -23,7 +23,6 @@ Changes for Perl extension DBD-SQLite
       scalars (VOVKASM)
     - Refactored primary_key_info to support attached databases
       (ISHIGAKI)
-    - Use the same optimization as perl (VOVKASM)
 
 1.37 Thu 12 Jun 2012
     - Updated to SQLite 3.7.12.1 (ISHIGAKI)
