@@ -69,7 +69,7 @@ my $dbh = connect_ok( RaiseError => 1 );
 # create R* Tree table
 $dbh->do(<<"") or die DBI::errstr;
   CREATE VIRTUAL TABLE try_rtree
-        USING rtree(id, minX, maxX, minY, maxY);
+        USING rtree_i32(id, minX, maxX, minY, maxY);
 
 # populate it
 my $insert_sth = $dbh->prepare(<<"") or die DBI::errstr;
