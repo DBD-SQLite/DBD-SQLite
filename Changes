@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.38_01 to be released
+1.38_01 Mon 24 Sep 2012
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #56444: immediate transaction should be on by
       default, and the doc be updated.
