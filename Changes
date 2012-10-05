@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.38_02 to be released
+    - Updated to SQLite 3.17.14.1 (ISHIGAKI)
+
 1.38_01 Mon 24 Sep 2012
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #56444: immediate transaction should be on by
