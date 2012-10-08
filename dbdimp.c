@@ -290,9 +290,6 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
-    sqlite_exec(dbh, "PRAGMA empty_result_callbacks = ON");
-    sqlite_exec(dbh, "PRAGMA show_datatypes = ON");
-
 #if 0
     /*
     ** As of 1.26_06 foreign keys support was enabled by default,
