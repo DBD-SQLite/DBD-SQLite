@@ -2,6 +2,7 @@ Changes for Perl extension DBD-SQLite
 
 1.38_02 to be released
     - Updated to SQLite 3.17.14.1 (ISHIGAKI)
+    - Removed two obsolete pragma calls at login time (ISHIGAKI)
 
 1.38_01 Mon 24 Sep 2012
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
