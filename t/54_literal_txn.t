@@ -7,7 +7,8 @@ BEGIN {
 }
 
 use t::lib::Test qw/connect_ok/;
-use Test::More;
+use Test::More tests => 5;
+use Test::NoWarnings;
 
 my $dbh = connect_ok();
 
@@ -25,5 +26,3 @@ $dbh->do("\nCOMMIT");
 
 is $dbh->{AutoCommit}, 1,
 	'AutoCommit=1 after "\nCOMMIT"';
-
-done_testing;
