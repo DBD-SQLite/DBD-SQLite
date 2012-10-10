@@ -742,7 +742,16 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     if (sqlite3_get_autocommit(imp_dbh->db)) {
         /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
         const char *sql = sqlite3_sql(imp_sth->stmt);
-        while ( _isspace(sql[0]) ) sql++;
+        while ( _isspace(sql[0]) || (sql[0] == '-' && sql[1] == '-')) {
+          if ( _isspace(sql[0]) ) {
+            while ( _isspace(sql[0]) ) sql++;
+            continue;
+          }
+          else if (sql[0] == '-') {
+            while ( sql[0] != 0 && sql[0] != '\n' ) sql++;
+            continue;
+          }
+        }
         if ((sql[0] == 'B' || sql[0] == 'b') &&
             (sql[1] == 'E' || sql[1] == 'e') &&
             (sql[2] == 'G' || sql[2] == 'g') &&
@@ -768,7 +777,16 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
         /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
         const char *sql = sqlite3_sql(imp_sth->stmt);
-        while ( _isspace(sql[0]) ) sql++;
+        while ( _isspace(sql[0]) || (sql[0] == '-' && sql[1] == '-')) {
+          if ( _isspace(sql[0]) ) {
+            while ( _isspace(sql[0]) ) sql++;
+            continue;
+          }
+          else if (sql[0] == '-') {
+            while ( sql[0] != 0 && sql[0] != '\n' ) sql++;
+            continue;
+          }
+        }
         if (((sql[0] == 'C' || sql[0] == 'c') &&
              (sql[1] == 'O' || sql[1] == 'o') &&
              (sql[2] == 'M' || sql[2] == 'm') &&
@@ -791,6 +809,10 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             bool is_savepoint = FALSE;
             for(i = 8; i < l; i++) {
                 if (_isspace(sql[i])) continue;
+                if (sql[i] == '-' && sql[i+1] == '-') {
+                    while (sql[i] != 0 && sql[i] != '\n') i++;
+                    continue;
+                }
                 if (sql[i] == 'T' || sql[i] == 't') {
                     if ((sql[i+0]  == 'T' || sql[i+0]  == 't') &&
                         (sql[i+1]  == 'R' || sql[i+1]  == 'r') &&

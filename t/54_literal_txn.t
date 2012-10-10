@@ -14,7 +14,7 @@ my $dbh = connect_ok();
 is $dbh->{AutoCommit}, 1,
 	'AutoCommit=1 at connection';
 
-$dbh->do('BEGIN TRANSACTION');
+$dbh->do("\n-- my DDL file\n-- some comment\nBEGIN TRANSACTION");
 
 is $dbh->{AutoCommit}, '',
 	"AutoCommit='' after 'BEGIN TRANSACTION'";
