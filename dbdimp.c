@@ -792,7 +792,10 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
              (sql[2] == 'M' || sql[2] == 'm') &&
              (sql[3] == 'M' || sql[3] == 'm') &&
              (sql[4] == 'I' || sql[4] == 'i') &&
-             (sql[5] == 'T' || sql[5] == 't'))) {
+             (sql[5] == 'T' || sql[5] == 't')) ||
+            ((sql[0] == 'E' || sql[0] == 'e') &&
+             (sql[1] == 'N' || sql[1] == 'n') &&
+             (sql[2] == 'D' || sql[2] == 'd'))) {
             DBIc_off(imp_dbh, DBIcf_BegunWork);
             DBIc_on(imp_dbh,  DBIcf_AutoCommit);
         }
