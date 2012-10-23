@@ -244,6 +244,9 @@ if ($^O eq 'darwin') {
 	}
 	push @CC_DEFINE, '-DSQLITE_ENABLE_LOCKING_STYLE=0';
 }
+if ($^O eq 'aix') {
+	push @CC_DEFINE, '-DSQLITE_DISABLE_DIRSYNC';
+}
 
 my @CC_OPTIONS = (
 	INC          => join( ' ', @CC_INC    ),
