@@ -401,12 +401,41 @@ sub primary_key_info {
             my $quoted_tbname = $dbh->quote_identifier($tbname);
             my $t_sth = $dbh->prepare("PRAGMA $quoted_dbname.table_info($quoted_tbname)");
             $t_sth->execute;
+            my @pk;
             while(my $col = $t_sth->fetchrow_hashref) {
                 next unless $col->{pk};
+                push @pk, $col->{name};
+            }
+
+            # If there're multiple primary key columns, we need to
+            # find their order from one of the auto-generated unique
+            # indices (note that single column integer primary key
+            # doesn't create an index).
+            if (@pk > 1) {
+                my $indices = $dbh->selectall_arrayref("PRAGMA $quoted_dbname.index_list($quoted_tbname)", {Slice => +{}});
+                for my $index (@$indices) {
+                    next unless $index->{unique};
+                    my $quoted_idxname = $dbh->quote_identifier($index->{name});
+                    my $cols = $dbh->selectall_arrayref("PRAGMA $quoted_dbname.index_info($quoted_idxname)", {Slice => +{}});
+                    my %seen;
+                    if (@pk == grep { !$seen{$_}++ } (@pk, map { $_->{name} } @$cols)) {
+                        for (@$cols) {
+                            push @pk_info, {
+                                TABLE_SCHEM => $dbname,
+                                TABLE_NAME  => $tbname,
+                                COLUMN_NAME => $_->{name},
+                                KEY_SEQ     => scalar @pk_info + 1,
+                                PK_NAME     => 'PRIMARY KEY',
+                            };
+                        }
+                    }
+                }
+            }
+            else {
                 push @pk_info, {
                     TABLE_SCHEM => $dbname,
                     TABLE_NAME  => $tbname,
-                    COLUMN_NAME => $col->{name},
+                    COLUMN_NAME => $pk[0],
                     KEY_SEQ     => scalar @pk_info + 1,
                     PK_NAME     => 'PRIMARY KEY',
                 };
