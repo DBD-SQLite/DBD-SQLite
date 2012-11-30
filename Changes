@@ -6,7 +6,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #80344: Set SQLITE_DISABLE_DIRSYNC on AIX (suggested
       by Steve Barnsley) (ISHIGAKI)
     - Resolved #81536: primary_key_info returns the wrong KEY_SEQ
-      (ISHIGAKI)
+      (VLYON)
 
 1.38_01 Mon 24 Sep 2012
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
