@@ -392,7 +392,7 @@ sub primary_key_info {
             ($dbname eq 'temp') ? 'sqlite_temp_master' :
             $quoted_dbname.'.sqlite_master';
 
-        my $sth = $dbh->prepare("SELECT name FROM $master_table WHERE type = ?");
+        my $sth = $dbh->prepare("SELECT name, sql FROM $master_table WHERE type = ?");
         $sth->execute("table");
         while(my $row = $sth->fetchrow_hashref) {
             my $tbname = $row->{name};
@@ -403,40 +403,60 @@ sub primary_key_info {
             $t_sth->execute;
             my @pk;
             while(my $col = $t_sth->fetchrow_hashref) {
-                next unless $col->{pk};
-                push @pk, $col->{name};
+                push @pk, $col->{name} if $col->{pk};
             }
 
             # If there're multiple primary key columns, we need to
             # find their order from one of the auto-generated unique
             # indices (note that single column integer primary key
             # doesn't create an index).
-            if (@pk > 1) {
-                my $indices = $dbh->selectall_arrayref("PRAGMA $quoted_dbname.index_list($quoted_tbname)", {Slice => +{}});
-                for my $index (@$indices) {
-                    next unless $index->{unique};
-                    my $quoted_idxname = $dbh->quote_identifier($index->{name});
-                    my $cols = $dbh->selectall_arrayref("PRAGMA $quoted_dbname.index_info($quoted_idxname)", {Slice => +{}});
-                    my %seen;
-                    if (@pk == grep { !$seen{$_}++ } (@pk, map { $_->{name} } @$cols)) {
-                        for (@$cols) {
-                            push @pk_info, {
-                                TABLE_SCHEM => $dbname,
-                                TABLE_NAME  => $tbname,
-                                COLUMN_NAME => $_->{name},
-                                KEY_SEQ     => scalar @pk_info + 1,
-                                PK_NAME     => 'PRIMARY KEY',
-                            };
-                        }
+            if (@pk > 1 and $row->{sql} =~ /\bPRIMARY\s+KEY\s*\(\s*
+                (
+                    (?:
+                        (
+                            [a-z_][a-z0-9_]*
+                          | (["'`])(?:\3\3|(?!\3).)+?\3(?!\3)
+                          | \[[^\]]+\]
+                        )
+                        \s*,\s*
+                    )+
+                    (
+                        [a-z_][a-z0-9_]*
+                      | (["'`])(?:\5\5|(?!\5).)+?\5(?!\5)
+                      | \[[^\]]+\]
+                    )
+                )
+                    \s*\)/six) {
+                my $pk_sql = $1;
+                @pk = ();
+                while($pk_sql =~ /
+                    (
+                        [a-z_][a-z0-9_]*
+                      | (["'`])(?:\2\2|(?!\2).)+?\2(?!\2)
+                      | \[([^\]]+)\]
+                    )
+                    (?:\s*,\s*|$)
+                        /sixg) {
+                    my($col, $quote, $brack) = ($1, $2, $3);
+                    if ( defined $quote ) {
+                        # Dequote "'`
+                        $col = substr $col, 1, -1;
+                        $col =~ s/$quote$quote/$quote/g;
+                    } elsif ( defined $brack ) {
+                        # Dequote []
+                        $col = $brack;
                     }
+                    push @pk, $col;
                 }
             }
-            else {
+
+            my $key_seq = 0;
+            foreach my $pk_field (@pk) {
                 push @pk_info, {
                     TABLE_SCHEM => $dbname,
                     TABLE_NAME  => $tbname,
-                    COLUMN_NAME => $pk[0],
-                    KEY_SEQ     => scalar @pk_info + 1,
+                    COLUMN_NAME => $pk_field,
+                    KEY_SEQ     => ++$key_seq,
                     PK_NAME     => 'PRIMARY KEY',
                 };
             }
