@@ -2083,20 +2083,25 @@ need to call the L</create_collation> method directly.
 
 =head1 FULLTEXT SEARCH
 
-The FTS3 extension module within SQLite allows users to create special
-tables with a built-in full-text index (hereafter "FTS3 tables"). The
+The FTS extension module within SQLite allows users to create special
+tables with a built-in full-text index (hereafter "FTS tables"). The
 full-text index allows the user to efficiently query the database for
 all rows that contain one or more instances of a specified word (hereafter
 a "token"), even if the table contains many large documents.
 
+=head2 Short introduction to FTS
 
-=head2 Short introduction to FTS3
+The first full-text search modules for SQLite were called C<FTS1> and C<FTS2>
+and are now obsolete. The latest recommended module is C<FTS4>; however
+the former module C<FTS3> is still supporter. 
+Detailed documentation for both C<FTS4> and C<FTS3> can be found
+at L<http://www.sqlite.org/fts3.html>, including explanations about the
+differences between these two versions.
 
-The detailed documentation for FTS3 can be found
-at L<http://www.sqlite.org/fts3.html>. Here is a very short example :
+Here is a very short example of using FTS :
 
   $dbh->do(<<"") or die DBI::errstr;
-  CREATE VIRTUAL TABLE fts_example USING fts3(content)
+  CREATE VIRTUAL TABLE fts_example USING fts4(content)
   
   my $sth = $dbh->prepare("INSERT INTO fts_example(content) VALUES (?))");
   $sth->execute($_) foreach @docs_to_insert;
@@ -2111,14 +2116,14 @@ The key points in this example are :
 
 =item *
 
-The syntax for creating FTS3 tables is 
+The syntax for creating FTS tables is 
 
-  CREATE VIRTUAL TABLE <table_name> USING fts3(<columns>)
+  CREATE VIRTUAL TABLE <table_name> USING fts4(<columns>)
 
 where C<< <columns> >> is a list of column names. Columns may be
 typed, but the type information is ignored. If no columns
 are specified, the default is a single column named C<content>.
-In addition, FTS3 tables have an implicit column called C<docid>
+In addition, FTS tables have an implicit column called C<docid>
 (or also C<rowid>) for numbering the stored documents.
 
 =item *
@@ -2131,7 +2136,7 @@ use the same syntax as for regular SQLite tables.
 Full-text searches are specified with the C<MATCH> operator, and an
 operand which may be a single word, a word prefix ending with '*', a
 list of words, a "phrase query" in double quotes, or a boolean combination
-of the above. 
+of the above.
 
 =item *
 
@@ -2141,7 +2146,7 @@ document text, where the words pertaining to the query are highlighted.
 =back
 
 There are many more details to building and searching
-FTS3 tables, so we strongly invite you to read
+FTS tables, so we strongly invite you to read
 the full documentation at at L<http://www.sqlite.org/fts3.html>.
 
 B<Incompatible change> : 
@@ -2162,14 +2167,16 @@ in a separate distribution.
 =head2 Tokenizers
 
 The behaviour of full-text indexes strongly depends on how
-documents are split into I<tokens>; therefore FTS3 table
+documents are split into I<tokens>; therefore FTS table
 declarations can explicitly specify how to perform
 tokenization: 
 
-  CREATE ... USING fts3(<columns>, tokenize=<tokenizer>)
+  CREATE ... USING fts4(<columns>, tokenize=<tokenizer>)
 
 where C<< <tokenizer> >> is a sequence of space-separated
-words that triggers a specific tokenizer, as explained below.
+words that triggers a specific tokenizer. Tokenizers can
+be SQLite builtins, written in C code, or Perl tokenizers.
+Both are as explained below.
 
 =head3 SQLite builtin tokenizers
 
@@ -2207,7 +2214,7 @@ ICU locale identifier as argument (such as "tr_TR" for
 Turkish as used in Turkey, or "en_AU" for English as used in
 Australia). For example:
 
-  CREATE VIRTUAL TABLE thai_text USING fts3(text, tokenize=icu th_TH)
+  CREATE VIRTUAL TABLE thai_text USING fts4(text, tokenize=icu th_TH)
 
 The ICU tokenizer implementation is very simple. It splits the input
 text according to the ICU rules for finding word boundaries and
@@ -2224,14 +2231,14 @@ In addition to the builtin SQLite tokenizers, C<DBD::SQLite>
 implements a I<perl> tokenizer, that can hook to any tokenizing
 algorithm written in Perl. This is specified as follows :
 
-  CREATE ... USING fts3(<columns>, tokenize=perl '<perl_function>')
+  CREATE ... USING fts4(<columns>, tokenize=perl '<perl_function>')
 
 where C<< <perl_function> >> is a fully qualified Perl function name
 (i.e. prefixed by the name of the package in which that function is
 declared). So for example if the function is C<my_func> in the main 
 program, write
 
-  CREATE ... USING fts3(<columns>, tokenize=perl 'main::my_func')
+  CREATE ... USING fts4(<columns>, tokenize=perl 'main::my_func')
 
 That function should return a code reference that takes a string as
 single argument, and returns an iterator (another function), which
@@ -2264,7 +2271,7 @@ because :
 
 =item *
 
-the external, named sub is called whenever accessing a FTS3 table
+the external, named sub is called whenever accessing a FTS table
 with that tokenizer
 
 =item *
@@ -2281,32 +2288,33 @@ all terms within that string.
 =back
 
 Instead of writing tokenizers by hand, you can grab one of those
-already implemented in the L<Search::Tokenizer> module :
+already implemented in the L<Search::Tokenizer> module. For example,
+if you want ignore differences between accented characters, you can
+write :
 
   use Search::Tokenizer;
   $dbh->do(<<"") or die DBI::errstr;
-  CREATE ... USING fts3(<columns>, 
+  CREATE ... USING fts4(<columns>, 
                         tokenize=perl 'Search::Tokenizer::unaccent')
 
-or you can use L<Search::Tokenizer/new> to build
+Alternatively, you can use L<Search::Tokenizer/new> to build
 your own tokenizer.
 
 
 =head2 Incomplete handling of utf8 characters
 
-The current FTS3 implementation in SQLite is far from complete with
+The current FTS implementation in SQLite is far from complete with
 respect to utf8 handling : in particular, variable-length characters
 are not treated correctly by the builtin functions
 C<offsets()> and C<snippet()>.
 
-=head2 Database space for FTS3
+=head2 Database space for FTS
 
-FTS3 stores a complete copy of the indexed documents, together with
+By default, FTS stores a complete copy of the indexed documents, together with
 the fulltext index. On a large collection of documents, this can
-consume quite a lot of disk space. If copies of documents are also
-available as external resources (for example files on the filesystem),
-that space can sometimes be spared --- see the tip in the 
-L<Cookbook|DBD::SQLite::Cookbook/"Sparing database disk space">.
+consume quite a lot of disk space. However, FTS has some options
+for compressing the documents, or even for not storing them at all
+-- see L<http://www.sqlite.org/fts3.html#fts4_options>.
 
 =head1 R* TREE SUPPORT
 

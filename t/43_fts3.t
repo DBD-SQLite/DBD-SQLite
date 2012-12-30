@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-
 use strict;
 BEGIN {
 	$|  = 1;
@@ -37,7 +36,9 @@ BEGIN {
 }
 use Test::NoWarnings;
 
-plan tests => 2 * (1 + @tests)  + 1;
+plan tests => 4 * @tests  # each test with unicode y/n and with fts3/fts4
+            + 2           # connect_ok with unicode y/n
+            + 1;          # Test::NoWarnings
 
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang
@@ -78,36 +79,37 @@ for my $use_unicode (0, 1) {
   # connect
   my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
 
-  # create fts3 table
-  $dbh->do(<<"") or die DBI::errstr;
-    CREATE VIRTUAL TABLE try_fts3 
-          USING fts3(content, tokenize=perl 'main::locale_tokenizer')
+  for my $fts (qw/fts3 fts4/) {
+    # create fts table
+    $dbh->do(<<"") or die DBI::errstr;
+      CREATE VIRTUAL TABLE try_$fts
+            USING $fts(content, tokenize=perl 'main::locale_tokenizer')
 
-  # populate it
-  my $insert_sth = $dbh->prepare(<<"") or die DBI::errstr;
-    INSERT INTO try_fts3(content) VALUES(?)
+    # populate it
+    my $insert_sth = $dbh->prepare(<<"") or die DBI::errstr;
+      INSERT INTO try_$fts(content) VALUES(?)
 
-  my @doc_ids;
-  for (my $i = 0; $i < @texts; $i++) {
-    $insert_sth->execute($texts[$i]);
-    $doc_ids[$i] = $dbh->last_insert_id("", "", "", "");
+    my @doc_ids;
+    for (my $i = 0; $i < @texts; $i++) {
+      $insert_sth->execute($texts[$i]);
+      $doc_ids[$i] = $dbh->last_insert_id("", "", "", "");
+    }
+
+    # queries
+  SKIP: {
+      skip "These tests require SQLite compiled with "
+         . "ENABLE_FTS3_PARENTHESIS option", scalar @tests
+        unless DBD::SQLite->can('compile_options') &&
+        grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options();
+      my $sql = "SELECT docid FROM try_$fts WHERE content MATCH ?";
+      for my $t (@tests) {
+        my ($query, @expected) = @$t;
+        @expected = map {$doc_ids[$_]} @expected;
+        my $results = $dbh->selectcol_arrayref($sql, undef, $query);
+        is_deeply($results, \@expected, "$query ($fts, unicode=$use_unicode)");
+      }
+    }
   }
-
-  # queries
-SKIP: {
-  skip "These tests require SQLite compiled with ENABLE_FTS3_PARENTHESIS option", scalar @tests
-    unless DBD::SQLite->can('compile_options') &&
-    grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options();
-  my $sql = "SELECT docid FROM try_fts3 WHERE content MATCH ?";
-  for my $t (@tests) {
-    my ($query, @expected) = @$t;
-    @expected = map {$doc_ids[$_]} @expected;
-    my $results = $dbh->selectcol_arrayref($sql, undef, $query);
-    is_deeply($results, \@expected, "$query (unicode is $use_unicode)");
-  }
-
-}
-
 }
 
 
