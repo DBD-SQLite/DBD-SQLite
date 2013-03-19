@@ -1729,7 +1729,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
     aggrInfo *aggr, myAggr;
     int count = 0;
 
-    aggr = sqlite3_aggregate_context(context, sizeof (aggrInfo));
+    aggr = sqlite3_aggregate_context(context, 0);
 
     ENTER;
     SAVETMPS;
