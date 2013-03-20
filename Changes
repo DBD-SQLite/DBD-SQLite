@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.38_02 to be released
-    - Updated to SQLite 3.17.15.2 (ISHIGAKI)
+    - Updated to SQLite 3.7.16 (ISHIGAKI)
     - Removed two obsolete pragma calls at login time (ISHIGAKI)
     - Resolved #80344: Set SQLITE_DISABLE_DIRSYNC on AIX (suggested
       by Steve Barnsley) (ISHIGAKI)
@@ -18,7 +18,7 @@ Changes for Perl extension DBD-SQLite
       been the default), set sqlite_use_immediate_transaction
       to false explicitly. (ISHIGAKI)
 
-    - Updated to SQLite 3.17.14 (ISHIGAKI)
+    - Updated to SQLite 3.7.14 (ISHIGAKI)
     - Added support for foreign_key_info (DAMI/ISHIGAKI)
     - Added several methods to retrieve internal information such as
       table_column_metadata/db_filename/*_status (ISHIGAKI/VOVKASM)
