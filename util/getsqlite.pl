@@ -28,9 +28,12 @@ my $version_as_num = sprintf( q{%u%02u%02u%02u}, @version_parts );
 my $version_dotty = join '.', ($version_parts[3] ? @version_parts : @version_parts[0..2]);
 my $is_pre_30704_style = ($version_as_num < 3070400);
 my $version_for_url = $is_pre_30704_style ? $version_dotty : $version_as_num;
+my $year = "";
+if ($version_as_num >= 3071600) {
+  $year = "2013/";
+}
 
-
-my $url_to_download = q{http://www.sqlite.org/sqlite-}
+my $url_to_download = qq{http://www.sqlite.org/${year}sqlite-}
     . ($is_pre_30704_style ? q{amalgamation} : q{autoconf})
     . qq{-$version_for_url.tar.gz};
 print("downloading $url_to_download\n");
