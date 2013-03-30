@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.38_02 to be released
-    - Updated to SQLite 3.7.16 (ISHIGAKI)
+    - Updated to SQLite 3.7.16.1 (ISHIGAKI)
     - Removed two obsolete pragma calls at login time (ISHIGAKI)
     - Resolved #80344: Set SQLITE_DISABLE_DIRSYNC on AIX (suggested
       by Steve Barnsley) (ISHIGAKI)
