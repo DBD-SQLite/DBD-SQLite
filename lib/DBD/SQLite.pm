@@ -901,6 +901,36 @@ If the filename C<$dbfile> is an empty string, then a private,
 temporary on-disk database will be created. This private database will
 be automatically deleted as soon as the database connection is closed.
 
+=head2 DBD::SQLite And File::Temp
+
+When you use L<File::Temp> to create a temporary file/directory for
+SQLite databases, you need to remember:
+
+=over 4
+
+=item tempfile may be locked exclusively
+
+You may want to use C<tempfile()> to create a temporary database
+filename for DBD::SQLite, but as noted in L<File::Temp>'s POD,
+this file may have an exclusive lock under some operating systems
+(notably Mac OSX), and result in a "database is locked" error.
+To avoid this, set EXLOCK option to false when you call tempfile().
+
+  ($fh, $filename) = tempfile($template, EXLOCK => 0);
+
+=item CLEANUP may not work unless a database is disconnected
+
+When you set CLEANUP option to true when you create a temporary
+directory with C<tempdir()> or C<newdir()>, you may have to
+disconnect databases explicitly before the temporary directory
+is gone (notably under MS Windows).
+
+=back
+
+If you don't need to keep or share a temporary database,
+use ":memory:" database instead. It's much handier and cleaner
+for ordinary testing.
+
 =head2 Accessing A Database With Other Tools
 
 To access the database from the command line, try using C<dbish>
