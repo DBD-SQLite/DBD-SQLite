@@ -9,6 +9,7 @@ use File::Spec;
 sub WINLIKE () {
 	return 1 if $^O eq 'MSWin32';
 	return 1 if $^O eq 'cygwin';
+	return 1 if $^O eq 'msys';
 	return '';
 }
 
