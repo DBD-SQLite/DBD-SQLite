@@ -10,6 +10,8 @@ Changes for Perl extension DBD-SQLite
     - Resolved #84027: Finalizer() not called in (D. Richard Hipp)
     - Resolved #84372: -Wpointer-sign warnings with utf8_hop
       (RURBAN)
+    - Resolved #84373: Add test for RT #26775 "name)" key with
+      DISTINCT (RURBAN/ISHIGAKI)
     - Added a note on DBD::SQLite and File::Temp (suggested by
       TOKUHIROM) (ISHIGAKI)
 
