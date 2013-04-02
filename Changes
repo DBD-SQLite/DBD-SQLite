@@ -14,6 +14,7 @@ Changes for Perl extension DBD-SQLite
       DISTINCT (RURBAN/ISHIGAKI)
     - Resolved #70815: DBD::SQLite 1.33 build is broken under
       Solaris using Sun C (RURBAN)
+    - Resolved #84380: Fix WINLIKE for mingw/msys (RURBAN)
     - Added a note on DBD::SQLite and File::Temp (suggested by
       TOKUHIROM) (ISHIGAKI)
 
