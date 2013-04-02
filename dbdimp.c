@@ -2667,10 +2667,10 @@ static int perl_tokenizer_Next(
 
             /* recompute start/end offsets in bytes, not in chars */
             hop            = *piStartOffset - c->lastCharOffset;
-            byteOffset     = utf8_hop((U8*)c->lastByteOffset, hop);
+            byteOffset     = (char*)utf8_hop((U8*)c->lastByteOffset, hop);
             hop            = *piEndOffset - *piStartOffset;
             *piStartOffset = byteOffset - c->pInput;
-            byteOffset     = utf8_hop(byteOffset, hop);
+            byteOffset     = (char*)utf8_hop((U8*)byteOffset, hop);
             *piEndOffset   = byteOffset - c->pInput;
 
             /* remember where we are for next round */
