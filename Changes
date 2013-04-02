@@ -12,6 +12,8 @@ Changes for Perl extension DBD-SQLite
       (RURBAN)
     - Resolved #84373: Add test for RT #26775 "name)" key with
       DISTINCT (RURBAN/ISHIGAKI)
+    - Resolved #70815: DBD::SQLite 1.33 build is broken under
+      Solaris using Sun C (RURBAN)
     - Added a note on DBD::SQLite and File::Temp (suggested by
       TOKUHIROM) (ISHIGAKI)
 
