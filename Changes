@@ -8,6 +8,8 @@ Changes for Perl extension DBD-SQLite
     - Resolved #81536: primary_key_info returns the wrong KEY_SEQ
       (VLYON)
     - Resolved #84027: Finalizer() not called in (D. Richard Hipp)
+    - Resolved #84372: -Wpointer-sign warnings with utf8_hop
+      (RURBAN)
     - Added a note on DBD::SQLite and File::Temp (suggested by
       TOKUHIROM) (ISHIGAKI)
 
