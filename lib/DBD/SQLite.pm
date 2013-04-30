@@ -927,6 +927,8 @@ is gone (notably under MS Windows).
 
 =back
 
+(The above is quoted from the pod of File::Temp.)
+
 If you don't need to keep or share a temporary database,
 use ":memory:" database instead. It's much handier and cleaner
 for ordinary testing.
