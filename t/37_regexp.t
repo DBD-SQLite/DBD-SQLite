@@ -49,6 +49,11 @@ foreach my $call_func (@CALL_FUNCS) {
     # connect
     my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
 
+    # The following tests are about ordering, so don't reverse!
+    if ($dbh->selectrow_array('PRAGMA reverse_unordered_selects')) {
+      $dbh->do('PRAGMA reverse_unordered_selects = OFF');
+    }
+
     # populate test data
     my @vals = @words;
     if ($use_unicode) {
