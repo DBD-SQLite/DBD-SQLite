@@ -24,7 +24,7 @@ plan tests => 21;
 	/)};
 	ok !$@, "do succeeds anyway";
 	diag $@ if $@;
-	my $got = $dbh->selectall_arrayref('select id from foo');
+	my $got = $dbh->selectall_arrayref('select id from foo order by id');
 	ok !@$got, "but got nothing as the inserts were discarded";
 }
 
@@ -45,7 +45,7 @@ plan tests => 21;
 	ok !$@, "do succeeds anyway";
 	diag $@ if $@;
 
-	my $got = $dbh->selectall_arrayref('select id from foo');
+	my $got = $dbh->selectall_arrayref('select id from foo order by id');
 	ok $got->[0][0] == 1
 	&& $got->[1][0] == 2, "and got the inserted values";
 }
@@ -74,7 +74,7 @@ plan tests => 21;
 	diag $@ if $@;
 	$@ ? $dbh->rollback : $dbh->commit;
 
-	my $got = $dbh->selectall_arrayref('select id from foo');
+	my $got = $dbh->selectall_arrayref('select id from foo order by id');
 	ok $got->[0][0] == 1
 	&& $got->[1][0] == 2, "and got the inserted values";
 }
@@ -94,7 +94,7 @@ plan tests => 21;
 	ok !$@, "do succeeds anyway";
 	diag $@ if $@;
 
-	my $got = $dbh->selectall_arrayref('select id from foo');
+	my $got = $dbh->selectall_arrayref('select id from foo order by id');
 	ok $got->[0][0] == 1
 	&& $got->[1][0] == 2, "and got the inserted values";
 }
@@ -127,7 +127,7 @@ plan tests => 21;
 	ok !$@, "executed multiple statements successfully";
 	diag $@ if $@;
 
-	my $got = $dbh->selectall_arrayref('select id from foo');
+	my $got = $dbh->selectall_arrayref('select id from foo order by id');
 	ok $got->[0][0] == 1
 	&& $got->[1][0] == 2, "and got the inserted values";
 }

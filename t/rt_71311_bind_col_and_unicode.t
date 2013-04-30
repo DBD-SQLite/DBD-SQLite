@@ -19,7 +19,7 @@ use Test::NoWarnings;
 use DBI qw/:sql_types/;
 
 my $dbh = connect_ok(sqlite_unicode => 1);
-$dbh->do('create table test1 (a integer, b blob)');
+$dbh->do('create table test1 (id integer, b blob)');
 
 my $blob = "\x{82}\x{A0}";
 my $str  = "\x{20ac}";
@@ -52,7 +52,7 @@ my $str  = "\x{20ac}";
 }
 
 {
-	my $sth = $dbh->prepare('select * from test1');
+	my $sth = $dbh->prepare('select * from test1 order by id');
 	$sth->execute;
 
 	my $expected = [undef, 1, 0, 0, 1, 1, 1];
@@ -67,7 +67,7 @@ my $str  = "\x{20ac}";
 }
 
 {
-	my $sth = $dbh->prepare('select * from test1');
+	my $sth = $dbh->prepare('select * from test1 order by id');
 	$sth->bind_col(1, \my $col1);
 	$sth->bind_col(2, \my $col2);
 	$sth->execute;
@@ -84,7 +84,7 @@ my $str  = "\x{20ac}";
 }
 
 {
-	my $sth = $dbh->prepare('select * from test1');
+	my $sth = $dbh->prepare('select * from test1 order by id');
 	$sth->bind_col(1, \my $col1);
 	$sth->bind_col(2, \my $col2, SQL_BLOB);
 	$sth->execute;
@@ -101,7 +101,7 @@ my $str  = "\x{20ac}";
 }
 
 {
-	my $sth = $dbh->prepare('select * from test1');
+	my $sth = $dbh->prepare('select * from test1 order by id');
 	$sth->bind_col(1, \my $col1);
 	$sth->bind_col(2, \my $col2, {TYPE => SQL_BLOB});
 	$sth->execute;
