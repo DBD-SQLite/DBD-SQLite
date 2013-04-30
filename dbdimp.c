@@ -306,6 +306,14 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     sqlite_exec(dbh, "PRAGMA foreign_keys = ON");
 #endif
 
+#if 1
+    /*
+    ** Enable this to see if you (wrongly) expect an implicit order
+    ** of return values from a SELECT statement without ORDER BY.
+    */
+    sqlite_exec(dbh, "PRAGMA reverse_unordered_selects = ON");
+#endif
+
     DBIc_ACTIVE_on(imp_dbh);
 
     return TRUE;
