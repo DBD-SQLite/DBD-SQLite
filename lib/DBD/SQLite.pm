@@ -1094,9 +1094,8 @@ See L<http://www.sqlite.org/foreignkeys.html> for details.
 SQLite has a set of "Pragma"s to modifiy its operation or to query
 for its internal data. These are specific to SQLite and are not
 likely to work with other DBD libraries, but you may find some of
-these are quite useful. DBD::SQLite actually sets some (like
-C<show_datatypes>) for you when you connect to a database.
-See L<http://www.sqlite.org/pragma.html> for details.
+these are quite useful. See L<http://www.sqlite.org/pragma.html>
+for details.
 
 =head2 Transactions
 
