@@ -1096,8 +1096,61 @@ See L<http://www.sqlite.org/foreignkeys.html> for details.
 SQLite has a set of "Pragma"s to modifiy its operation or to query
 for its internal data. These are specific to SQLite and are not
 likely to work with other DBD libraries, but you may find some of
-these are quite useful. See L<http://www.sqlite.org/pragma.html>
-for details.
+these are quite useful, including:
+
+=over 4
+
+=item journal_mode
+
+You can use this pragma to change the journal mode for SQLite
+databases, maybe for better performance, or for compatibility.
+
+Its default mode is C<DELETE>, which means SQLite uses a rollback
+journal to implement transactions, and the journal is deleted
+at the conclusion of each transaction. If you use C<TRUNCATE>
+instead of C<DELETE>, the journal will be truncated, which is
+usually much faster.
+
+A C<WAL> (write-ahead log) mode is introduced as of SQLite 3.7.0.
+This mode is persistent, and it stays in effect even after
+closing and reopening the database. In other words, once the C<WAL>
+mode is set in an application or in a test script, the database
+becomes inaccessible by older clients. This tends to be an issue
+when you use a system C<sqlite3> executable under a conservative
+operating system.
+
+To fix this, You need to issue C<PRAGMA journal_mode = DELETE>
+(or C<TRUNCATE>) beforehand, or install a newer version of
+C<sqlite3>.
+
+=item legacy_file_format
+
+If you happen to need to create a SQLite database that will also
+be accessed by a very old SQLite client (prior to 3.3.0 released
+in Jan. 2006), you need to set this pragma to ON before you create
+a database.
+
+=item reverse_unordered_selects
+
+You can set this pragma to ON to reverse the order of results of
+SELECT statements without an ORDER BY clause so that you can see
+if applications are making invalid assumptions about the result
+order.
+
+Note that SQLite 3.7.15 (bundled with DBD::SQLite 1.38_02) enhanced
+its query optimizer and the order of results of a SELECT statement
+without an ORDER BY clause may be different from the one of the
+previous versions.
+
+=item synchronous
+
+You can set set this pragma to OFF to make some of the operations
+in SQLite faster with a possible risk of database corruption
+in the worst case. See also L</"Performance"> section below.
+
+=back
+
+See L<http://www.sqlite.org/pragma.html> for more details.
 
 =head2 Transactions
 
