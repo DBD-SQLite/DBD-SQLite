@@ -1093,7 +1093,7 @@ See L<http://www.sqlite.org/foreignkeys.html> for details.
 
 =head2 Pragma
 
-SQLite has a set of "Pragma"s to modifiy its operation or to query
+SQLite has a set of "Pragma"s to modify its operation or to query
 for its internal data. These are specific to SQLite and are not
 likely to work with other DBD libraries, but you may find some of
 these are quite useful, including:
@@ -1422,7 +1422,7 @@ B<TABLE_TYPE>: The type of object returned. Will be one of 'TABLE', 'VIEW',
 
 You can retrieve primary key names or more detailed information.
 As noted above, SQLite does not have the concept of catalogs, so the
-first argument of the mothods is usually C<undef>, and you'll usually
+first argument of the methods is usually C<undef>, and you'll usually
 set C<undef> for the second one (unless you want to know the primary
 keys of temporary tables).
 
@@ -1815,7 +1815,7 @@ action, C<DBD::SQLite::IGNORE> to disallow the specific action but
 allow the SQL statement to continue to be compiled, or
 C<DBD::SQLite::DENY> to cause the entire SQL statement to be rejected
 with an error. If the authorizer callback returns any other value,
-then then C<prepare> call that triggered the authorizer will fail with
+then C<prepare> call that triggered the authorizer will fail with
 an error message.
 
 An authorizer is used when preparing SQL statements from an untrusted
@@ -2231,7 +2231,7 @@ document text, where the words pertaining to the query are highlighted.
 
 There are many more details to building and searching
 FTS tables, so we strongly invite you to read
-the full documentation at at L<http://www.sqlite.org/fts3.html>.
+the full documentation at L<http://www.sqlite.org/fts3.html>.
 
 B<Incompatible change> : 
 starting from version 1.31, C<DBD::SQLite> uses the new, recommended

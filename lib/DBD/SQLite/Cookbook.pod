@@ -184,7 +184,7 @@ turn them into a separate CPAN distribution.
 
 =item * 
 
-Create a series of tests scripts that validate the cookbook recipies.
+Create a series of tests scripts that validate the cookbook recipes.
 
 =back
 
