@@ -13,6 +13,7 @@ Changes for Perl extension DBD-SQLite
     - Fixed tests that mistakenly made invalid assumptions about
       the result order (ISHIGAKI)
     - Added a brief note on useful pragmata. (ISHIGAKI)
+    - Resolved #85302: type fixes (ISHIGAKI)
 
 1.38_02 Thu 4 Apr 2013
     - Updated to SQLite 3.7.16.1 (ISHIGAKI)
