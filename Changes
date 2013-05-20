@@ -9,7 +9,7 @@ Changes for Perl extension DBD-SQLite
       on the arbitrary output order, they may be broken with this
       enhancement.
 
-    - Updated to SQLite 3.7.16.2 (ISHIGAKI)
+    - Updated to SQLite 3.7.17 (ISHIGAKI)
     - Fixed tests that mistakenly made invalid assumptions about
       the result order (ISHIGAKI)
     - Added a brief note on useful pragmata. (ISHIGAKI)
