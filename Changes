@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.38_03 to be released
+1.38_03 Mon 20 May 2013
     *** NOTICE ON QUERY OPTIMIZER ENHANCEMENT ***
     - As of SQLite 3.7.15, SQLite's query optimizer was enhanced
       and the result order of a SELECT statement without an ORDER
