@@ -248,6 +248,9 @@ if ($^O eq 'darwin') {
 if ($^O eq 'aix') {
 	push @CC_DEFINE, '-DSQLITE_DISABLE_DIRSYNC';
 }
+if ($^O =~ /bsd/i) {
+	push @CC_DEFINE, '-D_XOPEN_SOURCE';
+}
 
 my @CC_OPTIONS = (
 	INC          => join( ' ', @CC_INC    ),
