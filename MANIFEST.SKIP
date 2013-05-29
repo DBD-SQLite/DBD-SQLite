@@ -22,5 +22,6 @@ CVS/.*
 ~$
 ^sqlite\-
 \.svn
+^\.git
 ^bugs/
 ^MYMETA\.[a-z]+$
