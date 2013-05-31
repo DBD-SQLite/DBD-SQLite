@@ -7,7 +7,7 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests;
+use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
 		plan( tests => 29 * 2 + 1 );
