@@ -248,7 +248,7 @@ if ($^O eq 'darwin') {
 if ($^O eq 'aix') {
 	push @CC_DEFINE, '-DSQLITE_DISABLE_DIRSYNC';
 }
-if ($^O =~ /bsd/i) {
+if ($^O =~ /bsd/i && $^O ne 'openbsd') {
 	push @CC_DEFINE, '-D_XOPEN_SOURCE';
 }
 
