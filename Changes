@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.38_05 Fri 31 May 2013
+    - OpenBSD doesn't like the previous _XOPEN_SOURCE hack (ISHIGAKI)
+    - Disabled a unicode-related test for older perls (ISHIGAKI)
+
 1.38_04 Wed 29 May 2013
     - Tentatively defined _XOPEN_SOURCE under *BSD systems to see
       if it solves a compilation issue for threaded perls (ISHIGAKI)
