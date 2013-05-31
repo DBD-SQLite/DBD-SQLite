@@ -7,7 +7,14 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 29 * 2 + 1;
+use Test::More tests;
+BEGIN {
+	if ( $] >= 5.008005 ) {
+		plan( tests => 29 * 2 + 1 );
+	} else {
+		plan( skip_all => 'Unicode is not supported before 5.8.5' );
+	}
+}
 use Test::NoWarnings;
 use Encode;
 
