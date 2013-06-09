@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.39 Fri 31 May 2013
+    - Production release, no changes from 1.38_05
+
 1.38_05 Fri 31 May 2013
     - OpenBSD doesn't like the previous _XOPEN_SOURCE hack (ISHIGAKI)
     - Disabled a unicode-related test for older perls (ISHIGAKI)
