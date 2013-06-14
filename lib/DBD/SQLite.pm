@@ -617,6 +617,90 @@ sub foreign_key_info {
     return $sponge_sth;
 }
 
+my @STATISTICS_INFO_ODBC = (
+  'TABLE_CAT',        # The catalog identifier.
+  'TABLE_SCHEM',      # The schema identifier.
+  'TABLE_NAME',       # The table identifier.
+  'NON_UNIQUE',       # Unique index indicator.
+  'INDEX_QUALIFIER',  # Index qualifier identifier.
+  'INDEX_NAME',       # The index identifier.
+  'TYPE',             # The type of information being returned.
+  'ORDINAL_POSITION', # Column sequence number (starting with 1).
+  'COLUMN_NAME',      # The column identifier.
+  'ASC_OR_DESC',      # Column sort sequence.
+  'CARDINALITY',      # Cardinality of the table or index.
+  'PAGES',            # Number of storage pages used by this table or index.
+  'FILTER_CONDITION', # The index filter condition as a string.
+);
+
+sub statistics_info {
+    my ($dbh, $catalog, $schema, $table, $unique_only, $quick) = @_;
+
+    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}});
+
+    my @statistics_info;
+    for my $database (@$databases) {
+        my $dbname = $database->{name};
+        next if defined $schema && $schema ne '%' && $schema ne $dbname;
+
+        my $quoted_dbname = $dbh->quote_identifier($dbname);
+        my $master_table =
+            ($dbname eq 'main') ? 'sqlite_master' :
+            ($dbname eq 'temp') ? 'sqlite_temp_master' :
+            $quoted_dbname.'.sqlite_master';
+
+        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table");
+        for my $table_ref (@$tables) {
+            my $tbname = $table_ref->[0];
+            next if defined $table && $table ne '%' && $table ne $tbname;
+
+            my $quoted_tbname = $dbh->quote_identifier($tbname);
+            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.index_list($quoted_tbname)");
+            $sth->execute;
+            while(my $row = $sth->fetchrow_hashref) {
+
+                next if defined $unique_only && $unique_only && $row->{unique};
+                my $quoted_idx = $dbh->quote_identifier($row->{name});
+                for my $db (@$databases) {
+                    my $quoted_db = $dbh->quote_identifier($db->{name});
+                    my $i_sth = $dbh->prepare("PRAGMA $quoted_db.index_info($quoted_idx)");
+                    $i_sth->execute;
+                    my $cols = {};
+                    while(my $info = $i_sth->fetchrow_hashref) {
+                        push @statistics_info, {
+                            TABLE_CAT   => undef,
+                            TABLE_SCHEM => $db->{name},
+                            TABLE_NAME  => $tbname,
+                            NON_UNIQUE    => $row->{unique} ? 0 : 1, 
+                            INDEX_QUALIFIER => undef,
+                            INDEX_NAME      => $row->{name},
+                            TYPE            => 'btree', # see http://www.sqlite.org/version3.html esp. "Traditional B-trees are still used for indices"
+                            ORDINAL_POSITION => $info->{seqno} + 1,
+                            COLUMN_NAME      => $info->{name},
+                            ASC_OR_DESC      => undef,
+                            CARDINALITY      => undef,
+                            PAGES            => undef,
+                            FILTER_CONDITION => undef,
+                       };
+                    }
+                }
+            }
+        }
+    }
+
+    my $sponge_dbh = DBI->connect("DBI:Sponge:", "", "")
+        or return $dbh->DBI::set_err($DBI::err, "DBI::Sponge: $DBI::errstr");
+    my $sponge_sth = $sponge_dbh->prepare("statistics_info", {
+        NAME          => \@STATISTICS_INFO_ODBC,
+        rows          => [ map { [@{$_}{@STATISTICS_INFO_ODBC} ] } @statistics_info ],
+        NUM_OF_FIELDS => scalar(@STATISTICS_INFO_ODBC),
+    }) or return $dbh->DBI::set_err(
+        $sponge_dbh->err,
+        $sponge_dbh->errstr,
+    );
+    return $sponge_sth;
+}
+
 sub type_info_all {
     return; # XXX code just copied from DBD::Oracle, not yet thought about
 #    return [
