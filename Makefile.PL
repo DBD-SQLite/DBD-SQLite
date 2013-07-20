@@ -57,7 +57,7 @@ eval {
 };
 if ( $@ or DBI->VERSION < $DBI_required ) {
 	print "DBI 1.57 is required to configure this module; please install it or upgrade your CPAN/CPANPLUS shell.\n";
-	exit(0);
+	exit(1);
 }
 
 # See if we have a C compiler
@@ -106,7 +106,7 @@ SCOPE: {
 
 	unless ( can_cc() ) {
 		print "We can't locate a C compiler from your Config.pm.\n";
-		exit(0);
+		exit(1);
 	}
 }
 
