@@ -38,7 +38,8 @@ imp_dbh_t *last_executed_dbh; /* needed by perl_tokenizer
 #define sqlite_error(h,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, rc, what)
 #define sqlite_trace(h,xxh,level,what) if ( DBIc_TRACE_LEVEL((imp_xxh_t*)xxh) >= level ) _sqlite_trace(aTHX_ __FILE__, __LINE__, h, (imp_xxh_t*)xxh, what)
 #define sqlite_exec(h,sql) _sqlite_exec(aTHX_ h, imp_dbh->db, sql)
-#define sqlite_open(dbname,db) _sqlite_open(aTHX_ dbh, dbname, db)
+#define sqlite_open(dbname,db) _sqlite_open(aTHX_ dbh, dbname, db, 0)
+#define sqlite_open2(dbname,db,flags) _sqlite_open(aTHX_ dbh, dbname, db, flags)
 #define _isspace(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f')
 
 static void
@@ -83,10 +84,14 @@ _sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
 }
 
 int
-_sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db)
+_sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db, int flags)
 {
     int rc;
-    rc = sqlite3_open(dbname, db);
+    if (flags) {
+        rc = sqlite3_open_v2(dbname, db, flags, NULL);
+    } else {
+        rc = sqlite3_open(dbname, db);
+    }
     if ( rc != SQLITE_OK ) {
         sqlite_error(dbh, rc, sqlite3_errmsg(*db));
         if (*db) sqlite3_close(*db);
@@ -273,7 +278,11 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
-    rc = sqlite_open(dbname, &(imp_dbh->db));
+    if (SvROK(attr) && hv_exists((HV*)SvRV(attr), "sqlite_open_flags", 17)) {
+        rc = sqlite_open2(dbname, &(imp_dbh->db), SvIV(*hv_fetch((HV*)SvRV(attr), "sqlite_open_flags", 17, NULL)));
+    } else {
+        rc = sqlite_open(dbname, &(imp_dbh->db));
+    }
     if ( rc != SQLITE_OK ) {
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }

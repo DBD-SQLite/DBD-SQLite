@@ -95,15 +95,24 @@ sub connect {
             my ($key, $value) = split(/=/, $attrib, 2);
             if ( $key =~ /^(?:db(?:name)?|database)$/ ) {
                 $real = $value;
+            } elsif ( $key eq 'uri' ) {
+                $real = $value;
+                $attr->{sqlite_open_flags} |= DBD::SQLite::OPEN_URI();
             } else {
                 $attr->{$key} = $value;
             }
         }
     }
 
+    if (my $flags = $attr->{sqlite_open_flags}) {
+        unless ($flags & (DBD::SQLite::OPEN_READONLY() | DBD::SQLite::OPEN_READWRITE())) {
+            $attr->{sqlite_open_flags} |= DBD::SQLite::OPEN_READWRITE() | DBD::SQLite::OPEN_CREATE();
+        }
+    }
+
     # To avoid unicode and long file name problems on Windows,
     # convert to the shortname if the file (or parent directory) exists.
-    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '') {
+    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '' and $real !~ /^file:/) {
         require Win32;
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);

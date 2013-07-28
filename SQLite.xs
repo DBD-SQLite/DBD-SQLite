@@ -576,6 +576,62 @@ SAVEPOINT()
     OUTPUT:
         RETVAL
 
+static int
+OPEN_READONLY()
+    CODE:
+        RETVAL = SQLITE_OPEN_READONLY;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_READWRITE()
+    CODE:
+        RETVAL = SQLITE_OPEN_READWRITE;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_CREATE()
+    CODE:
+        RETVAL = SQLITE_OPEN_CREATE;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_NOMUTEX()
+    CODE:
+        RETVAL = SQLITE_OPEN_NOMUTEX;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_FULLMUTEX()
+    CODE:
+        RETVAL = SQLITE_OPEN_FULLMUTEX;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_SHAREDCACHE()
+    CODE:
+        RETVAL = SQLITE_OPEN_SHAREDCACHE;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_PRIVATECACHE()
+    CODE:
+        RETVAL = SQLITE_OPEN_PRIVATECACHE;
+    OUTPUT:
+        RETVAL
+
+static int
+OPEN_URI()
+    CODE:
+        RETVAL = SQLITE_OPEN_URI;
+    OUTPUT:
+        RETVAL
+
 
 
 INCLUDE: SQLite.xsi
