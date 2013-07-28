@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.40 Sun 28 Jul 2013
+    - NetBSD also doesn't like the _XOPEN_SOURCE hack (ISHIGAKI)
+    - Resolved #86080: PATCH: statistics_info support (DDICK)
+
 1.39 Fri 31 May 2013
     - Production release, no changes from 1.38_05
 
