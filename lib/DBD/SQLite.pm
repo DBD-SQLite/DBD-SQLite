@@ -1574,6 +1574,47 @@ Whether the column is primary or unique.
 B<Note>: foreign key support in SQLite must be explicitly turned on through
 a C<PRAGMA> command; see L</"Foreign keys"> earlier in this manual.
 
+=head2 statistics_info
+
+  $sth = $dbh->statistics_info(undef, $schema, $table,
+                                $unique_only, $quick);
+
+Returns information about a table and it's indexes, as specified in
+L<DBI/statistics_info>, but with some limitations : 
+
+=over
+
+=item *
+
+information in rows returned by the C<$sth> is incomplete with
+respect to the L<DBI/statistics_info> specification. All requested fields
+are present, but the content is C<undef> for some of them.
+
+=back
+
+The following nonempty fields are returned :
+
+B<TABLE_SCHEM>:
+The name of the schema (database) that the table is in. The default schema is 'main', temporary tables are in 'temp' and other databases will be in the name given when the database was attached.
+
+B<TABLE_NAME>:
+The name of the table
+
+B<NON_UNIQUE>:
+Contains 0 for unique indexes, 1 for non-unique indexes
+
+B<INDEX_NAME>:
+The name of the index
+
+B<TYPE>:
+SQLite uses 'btree' for all it's indexes
+
+B<ORDINAL_POSITION>:
+Column sequence number (starting with 1).
+
+B<COLUMN_NAME>:
+The name of the column
+
 =head2 ping
 
   my $bool = $dbh->ping;
