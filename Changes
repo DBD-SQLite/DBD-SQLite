@@ -1,8 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
-1.41_01 to be released
-    - Resolved #87297: DBD-SQLite: URI filenames in DBD::SQLite
-      (ISHIGAKI)
+${NEXT}
+    - Resolved #87297: URI filenames in DBD::SQLite (ISHIGAKI)
 
 1.40 Sun 28 Jul 2013
     - NetBSD also doesn't like the _XOPEN_SOURCE hack (ISHIGAKI)
