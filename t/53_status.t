@@ -46,7 +46,7 @@ for my $func (@CALL_FUNCS) {
 		my $num_of_keys = scalar keys %$st_status;
 		ok $num_of_keys, "st status: $num_of_keys indicators";
 		my $sort = $st_status->{sort};
-		ok defined $sort && $sort, "num of sort: $sort";
+		ok defined $sort, "num of sort: $sort";
 	}
 }
 
