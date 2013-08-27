@@ -8,9 +8,9 @@ BEGIN {
 
 use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
-#use Test::NoWarnings;
+use Test::NoWarnings;
 
-#plan tests => 6 * @CALL_FUNCS + 1;
+plan tests => 8 * @CALL_FUNCS + 1;
 
 my $dbh = connect_ok();
 {
@@ -49,5 +49,3 @@ for my $func (@CALL_FUNCS) {
 		ok defined $sort, "num of sort: $sort";
 	}
 }
-
-done_testing;
