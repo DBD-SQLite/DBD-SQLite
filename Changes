@@ -17,6 +17,7 @@ ${NEXT}
       readable/writable again by dropping partial indices.
 
     - Resolved #87435: PATCH: statistics_info perldoc (DDICK)
+    - Resolved #87297: URI filenames in DBD::SQLite (ISHIGAKI)
 
 1.40 Sun 28 Jul 2013
     - NetBSD also doesn't like the _XOPEN_SOURCE hack (ISHIGAKI)

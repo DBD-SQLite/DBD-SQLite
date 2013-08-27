@@ -95,15 +95,24 @@ sub connect {
             my ($key, $value) = split(/=/, $attrib, 2);
             if ( $key =~ /^(?:db(?:name)?|database)$/ ) {
                 $real = $value;
+            } elsif ( $key eq 'uri' ) {
+                $real = $value;
+                $attr->{sqlite_open_flags} |= DBD::SQLite::OPEN_URI();
             } else {
                 $attr->{$key} = $value;
             }
         }
     }
 
+    if (my $flags = $attr->{sqlite_open_flags}) {
+        unless ($flags & (DBD::SQLite::OPEN_READONLY() | DBD::SQLite::OPEN_READWRITE())) {
+            $attr->{sqlite_open_flags} |= DBD::SQLite::OPEN_READWRITE() | DBD::SQLite::OPEN_CREATE();
+        }
+    }
+
     # To avoid unicode and long file name problems on Windows,
     # convert to the shortname if the file (or parent directory) exists.
-    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '') {
+    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '' and $real !~ /^file:/) {
         require Win32;
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);
@@ -984,6 +993,23 @@ ambiguity.
 If the filename C<$dbfile> is an empty string, then a private,
 temporary on-disk database will be created. This private database will
 be automatically deleted as soon as the database connection is closed.
+
+As of 1.41_01, you can pass URI filename (see L<http://www.sqlite.org/uri.html>)
+as well for finer control:
+
+  my $dbh = DBI->connect("dbi:SQLite:uri=file:$path_to_dbfile?mode=rwc");
+
+Note that this is not for remote SQLite database connection. You only can
+connect to a local database.
+
+You can also set sqlite_open_flags (only) when you connect to a database:
+
+  use DBD::SQLite;
+  my $dbh = DBI->connect("dbi:SQLite:$dbfile", undef, undef, {
+    sqlite_open_flags => DBD::SQLite::OPEN_READONLY,
+  });
+
+See L<http://www.sqlite.org/c3ref/open.html> for details.
 
 =head2 DBD::SQLite And File::Temp
 
@@ -2608,10 +2634,6 @@ code we work with leaks.
 =head2 Stream API for Blobs
 
 Reading/writing into blobs using C<sqlite2_blob_open> / C<sqlite2_blob_close>.
-
-=head2 Flags for sqlite3_open_v2
-
-Support the full API of sqlite3_open_v2 (flags for opening the file).
 
 =head2 Support for custom callbacks for R-Tree queries
 
