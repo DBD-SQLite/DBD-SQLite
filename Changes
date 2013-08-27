@@ -1,6 +1,21 @@
 Changes for Perl extension DBD-SQLite
 
 ${NEXT}
+    *** NOTICE ON NEXT GENERATION QUERY PLANNER ***
+    - As of SQLite 3.8.0, SQLite's query planner has been rewritten.
+      According to the author, the new query planner should give
+      exactly the same result (though perhaps with a little less CPU
+      time spent planning) for simple queries, and for complex
+      queries, it can in many cases provide a much faster answer.
+      See http://www.sqlite.org/queryplanner-ng.html for details.
+
+    *** NOTICE ON PARTIAL INDICES ***
+    - Database files created by SQLite 3.8.0 are still readable and
+      writable by prior versions, but if you use partial indices
+      introduced in SQLite 3.8.0, those files become unreadable and
+      unwritable by older versions of (DBD::)SQLite. They'll be
+      readable/writable again by dropping partial indices.
+
     - Resolved #87435: PATCH: statistics_info perldoc (DDICK)
 
 1.40 Sun 28 Jul 2013
