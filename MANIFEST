@@ -70,6 +70,9 @@ t/51_table_column_metadata.t
 t/52_db_filename.t
 t/53_status.t
 t/54_literal_txn.t
+t/55_statistics_info.t
+t/56_open_flags.t
+t/57_uri_filename.t
 t/cookbook_variance.t
 t/lib/Test.pm
 t/rt_15186_prepcached.t
@@ -96,6 +99,7 @@ t/rt_67581_bind_params_mismatch.t
 t/rt_71311_bind_col_and_unicode.t
 t/rt_73159_fts_tokenizer_segfault.t
 t/rt_73787_exponential_buffer_overflow.t
+t/rt_76395_int_overflow.t
 t/rt_77724_primary_key_with_a_whitespace.t
 t/rt_78833_utf8_flag_for_column_names.t
 t/rt_81536_multi_column_primary_key_info.t
