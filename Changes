@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.41_02 Fri 30 Aug 2013
+    - Updated to SQLite 3.8.0.1 to resolve #88228 (RIBASUSHI++)
+      (ISHIGAKI)
+
 1.41_01 Tue 27 Aug 2013
     *** NOTICE ON NEXT GENERATION QUERY PLANNER ***
     - As of SQLite 3.8.0, SQLite's query planner has been rewritten.
