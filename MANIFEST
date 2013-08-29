@@ -103,6 +103,7 @@ t/rt_76395_int_overflow.t
 t/rt_77724_primary_key_with_a_whitespace.t
 t/rt_78833_utf8_flag_for_column_names.t
 t/rt_81536_multi_column_primary_key_info.t
+t/rt_88228_sqlite_3_8_0_crash.t
 typemap
 util/getsqlite.pl
 xt/meta.t
