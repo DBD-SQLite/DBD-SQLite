@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.41_03 Thu 5 Sep 2013
+    - Updated to SQLite 3.8.0.2 (ISHIGAKI)
+
 1.41_02 Fri 30 Aug 2013
     - Updated to SQLite 3.8.0.1 to resolve #88228 (RIBASUSHI++)
       (ISHIGAKI)
