@@ -1358,15 +1358,10 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
         av_extend(av, i);
         retsv = sv_2mortal(newRV_noinc((SV*)av));
         for (n = 0; n < i; n++) {
-            const char *fieldtype = sqlite3_column_decltype(imp_sth->stmt, n);
             int type = sqlite3_column_type(imp_sth->stmt, n);
             /* warn("got type: %d = %s\n", type, fieldtype); */
             type = sqlite_type_to_odbc_type(type);
-            /* av_store(av, n, newSViv(type)); */
-            if (fieldtype)
-                av_store(av, n, newSVpv(fieldtype, 0));
-            else
-                av_store(av, n, newSVpv("VARCHAR", 0));
+            av_store(av, n, newSViv(type));
         }
     }
     else if (strEQ(key, "NULLABLE")) {
