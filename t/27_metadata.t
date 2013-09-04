@@ -45,6 +45,9 @@ $dbh->do("INSERT INTO meta4 VALUES ('xyz', 'b')");
 $sth = $dbh->prepare('SELECT * FROM meta4');
 $sth->execute;
 $sth->fetch;
+
+$dbh->{sqlite_prefer_numeric_type} = 1;
+
 my $types = $sth->{TYPE};
 my $names = $sth->{NAME};
 # diag "Types: @$types\nNames: @$names";
