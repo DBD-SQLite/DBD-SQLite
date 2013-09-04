@@ -49,12 +49,9 @@ my $types = $sth->{TYPE};
 my $names = $sth->{NAME};
 # diag "Types: @$types\nNames: @$names";
 is scalar @$types, scalar @$names, '$sth->{TYPE} array is same length as $sth->{NAME} array';
-# FIXME: This is wrong! $sth->{TYPE} should return an array of integers see: rt #46873
-TODO: {
-    local $TODO = '$sth->{TYPE} should return an array of integers.';
-    isnt $types->[0], 'VARCHAR(2)', '$sth->{TYPE}[0] doesn\'t return a string';
-    isnt $types->[1], 'CHAR(1)', '$sth->{TYPE}[1] doesn\'t return a string';
-    like $types->[0], qr/^-?\d+$/, '$sth->{TYPE}[0] returns an integer';
-    like $types->[1], qr/^-?\d+$/, '$sth->{TYPE}[1] returns an integer';
-}
+# $sth->{TYPE} should return an array of integers see: rt #46873
+isnt $types->[0], 'VARCHAR(2)', '$sth->{TYPE}[0] doesn\'t return a string';
+isnt $types->[1], 'CHAR(1)', '$sth->{TYPE}[1] doesn\'t return a string';
+like $types->[0], qr/^-?\d+$/, '$sth->{TYPE}[0] returns an integer';
+like $types->[1], qr/^-?\d+$/, '$sth->{TYPE}[1] returns an integer';
 
