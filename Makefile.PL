@@ -223,6 +223,9 @@ my @CC_DEFINE = (
 	'-DSQLITE_ENABLE_STAT3',
 	'-DNDEBUG=1',
 );
+if ( $^O eq 'cygwin') {
+	push @CC_DEFINE, '-DSQLITE_TEMP_STORE=2';
+}
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 	push @CC_DEFINE, '-DHAVE_USLEEP=1';
 }
