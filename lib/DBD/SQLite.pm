@@ -2338,11 +2338,11 @@ Here is a very short example of using FTS :
   $dbh->do(<<"") or die DBI::errstr;
   CREATE VIRTUAL TABLE fts_example USING fts4(content)
   
-  my $sth = $dbh->prepare("INSERT INTO fts_example(content) VALUES (?))");
+  my $sth = $dbh->prepare("INSERT INTO fts_example(content) VALUES (?)");
   $sth->execute($_) foreach @docs_to_insert;
   
   my $results = $dbh->selectall_arrayref(<<"");
-  SELECT docid, snippet(content) FROM fts_example WHERE content MATCH 'foo'
+  SELECT docid, snippet(fts_example) FROM fts_example WHERE content MATCH 'foo'
   
 
 The key points in this example are :
