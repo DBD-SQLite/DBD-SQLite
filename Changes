@@ -1,7 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
 {{$NEXT}}
+    - Updated to SQLite 3.8.1 (ISHIGAKI)
     - Resolved #90211: Error in documentation (Felix Li)
+    - Resolved #89351: DBD-SQLite won't compile on Cygwin 64 bit
+      (Warren Young++) (ISHIGAKI)
 
 1.41_03 Thu 5 Sep 2013
     - Updated to SQLite 3.8.0.2 (ISHIGAKI)
