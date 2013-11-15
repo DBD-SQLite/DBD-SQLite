@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+{{$NEXT}}
+    - Resolved #90211: Error in documentation (Felix Li)
+
 1.41_03 Thu 5 Sep 2013
     - Updated to SQLite 3.8.0.2 (ISHIGAKI)
 
