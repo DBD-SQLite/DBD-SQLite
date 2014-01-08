@@ -73,6 +73,7 @@ t/54_literal_txn.t
 t/55_statistics_info.t
 t/56_open_flags.t
 t/57_uri_filename.t
+t/58_see_if_its_a_number_and_explicit_binding.t
 t/cookbook_variance.t
 t/lib/Test.pm
 t/rt_15186_prepcached.t
