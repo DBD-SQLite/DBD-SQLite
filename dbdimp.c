@@ -116,6 +116,8 @@ static int
 sqlite_type_from_odbc_type(int type)
 {
     switch(type) {
+        case SQL_UNKNOWN_TYPE:
+            return SQLITE_NULL;
         case SQL_INTEGER:
         case SQL_SMALLINT:
         case SQL_TINYINT:
@@ -710,8 +712,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
              *  type column (see t/19_bindparam.t), at least when
              *  we explicitly specify its type. However, we should
              *  keep spaces when we just guess.
+             *  
+             *  see_if_its_a_number should be ignored if an explicit
+             *  SQL type is set via bind_param().
              */
-            if (imp_dbh->see_if_its_a_number) {
+            if (sql_type == SQLITE_NULL && imp_dbh->see_if_its_a_number) {
                 numtype = sqlite_is_number(aTHX_ data, SQLITE_NULL);
             }
             else if (sql_type == SQLITE_INTEGER || sql_type == SQLITE_FLOAT) {

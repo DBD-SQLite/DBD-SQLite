@@ -1149,6 +1149,20 @@ problems. Use this sparingly when you handle existing databases.
 If you handle databases created by other tools like native C<sqlite3>
 command line tool, this attribute would help you.
 
+As of 1.41_04, C<sqlite_see_if_its_a_number> works only for
+bind values with no explicit type.
+
+  my $dbh = DBI->connect('dbi:SQLite:foo', undef, undef, {
+    AutoCommit => 1,
+    RaiseError => 1,
+    sqlite_see_if_its_a_number => 1,
+  });
+  my $sth = $dbh->prepare('INSERT INTO foo VALUES(?)');
+  # '1.230' will be inserted as a text, instead of 1.23 as a number,
+  # even though sqlite_see_if_its_a_number is set.
+  $sth->bind_param(1, '1.230', SQL_VARCHAR);
+  $sth->execute;
+
 =back
 
 =head2 Placeholders
