@@ -49,7 +49,7 @@ ok insert_track(13, "My Way", 2);
 # column (3) does not correspond to row in the artist table.
 
 ok !insert_track(14, "Mr. Bojangles", 3);
-ok $@ =~ qr/foreign key constraint failed/;
+ok $@ =~ qr/foreign key constraint failed/i;
 
 # This succeeds because a NULL is inserted into trackartist. A
 # corresponding row in the artist table is not required in this case.
@@ -62,7 +62,7 @@ ok insert_track(14, "Mr. Bojangles", undef);
 # artist table.
 
 ok !update_track(3, "Mr. Bojangles");
-ok $@ =~ /foreign key constraint failed/;
+ok $@ =~ /foreign key constraint failed/i;
 
 # Insert the required row into the artist table. It is then possible
 # to update the inserted row to set trackartist to 3 (since a
