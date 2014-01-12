@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.41_04 Thu 9 Jan 2014
+1.41_04 2014-01-12
     - Updated to SQLite 3.8.2 (ISHIGAKI)
     - Resolved #90211: Error in documentation (Felix Li)
     - Resolved #89351: DBD-SQLite won't compile on Cygwin 64 bit
@@ -9,14 +9,14 @@ Changes for Perl extension DBD-SQLite
       bind values with explicit type specification (via bind_param()
       etc) (mje++, ilmari++) (ISHIGAKI)
 
-1.41_03 Thu 5 Sep 2013
+1.41_03 2013-09-05
     - Updated to SQLite 3.8.0.2 (ISHIGAKI)
 
-1.41_02 Fri 30 Aug 2013
+1.41_02 2013-08-30
     - Updated to SQLite 3.8.0.1 to resolve #88228 (RIBASUSHI++)
       (ISHIGAKI)
 
-1.41_01 Tue 27 Aug 2013
+1.41_01 2013-08-27
     *** NOTICE ON NEXT GENERATION QUERY PLANNER ***
     - As of SQLite 3.8.0, SQLite's query planner has been rewritten.
       According to the author, the new query planner should give
@@ -35,22 +35,22 @@ Changes for Perl extension DBD-SQLite
     - Resolved #87435: PATCH: statistics_info perldoc (DDICK)
     - Resolved #87297: URI filenames in DBD::SQLite (ISHIGAKI)
 
-1.40 Sun 28 Jul 2013
+1.40 2013-07-28
     - NetBSD also doesn't like the _XOPEN_SOURCE hack (ISHIGAKI)
     - Resolved #86080: PATCH: statistics_info support (DDICK)
 
-1.39 Fri 31 May 2013
+1.39 2013-05-31
     - Production release, no changes from 1.38_05
 
-1.38_05 Fri 31 May 2013
+1.38_05 2013-05-31
     - OpenBSD doesn't like the previous _XOPEN_SOURCE hack (ISHIGAKI)
     - Disabled a unicode-related test for older perls (ISHIGAKI)
 
-1.38_04 Wed 29 May 2013
+1.38_04 2013-05-29
     - Tentatively defined _XOPEN_SOURCE under *BSD systems to see
       if it solves a compilation issue for threaded perls (ISHIGAKI)
 
-1.38_03 Mon 20 May 2013
+1.38_03 2013-05-20
     *** NOTICE ON QUERY OPTIMIZER ENHANCEMENT ***
     - As of SQLite 3.7.15, SQLite's query optimizer was enhanced
       and the result order of a SELECT statement without an ORDER
@@ -65,7 +65,7 @@ Changes for Perl extension DBD-SQLite
     - Added a brief note on useful pragmata. (ISHIGAKI)
     - Resolved #85302: type fixes (ISHIGAKI)
 
-1.38_02 Thu 4 Apr 2013
+1.38_02 2013-04-04
     - Updated to SQLite 3.7.16.1 (ISHIGAKI)
     - Removed two obsolete pragma calls at login time (ISHIGAKI)
     - Resolved #80344: Set SQLITE_DISABLE_DIRSYNC on AIX (suggested
@@ -83,7 +83,7 @@ Changes for Perl extension DBD-SQLite
     - Added a note on DBD::SQLite and File::Temp (suggested by
       TOKUHIROM) (ISHIGAKI)
 
-1.38_01 Mon 24 Sep 2012
+1.38_01 2012-09-24
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #56444: immediate transaction should be on by
       default, and the doc be updated.
@@ -110,17 +110,17 @@ Changes for Perl extension DBD-SQLite
     - Refactored primary_key_info to support attached databases
       (ISHIGAKI)
 
-1.37 Thu 12 Jun 2012
+1.37 2012-06-12
     - Updated to SQLite 3.7.12.1 (ISHIGAKI)
 
-1.36_04 Sat 19 May 2012
+1.36_04 2012-05-19
     - Final developer release
     - Updated to SQLite 3.7.12 (ISHIGAKI)
     - Tweaked Makefile.PL to behave better during the Bsymbolic
       check (HMBRAND)
     - Added SQLITE_WITHOUT_ZONEMALLOC for older MacOS X (ISHIGAKI)
 
-1.36_03 Mon 7 May 2012
+1.36_03 2012-05-07
     - Updated to SQLite 3.7.11 (ISHIGAKI)
     - Fix >32bit integer truncation and other sqlite_set_result
       condition issue (Yuriy Kaminskiy)
@@ -133,7 +133,7 @@ Changes for Perl extension DBD-SQLite
     - Refactored sqlite_is_number to fix various corner cases
       (ISHIGAKI)
 
-1.36_02 Thu 23 Feb 2012
+1.36_02 2012-02-23
     - Downgraded SQLite to 3.7.9, as 3.7.10 turned out to be
       broken on the latest MacOS X (due to a missing symbol),
       and broke other modules that typically use temporary tables
@@ -141,7 +141,7 @@ Changes for Perl extension DBD-SQLite
       3.7.11 seems fine, but it would take another month to be
       released. (ISHIGAKI)
 
-1.36_01 Thu 19 Jan 2012
+1.36_01 2012-01-19
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Updated to SQLite 3.7.10 (ISHIGAKI)
       Note that this release changed the default schema format
@@ -161,16 +161,16 @@ Changes for Perl extension DBD-SQLite
       tracing/profiling; use DBI_TRACE/DBI_PROFILE for more
       complicated cases (ISHIGAKI)
 
-1.35 Tue 29 Nov 2011
+1.35 2011-11-29
     - Updated to SQLite 3.7.9 (ISHIGAKI)
     - One small potential break case if you are using FTS4 and ^
 
-1.34_03 Tue 1 Nov 2011
+1.34_03 2011-11-01
     - Adding an explicit dynamic_config => 1 (ADAMK)
     - bind_param SQL_INTEGER error now actually dies with RaiseError.
       (ISHIGAKI)
 
-1.34_02 Fri 21 Oct 2011
+1.34_02 2011-10-21
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #67581: bind_param SQL_INTEGER numifies value;
       Now DBD::SQLite croaks if you explicitly specify datatype
@@ -191,28 +191,28 @@ Changes for Perl extension DBD-SQLite
     - Explained an issue of rollback with unfinished statements.
       (ISHIGAKI)
 
-1.34_01 Thu 22 Sep 2011
+1.34_01 2011-09-22
     - Updated to SQLite 3.7.8 (ISHIGAKI)
     - Made util/getsqlite.pl work properly for SQLite 3.7.5+ (ISHIGAKI)
     - Cookbook: don't use globals (Yuriy Kaminskiy)
     - Resolved #70135 and hopefully other mod_perl/CentOS issues like
       #63873 and #47983, with a patch by MDOOTSON++ (ISHIGAKI)
 
-1.33 Mon 20 May 2011
+1.33 2011-05-20
     - Production release, no changes from 1.32_04
 
-1.32_04 Fri 20 May 2011
+1.32_04 2011-05-20
     - Updated to SQLite 3.7.6.3 (ISHIGAKI)
     - Made util/getsqlite.pl state that it needs fixing to work for
       SQLite 3.7.5+ when it dies at the last step, and outline what the
       user needs to do manually instead, until getsqlite is fixed (DUNCAND)
 
-1.32_03 Thu 12 May 2011
+1.32_03 2011-05-12
     - Updated to SQLite 3.7.6.2 (ISHIGAKI)
     - Resolved #67843 for DBD-SQLite: savepoint rollback alters AC
       state (ISHIGAKI)
 
-1.32_02 Mon 7 Mar 2011
+1.32_02 2011-03-07
     - Updated to SQLite 3.7.5 (ISHIGAKI)
     - Resolved #65267 for DBD-SQLite: Add RTree support option;
       skip fts3/metadata tests if those features are disabled
@@ -222,7 +222,7 @@ Changes for Perl extension DBD-SQLite
       to deal with issues caused by (quoted) bind values against
       numbers such as return values from a function etc. (ISHIGAKI)
 
-1.32_01 Fri 10 Dec 2010
+1.32_01 2010-12-10
     - Made util/getsqlite.pl work with the amalg distro filename changes
       introd by SQLite 3.7.4, and still with older ones also (DUNCAND)
     - Updated to SQLite 3.7.4 (DUNCAND)
@@ -237,10 +237,10 @@ Changes for Perl extension DBD-SQLite
     - Removed PrintWarn tweak introduced in 1.19_09 (Tim Bunce's
       advice) (ISHIGAKI)
 
-1.31 Wed 15 Sep 2010
+1.31 2010-09-15
     - Production release, identical to 1.30_06
 
-1.30_06 Thu  9 Sep 2010
+1.30_06 2010-09-09
     - Resolved # 60860: Slow but steady memory leak on
       last_insert_id calls (ISHIGAKI)
     - Moved DBD::SQLite::FTS3Transitional into a dedicated dist (DAMI)
@@ -249,11 +249,11 @@ Changes for Perl extension DBD-SQLite
       because they are inherited from the bundled Test::NoWarnings (ADAMK)
     - Upgraded ppport.h to the latest version (ADAMK)
 
-1.30_05 Fri 27 Aug 2010
+1.30_05 2010-08-27
     - Test::NoWarnings bundled in the "inc" directory was ignored
       in a new test. (ISHIGAKI)
 
-1.30_04 Wed 25 Aug 2010
+1.30_04 2010-08-25
     - Updated to SQLite 3.7.2 (DUNCAND)
     - Resolved #60698: "Test failures with SQLite 3.7", using included
       patch by Niko Tyni (ntyni@debian.org) of t/lib/Test.pm (DUNCAND)
@@ -267,7 +267,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #58332: Documentation error for preventing fsync
       (ISHIGAKI)
 
-1.30_03 Mon 21 May 2010
+1.30_03 2010-05-21
     - Updated to SQLite 3.6.23.1 (ISHIGAKI)
     - Resolved #56693: [PATCH] Fix spelling errors (patch by
       Ansgar Burchardt) (ISHIGAKI)
@@ -276,7 +276,7 @@ Changes for Perl extension DBD-SQLite
     - Ignore unknown collations, as they may be installed without
       using DBD::SQLite's api. This should help ICU plugin. (ISHIGAKI)
 
-1.30_02 Tue 30 Mar 2010
+1.30_02 2010-03-30
     - Implemented sqlite_use_immediate_transaction database handle
       attribute to avoid deadlocks easily (ISHIGAKI)
     - Resolved #55466: Problem with names in DB that using square
@@ -284,7 +284,7 @@ Changes for Perl extension DBD-SQLite
     - Added SQLITE_ENABLE_LOCKING_STYLE=0 for Mac OSX to avoid
       compile error (ISHIGAKI)
 
-1.30_01 Wed 10 Mar 2010
+1.30_01 2010-03-10
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #54271: Inserting a string with utf-8 flag on
       corrupts BLOB data; now BLOB data is always stored as bytes
@@ -306,10 +306,10 @@ Changes for Perl extension DBD-SQLite
       extension authors to use the same C source/header as they
       used to build DBD::SQLite itself. (ISHIGAKI)
 
-1.29 Fri  8 Jan 2010
+1.29 2010-01-08
     - Updated to SQLite 3.6.22 (DUNCAND)
 
-1.28_02 Sun  3 Jan 2010
+1.28_02 2010-01-03
     - Now empty (or comment only) statements won't cause segv
       or "not an error" errors. Spotted by TOKUHIROM. (ISHIGAKI)
     - Resolved #52573: previous fix always turned on the AutoCommit
@@ -318,16 +318,16 @@ Changes for Perl extension DBD-SQLite
     - Removed the SQLITE_CORE and SQLITE_PRT_SZ flags at the recommendation
       of the SQLite mailing list. (ADAMK)
 
-1.28_01 Tue 22 Dec 2009
+1.28_01 2009-12-22
     - Updated to SQLite 3.6.21 (ISHIGAKI)
     - Silence warnings on HP-UX (HMBRAND)
     - Resolved #52573: Manual Transaction handling seems to be
       broken (hopefully) (ISHIGAKI)
 
-1.27 Mon 23 Nov 2009
+1.27 2009-11-23
     - Switching to a production version
 
-1.26_07 Sun 15 Nov 2009
+1.26_07 2009-11-15
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Foreign keys support is once again disabled by default.
       It seems to have a greater impact than we expected and
@@ -344,7 +344,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #50935: there remained old "unicode" attribute usage
       in the pod, spotted by ASHLEY. (ISHIGAKI)
 
-1.26_06 Wed 28 Oct 2009
+1.26_06 2009-10-28
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Removed undocumented (and most probably unused) reset method
       from a statement handle (which was only accessible via func().)
@@ -363,10 +363,10 @@ Changes for Perl extension DBD-SQLite
     - Pod reorganized, and some of the missing bits (including
       pragma) are added. (ISHIGAKI)
 
-1.26_05 Thu 15 Oct 2009
+1.26_05 2009-10-15
     - Updated to SQLite 3.6.19 (ISHIGAKI)
 
-1.26_04 Tue 6 Oct 2009
+1.26_04 2009-10-06
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #49716: Fixed $dbh->column_info to work according to
       the spec in DBI and added support for attached databases. (VLYON)
@@ -388,7 +388,7 @@ Changes for Perl extension DBD-SQLite
     - Added documentation and an 'Escape' attribute for $sth->table_info.
       (VLYON)
 
-1.26_03 Wed 12 Aug 2009
+1.26_03 2009-08-12
     - Updated to SQLite 3.6.17 (ISHIGAKI)
     - Switched to use :memory: for most of the tests (ISHIGAKI)
     - Fixed a memory leak when prepare should fail (ISHIGAKI)
@@ -411,7 +411,7 @@ Changes for Perl extension DBD-SQLite
     - META.yml requires is now generated instead of being derived from the
       (incorrect) PREREQ_PM values by ExtUtils::MakeMaker (ADAMK)
 
-1.26_02 Fri 19 Jun 2009
+1.26_02 2009-06-19
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #46831: table_info schema is incorrect and doesn't
       work with attached databases (VLYON/ISHIGAKI)
@@ -426,7 +426,7 @@ Changes for Perl extension DBD-SQLite
       calls (#44871) (ISHIGAKI)
     - Removed all of the "croak"s (#44871) (ISHIGAKI)
 
-1.26_01 Tue  5 May 2009
+1.26_01 2009-05-05
     - Added ORDINAL_POSITION support for $dbh->column_info (ADAMK)
     - Applied several fixes from GFUJI to clean up code (#45578)
       (ISHIGAKI)
@@ -436,16 +436,16 @@ Changes for Perl extension DBD-SQLite
       compares a return value of a function with a numeric bind
       value (ISHIGAKI)
 
-1.25 Thu 23 Apr 2009
+1.25 2009-04-23
     - Amalgamation conversion turned out to be quicker than expected.
     - Changing to a production release.  (ADAMK)
 
-1.24_02 Wed 22 Apr 2009
+1.24_02 2009-04-22
     - Merging various externally-contributed annotations from
       annocpan.org (ADAMK)
     - Created the beginnings of a DBD::SQLite::Cookbook (ADAMK)
 
-1.24_01 Wed 22 Apr 2009
+1.24_01 2009-04-22
     - Moved getsqlite.pl into util (ADAMK)
     - Switching to the RT queue instead of the RT report page that
       does nothing and just refers you to email (ADAMK)
@@ -453,15 +453,15 @@ Changes for Perl extension DBD-SQLite
     - Resolved #45166: better unicode path handling under cygwin (ISHIGAKI)
     - Resolved #45171: test failure on CentOS 4.6 (ISHIGAKI)
 
-1.23 Sun 19 Apr 2009
+1.23 2009-04-19
     - No changes from 1.22_08, just switched to production release (ADAMK)
 
-1.22_08 Fri 17 Apr 2009
+1.22_08 2009-04-17
     - Completed the migration of all tests and deleted lib.pl (ADAMK)
     - Prevented a double "commit is innefective" warning (ADAMK)
     - Adding a version for the Win32.pm dependency (ADAMK)
 
-1.22_07 Thu 16 Apr 2009
+1.22_07 2009-04-16
     - Improved non-latin unicode filename support/test
       on Windows (SZABGAB/ISHIGAKI)
     - Removed the table name generator from t/lib.pl,
@@ -470,17 +470,17 @@ Changes for Perl extension DBD-SQLite
     - Converted half the remaining lib.pl tests to t::lib::Test (ADAMK)
     - Require Win32.pm on Windows (CHORNY)
 
-1.22_06 Wed 15 Apr 2009
+1.22_06 2009-04-15
     - Simplifying various miscellaneous code (ADAMK)
     - Adding support for non-latin unicode filenames on Windows (ADAMK)
 
-1.22_05 Wed 15 Apr 2009
+1.22_05 2009-04-15
     - Hopefully the last dev release before the next production release.
     - Updated to SQLite 3.6.13 (DUNCAND)
     - Setting svn:eol-style to native to prevent EOL issues (ADAMK)
     - Resolved #44861: tweaked Makefile.PL to support older HP-UX (ISHIGAKI)
 
-1.22_04 Sat 11 Apr 2009 
+1.22_04 2009-04-11
     - Adding support parsing attributes out of the DSN (ADAMK)
     - Inserted pTHX_/aTHX_ for better efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
     - Dropping support for uncode before 5.8.5 to simplify support and
@@ -493,12 +493,12 @@ Changes for Perl extension DBD-SQLite
       2) Add "+0" to the appropriate part(s) of your SQL to let
       sqlite convert them into a number. (ISHIGAKI)
 
-1.22_03 Thu 10 Apr 2009
+1.22_03 2009-04-10
     - Resolved #44876: Patch to fix includes in the SQLITE_LOCATION case by janus (ISHIGAKI)
     - Added PERL_NO_GET_CONTEXT for efficiency (suggested in #44884 by TIMB) (ISHIGAKI)
     - Refactored error handling (suggested in #44884, #44871 by TIMB) (ISHIGAKI)
 
-1.22_02 Wed  9 Apr 2009
+1.22_02 2009-04-09
     - Added missing documentation bits for 'create_collation'
       and 'progress_handler' (DAMI)
     - Resolved RT#25924 (Arguments to user-defined functions do not
@@ -508,22 +508,22 @@ Changes for Perl extension DBD-SQLite
     - Added SQL_NULLABLE_UNKNOWN; still wonders if the error above
       should be ignored or not (ISHIGAKI)
 
-1.22_01 Wed  9 Apr 2009
+1.22_01 2009-04-09
     - Resolved #25371: Calls sv_utf8_upgrade on strings going into
        the database to make sure latin-1 strings are not saved as
        Malformed UTF-8 character in the SQLite TEXT column (MIYAGAWA)
 
-1.21 Wed  9 Apr 2009
+1.21 2009-04-09
     - Fixed the issue that execute on inactive handles returned
       0 instead of undef, which made a DBIC test broken (ISHIGAKI)
 
-1.20 Mon  7 Apr 2009
+1.20 2009-04-07
     - Moving to the first production release of the new era.
     - Check DBI version in Makefile.PL (CHORNY)
     - Bundling Test::NoWarings into /inc to remove a dependency (ADAMK)
     - Correcting use 5.00503 to 5.006 in SQLite.pm (ADAMK)
 
-1.19_10 Mon  6 Apr 2009
+1.19_10 2009-04-06
     - A few more tests moved to Test::More (ADAMK)
     - We need DBIXS_REVISION, which appeared in DBI 1.57.
       Bumping up our dependency to match it and confirmed myself
@@ -538,7 +538,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #34828: Please add support for user-defined collations (ADAMK)
     - Made Test::NoWarnings an optional module (CORION)
 
-1.19_09 Sun  5 Apr 2009
+1.19_09 2009-04-05
     - Require perl 5.6 because dependencies require it
     - Updated ppport.h to the most recent release 3.17 (ADAMK)
     - Adding $DBI::VERSION diag to help diagnose FAIL reports (ADAMK)
@@ -560,7 +560,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #27553: prepare_cached and analyze issue (actually
       this has been fixed before) (ISHIGAKI)
 
-1.19_08 Sat  4 Apr 2009
+1.19_08 2009-04-04
     - Bumped minimum DBI dependency to 1.43 so last_insert_id is supported
       in DBI (ADAMK)
     - Resolved #30558: INSERT After PK Failure Also Fails Using
@@ -596,7 +596,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #34600: t/06_error.t stalling (ADAMK)
     - Resolved #22688: DBD::SQLITE Error Report (ADAMK)
 
-1.19_07 Sat  4 Apr 2009
+1.19_07 2009-04-04
     - Starting to work the RT queue now the basics are settled.
       Many of the items marked as resolved by my just indicate that I have
       confirmed someone else applied the fix. (ADAMK)
@@ -626,7 +626,7 @@ Changes for Perl extension DBD-SQLite
     - Resolved #7753: DBD::SQLite error shouldn't include extraneous
       info (ADAMK)
 
-1.19_06 Sat  4 Apr 2009
+1.19_06 2009-04-04
     - Fixed a segv with an error function under x86 linux
       (and hopefully Mac OSX). (TOKUHIROM)
     - Fixed yet another segv while testing DBIC reconnection (DMAKI)
@@ -644,7 +644,7 @@ Changes for Perl extension DBD-SQLite
     - Refactored away a ton of needless complexity from the
       older-style tests inherited from the CSV driver (ADAMK)
 
-1.19_05 Thu  2 Apr 2009
+1.19_05 2009-04-02
     - DBD::SQLite::Amalgamation 3.6.1.2 and DBD::SQLite 1.19
       should be feature identical now.
     - Added collations from DBD::SQLite::Amalgamation (CORION)
@@ -652,18 +652,18 @@ Changes for Perl extension DBD-SQLite
       there's no row to fetch. I hope this silences the
       Class::DBI's warnings. (ISHIGAKI)
 
-1.19_04 Tue 31 Mar 2009
+1.19_04 2009-03-31
     - Updated to SQLite 3.6.12 (ISHIGAKI)
 
-1.19_03 Tue 31 Mar 2009
+1.19_03 2009-03-31
     - Added ->column_info() (CORION)
 
-1.19_02 Sun 29 Mar 2009
+1.19_02 2009-03-29
     - Updated to SQLite 3.6.11 (ISHIGAKI)
     - Added/updated several prototypes (ISHIGAKI)
     - Moved TODO into the POD (ADAMK)
 
-1.19_01 Fri 27 Mar 2009
+1.19_01 2009-03-27
     - Updated to SQLite 3.6.10, and bumped up the version
       requirement for installed sqlite3 to 3.6.0 as 3.6.x
       has backward incompatiblity (ISHIGAKI)
@@ -896,7 +896,7 @@ Changes for Perl extension DBD-SQLite
 0.02
     - Fixed transactions
 
-0.01  Sat Feb 16 16:10:42 2002
+0.01  2002-02-16
     - original version; created by h2xs 1.20 with options
         -A -X -n DBD::SQLite
 
