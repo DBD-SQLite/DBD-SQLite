@@ -13,12 +13,12 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => (($^O eq 'cygwin') ? 15 : 27) );
+		plan( tests => (($^O eq 'cygwin') ? 14 : 26) );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-use Test::NoWarnings;
+#use Test::NoWarnings;
 use File::Temp ();
 use File::Spec::Functions ':ALL';
 
