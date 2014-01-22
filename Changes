@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.41_05 2014-01-22
+    - Resolved #92322: Failure under heavily parallelized tests
+      (ISHIGAKI)
+    - Disabled Test::NoWarnings in a test
+
 1.41_04 2014-01-12
     - Updated to SQLite 3.8.2 (ISHIGAKI)
     - Resolved #90211: Error in documentation (Felix Li)
