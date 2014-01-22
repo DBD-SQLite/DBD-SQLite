@@ -11,12 +11,12 @@ use Test::More tests => 17;
 use DBI;
 use DBD::SQLite;
 
-my $dbfile = 'foo';
+my $dbfile = dbfile('foo');
 my %uri = (
-  base => 'file:foo',
-  ro   => 'file:foo?mode=ro',
-  rw   => 'file:foo?mode=rw',
-  rwc  => 'file:foo?mode=rwc',
+  base => "file:$dbfile",
+  ro   => "file:$dbfile?mode=ro",
+  rw   => "file:$dbfile?mode=rw",
+  rwc  => "file:$dbfile?mode=rwc",
 );
 
 sub cleanup {

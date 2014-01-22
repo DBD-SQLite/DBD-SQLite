@@ -11,7 +11,7 @@ use Test::More tests => 8;
 use DBI;
 use DBD::SQLite;
 
-my $dbfile = 'foo';
+my $dbfile = dbfile('foo');
 unlink $dbfile if -f $dbfile;
 
 {

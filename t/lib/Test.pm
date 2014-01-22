@@ -25,7 +25,7 @@ BEGIN {
 # Always load the DBI module
 use DBI ();
 
-sub dbfile { $dbfiles{$_[0]} }
+sub dbfile { $dbfiles{$_[0]} ||= (defined $_[0] && length $_[0] && $_[0] ne ':memory:') ? $_[0] . $$ : $_[0] }
 
 # Delete temporary files
 sub clean {
@@ -47,9 +47,8 @@ END   { clean() }
 # A simplified connect function for the most common case
 sub connect_ok {
 	my $attr = { @_ };
-	my $dbfile = defined $attr->{dbfile} ? delete $attr->{dbfile} : ':memory:';
-	$dbfiles{$dbfile} = (defined $dbfile && length $dbfile && $dbfile ne ':memory:') ? $dbfile . $$ : $dbfile;
-	my @params = ( "dbi:SQLite:dbname=$dbfiles{$dbfile}", '', '' );
+	my $dbfile = dbfile(defined $attr->{dbfile} ? delete $attr->{dbfile} : ':memory:');
+	my @params = ( "dbi:SQLite:dbname=$dbfile", '', '' );
 	if ( %$attr ) {
 		push @params, $attr;
 	}
