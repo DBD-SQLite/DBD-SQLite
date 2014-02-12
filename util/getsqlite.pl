@@ -29,7 +29,9 @@ my $version_dotty = join '.', ($version_parts[3] ? @version_parts : @version_par
 my $is_pre_30704_style = ($version_as_num < 3070400);
 my $version_for_url = $is_pre_30704_style ? $version_dotty : $version_as_num;
 my $year = "";
-if ($version_as_num >= 3071600) {
+if ($version_as_num >= 3080300) {
+  $year = "2014/";
+} elsif ($version_as_num >= 3071600) {
   $year = "2013/";
 }
 
