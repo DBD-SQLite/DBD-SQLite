@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.41_06 2014-02-12
+    - Updated to SQLite 3.8.3.1, which fixed a SQLite bug in 3.8.2
+      (bundled in DBD::SQLite 1.41_04/5) that could cause queries to
+      omit valid out rows. (ISHIGAKI)
+
 1.41_05 2014-01-22
     - Resolved #92322: Failure under heavily parallelized tests
       (ISHIGAKI)
