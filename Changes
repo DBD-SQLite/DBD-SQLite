@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.42 2014-03-20
+    - Switched to a production version. (ISHIGAKI)
+
 1.41_07 2014-03-13
     - Updated to SQLite 3.8.4.1, which fixed several obscure bugs on
       "ORDER BY" or "DISTINCT". (ISHIGAKI)
