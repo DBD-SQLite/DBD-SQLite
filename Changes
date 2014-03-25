@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_02 2014-03-26
+    - Limited -std=gnu99 to solaris gcc only, though it may be
+      harmless in many cases (mattp++) (ISHIGAKI)
+
 1.43_01 2014-03-26
     - Added -std=gnu99 for solaris gcc users (reported by mattp++)
       (ISHIGAKI)
