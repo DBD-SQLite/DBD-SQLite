@@ -206,9 +206,9 @@ set_authorizer(dbh, authorizer)
 
 
 int
-busy_timeout(dbh, timeout=0)
+busy_timeout(dbh, timeout=NULL)
     SV *dbh
-    int timeout
+    SV *timeout
     ALIAS:
         DBD::SQLite::db::sqlite_busy_timeout = 1
     CODE:

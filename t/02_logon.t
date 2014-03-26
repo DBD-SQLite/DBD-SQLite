@@ -12,7 +12,7 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 18 * @CALL_FUNCS + 1;
+plan tests => 20 * @CALL_FUNCS + 1;
 
 my $show_diag = 0;
 foreach my $call_func (@CALL_FUNCS) {
@@ -26,6 +26,9 @@ foreach my $call_func (@CALL_FUNCS) {
 		ok( $dbh->$call_func('busy_timeout'), 'Found initial busy_timeout' );
 		ok( $dbh->$call_func(5000, 'busy_timeout') );
 		is( $dbh->$call_func('busy_timeout'), 5000, 'Set busy_timeout to new value' );
+
+		ok( defined $dbh->$call_func(0, 'busy_timeout') );
+		is( $dbh->$call_func('busy_timeout'), 0, 'Set busy_timeout to 0' );
 	}
 
 	# Attributes in the connect string

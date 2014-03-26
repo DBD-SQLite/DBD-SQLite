@@ -1379,19 +1379,19 @@ sqlite_db_filename(pTHX_ SV *dbh)
 }
 
 int
-sqlite_db_busy_timeout(pTHX_ SV *dbh, int timeout )
+sqlite_db_busy_timeout(pTHX_ SV *dbh, SV *timeout )
 {
     D_imp_dbh(dbh);
 
     croak_if_db_is_null();
 
-    if (timeout) {
-        imp_dbh->timeout = timeout;
+    if (timeout && SvIOK(timeout)) {
+        imp_dbh->timeout = SvIV(timeout);
         if (!DBIc_ACTIVE(imp_dbh)) {
             sqlite_error(dbh, -2, "attempt to set busy timeout on inactive database handle");
             return -2;
         }
-        sqlite3_busy_timeout(imp_dbh->db, timeout);
+        sqlite3_busy_timeout(imp_dbh->db, imp_dbh->timeout);
     }
     return imp_dbh->timeout;
 }

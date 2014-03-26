@@ -96,7 +96,7 @@ int sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *ag
 int sqlite_db_create_collation(pTHX_ SV *dbh, const char *name, SV *func);
 int sqlite_db_progress_handler(pTHX_ SV *dbh, int n_opcodes, SV *handler);
 int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type, SV *attribs );
-int sqlite_db_busy_timeout (pTHX_ SV *dbh, int timeout );
+int sqlite_db_busy_timeout (pTHX_ SV *dbh, SV *timeout );
 int sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename);
 int sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename);
 void sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback );
