@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_03 not yet released
+    - Fixed busy_timeout to accept 0 to disable (reported by zdm)
+      (ISHIGAKI)
+
 1.43_02 2014-03-26
     - Limited -std=gnu99 to solaris gcc only, though it may be
       harmless in many cases (mattp++) (ISHIGAKI)
