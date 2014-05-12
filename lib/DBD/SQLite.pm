@@ -459,6 +459,7 @@ sub primary_key_info {
                 }
             }
 
+            my $key_name = $row->{sql} =~ /\bCONSTRAINT\s+(\S+|"[^"]+")\s+PRIMARY\s+KEY\s*\(/i ? $1 : 'PRIMARY KEY';
             my $key_seq = 0;
             foreach my $pk_field (@pk) {
                 push @pk_info, {
@@ -466,7 +467,7 @@ sub primary_key_info {
                     TABLE_NAME  => $tbname,
                     COLUMN_NAME => $pk_field,
                     KEY_SEQ     => ++$key_seq,
-                    PK_NAME     => 'PRIMARY KEY',
+                    PK_NAME     => $key_name,
                 };
             }
         }
