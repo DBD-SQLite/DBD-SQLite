@@ -5,6 +5,8 @@ Changes for Perl extension DBD-SQLite
       (ISHIGAKI)
     - Resolved #95511: primary_key_info fails to return names for
       named primary keys (Kenneth Kroenlein)
+    - Resolved #96050: Segfault in disconnected sqlite_db_filename
+      (reported by Alex Vandiver) (ISHIGAKI)
 
 1.43_02 2014-03-26
     - Limited -std=gnu99 to solaris gcc only, though it may be
