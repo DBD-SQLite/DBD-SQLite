@@ -444,6 +444,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
             sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
         }
     }
+    imp_dbh->db = NULL;
 
     av_undef(imp_dbh->functions);
     SvREFCNT_dec(imp_dbh->functions);
@@ -467,7 +468,6 @@ sqlite_db_destroy(SV *dbh, imp_dbh_t *imp_dbh)
     if (DBIc_ACTIVE(imp_dbh)) {
         sqlite_db_disconnect(dbh, imp_dbh);
     }
-    imp_dbh->db = NULL;
 
     DBIc_IMPSET_off(imp_dbh);
 }
@@ -1371,6 +1371,11 @@ sqlite_db_filename(pTHX_ SV *dbh)
 {
     D_imp_dbh(dbh);
     const char *filename;
+
+    if (!imp_dbh->db) {
+        sqlite_error(dbh, -1, "Can't tell the filename of a closed database");
+        return &PL_sv_undef;
+    }
 
     croak_if_db_is_null();
 
