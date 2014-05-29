@@ -20,5 +20,5 @@ $dbh->disconnect;
 
 {
 	my $filename = eval { $dbh->sqlite_db_filename };
-	ok $@ && !$filename, "got an error; no filename; and no segfault";
+	ok !$@ && !$filename, "got no error; no filename; and no segfault";
 }

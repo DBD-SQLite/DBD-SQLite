@@ -1373,7 +1373,6 @@ sqlite_db_filename(pTHX_ SV *dbh)
     const char *filename;
 
     if (!imp_dbh->db) {
-        sqlite_error(dbh, -1, "Can't tell the filename of a closed database");
         return &PL_sv_undef;
     }
 
