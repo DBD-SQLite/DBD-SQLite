@@ -1,6 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.43_03 not yet released
+    - Updated to SQLite 3.8.5 (ISHIGAKI)
     - Fixed busy_timeout to accept 0 to disable (reported by zdm)
       (ISHIGAKI)
     - Resolved #95511: primary_key_info fails to return names for
