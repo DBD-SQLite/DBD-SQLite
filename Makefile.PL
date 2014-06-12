@@ -56,7 +56,7 @@ eval {
 	require DBI;
 };
 if ( $@ or DBI->VERSION < $DBI_required ) {
-	print "DBI 1.57 is required to configure this module; please install it or upgrade your CPAN/CPANPLUS shell.\n";
+	print "DBI $DBI_required is required to configure this module; please install it or upgrade your CPAN/CPANPLUS shell.\n";
 	exit(0);
 }
 
