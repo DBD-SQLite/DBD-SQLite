@@ -255,13 +255,7 @@ if ($^O =~ /bsd/i && $^O !~ /(?:open|net)bsd/) {
 	push @CC_DEFINE, '-D_XOPEN_SOURCE';
 }
 
-my @CC_OPTIONS = (
-	INC          => join( ' ', @CC_INC    ),
-	DEFINE       => join( ' ', @CC_DEFINE ),
-	( @CC_LIBS ? (
-		LIBS => join( ' ', @CC_LIBS )
-	) : () ),
-);
+my (@CCFLAGS, @LDFLAGS, @LDDLFLAGS);
 
 # RT #70135: See if ld supports Bsymbolic; 
 unless ($^O eq 'MSWin32' && $Config{ld} =~ /link/) {
@@ -270,16 +264,28 @@ unless ($^O eq 'MSWin32' && $Config{ld} =~ /link/) {
 			my $devnull = File::Spec->devnull;
 			my $output = `$path/ld --help 2>$devnull`;
 			if ($output =~ /Bsymbolic/) {
-				push @CC_OPTIONS,
-					CCFLAGS   => $Config{ccflags}   . ' -Wl,-Bsymbolic',
-					LDFLAGS   => $Config{ldflags}   . ' -Wl,-Bsymbolic',
-					LDDLFLAGS => $Config{lddlflags} . ' -Wl,-Bsymbolic';
+				push @CCFLAGS, '-Wl,-Bsymbolic';
+				push @LDFLAGS, '-Wl,-Bsymbolic';
+				push @LDDLFLAGS, '-Wl,-Bsymbolic';
 			}
 			last;
 		}
 	}
 }
 
+if ($^O eq 'solaris' && $Config{gccversion}) {
+	push @CCFLAGS, "-std=gnu99";
+}
+
+my %CC_OPTIONS = (
+	INC          => join( ' ', @CC_INC    ),
+	DEFINE       => join( ' ', @CC_DEFINE ),
+);
+
+$CC_OPTIONS{LIBS}      = join ' ', @CC_LIBS if @CC_LIBS;
+$CC_OPTIONS{CCFLAGS}   = join ' ', $Config{ccflags}, @CCFLAGS if @CCFLAGS;
+$CC_OPTIONS{LDFLAGS}   = join ' ', $Config{ldflags}, @LDFLAGS if @LDFLAGS;
+$CC_OPTIONS{LDDLFLAGS} = join ' ', $Config{lddlflags}, @LDDLFLAGS if @LDDLFLAGS;
 
 
 
@@ -308,11 +314,7 @@ WriteMakefile(
 	# this change broke a test under some environment, and thus, may
 	# break other applications eventually. I'm not sure if this is
 	# worth the trouble.
-	OPTIMIZE => $Config{optimize} . (
-		($^O eq 'solaris')
-			? (!$Config{gccversion} ? "" : " -O2 -std=gnu99")
-			: " -O2"
-	),
+	OPTIMIZE => $Config{optimize} . ($^O eq 'solaris' && !$Config{gccversion} ? "" : " -O2"),
 	OPTIONAL( '6.48',
 		MIN_PERL_VERSION => '5.006',
 	),
@@ -367,7 +369,7 @@ WriteMakefile(
 	PL_FILES         => {},
 	EXE_FILES        => [],
 
-	@CC_OPTIONS,
+	%CC_OPTIONS,
 );
 
 package MY;
