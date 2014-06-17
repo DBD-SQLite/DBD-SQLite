@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_04 to be released
+    - Resolved #96494: [PATCH] add SYSTEM TABLE to table_info() type
+      list (MJP)
+
 1.43_03 2014-06-12
     - Updated to SQLite 3.8.5, which should fix query planner's 
       issues in SQLite (ISHIGAKI)
