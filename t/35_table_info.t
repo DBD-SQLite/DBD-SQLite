@@ -7,8 +7,12 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 18;
+use Test::More tests => 22;
 use Test::NoWarnings;
+
+my @catalog_info = (
+    [undef, undef, undef, undef, undef],
+);
 
 my @schema_info = (
     [undef, 'main', undef, undef, undef],
@@ -19,14 +23,33 @@ my @systable_info = (
     [undef, 'temp', 'sqlite_temp_master', 'SYSTEM TABLE', undef, undef]
 );
 
+my @type_info = (
+    [undef, undef, undef, 'LOCAL TEMPORARY', undef],
+    [undef, undef, undef, 'SYSTEM TABLE', undef],
+    [undef, undef, undef, 'TABLE', undef],
+    [undef, undef, undef, 'VIEW', undef],
+);
+
 # Create a database
 my $dbh = connect_ok();
 
-# Check avalable schemas
-my $sth = $dbh->table_info('', '%', '');
-ok $sth, 'We can get table/schema information';
+# Check available catalogs
+my $sth = $dbh->table_info('%', '', '');
+ok $sth, 'We can get catalog information';
 my $info = $sth->fetchall_arrayref;
+is_deeply $info, \@catalog_info, 'Correct catalog information';
+
+# Check available schemas
+$sth = $dbh->table_info('', '%', '');
+ok $sth, 'We can get table/schema information';
+$info = $sth->fetchall_arrayref;
 is_deeply $info, \@schema_info, 'Correct table/schema information';
+
+# Check supported types
+$sth = $dbh->table_info('', '', '', '%');
+ok $sth, 'We can get type information';
+$info = $sth->fetchall_arrayref;
+is_deeply $info, \@type_info, 'Correct table_info for type listing';
 
 # Create a table
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE one' );

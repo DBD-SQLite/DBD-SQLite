@@ -315,7 +315,8 @@ SELECT NULL TABLE_CAT
 FROM (
      SELECT 'TABLE' tt                  UNION
      SELECT 'VIEW' tt                   UNION
-     SELECT 'LOCAL TEMPORARY' tt
+     SELECT 'LOCAL TEMPORARY' tt        UNION
+     SELECT 'SYSTEM TABLE' tt
 ) t
 ORDER BY TABLE_TYPE
 END_SQL
