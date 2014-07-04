@@ -9,3 +9,4 @@ Makefile.old
 dll.*
 *.def
 MYMETA.*
+*~
