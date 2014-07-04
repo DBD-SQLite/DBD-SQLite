@@ -55,7 +55,6 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_table_column_metadata', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_db_filename', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_db_status', { O => 0x0004 });
-
         DBD::SQLite::st->install_method('sqlite_st_status', { O => 0x0004 });
 
         $methods_are_installed++;
@@ -2455,7 +2454,8 @@ Both are as explained below.
 
 =head3 SQLite builtin tokenizers
 
-SQLite comes with three builtin tokenizers :
+SQLite comes with some builtin tokenizers (see
+L<http://www.sqlite.org/fts3.html#tokenizer>) :
 
 =over
 
@@ -2482,23 +2482,45 @@ words to a common root.
 
 =item icu
 
-If SQLite is compiled with the SQLITE_ENABLE_ICU
-pre-processor symbol defined, then there exists a built-in tokenizer
-named "icu" implemented using the ICU library, and taking an
-ICU locale identifier as argument (such as "tr_TR" for
-Turkish as used in Turkey, or "en_AU" for English as used in
-Australia). For example:
+The I<icu> tokenizer uses the ICU library to decide how to
+identify word characters in different languages; however, this
+requires SQLite to be compiled with the C<SQLITE_ENABLE_ICU>
+pre-processor symbol defined. So, to use this tokenizer, you need
+edit F<Makefile.PL> to add this flag in C<@CC_DEFINE>, and then
+recompile C<DBD::SQLite>; of course, the prerequisite is to have
+an ICU library available on your system.
 
-  CREATE VIRTUAL TABLE thai_text USING fts4(text, tokenize=icu th_TH)
+=item unicode61
 
-The ICU tokenizer implementation is very simple. It splits the input
-text according to the ICU rules for finding word boundaries and
-discards any tokens that consist entirely of white-space. This may be
-suitable for some applications in some locales, but not all. If more
-complex processing is required, for example to implement stemming or
-discard punctuation, use the perl tokenizer as explained below.
+The "unicode61" tokenizer works very much like "simple" except that it
+does full unicode case folding according to rules in Unicode Version
+6.1 and it recognizes unicode space and punctuation characters and
+uses those to separate tokens. By contrast, the simple tokenizer only
+does case folding of ASCII characters and only recognizes ASCII space
+and punctuation characters as token separators.
+
+By default, "unicode61" also removes all diacritics from Latin script
+characters. This behaviour can be overridden by adding the tokenizer
+argument "remove_diacritics=0". For example:
+
+  -- Create tables that remove diacritics from Latin script characters
+  -- as part of tokenization.
+  CREATE VIRTUAL TABLE txt1 USING fts4(tokenize=unicode61);
+  CREATE VIRTUAL TABLE txt2 USING fts4(tokenize=unicode61 "remove_diacritics=1");
+
+  -- Create a table that does not remove diacritics from Latin script
+  -- characters as part of tokenization.
+  CREATE VIRTUAL TABLE txt3 USING fts4(tokenize=unicode61 "remove_diacritics=0");
+
+Additional options can customize the set of codepoints that unicode61
+treats as separator characters or as token characters -- see the
+documentation in L<http://www.sqlite.org/fts3.html#unicode61>.
 
 =back
+
+If a more complex tokenizing algorithm is required, for example to
+implement stemming, discard punctuation, or to recognize compound words,
+use the perl tokenizer to implement your own logic, as explained below.
 
 =head3 Perl tokenizers
 
@@ -2573,15 +2595,29 @@ write :
                         tokenize=perl 'Search::Tokenizer::unaccent')
 
 Alternatively, you can use L<Search::Tokenizer/new> to build
-your own tokenizer.
+your own tokenizer. Here is an example that treats compound
+words (words with an internal dash or dot) as single tokens :
 
+  sub my_tokenizer {
+    return Search::Tokenizer->new(
+      regex => qr{\p{Word}+(?:[-./]\p{Word}+)*},
+     );
+  }
 
-=head2 Incomplete handling of utf8 characters
+=head2 Fts4aux - Direct Access to the Full-Text Index
 
-The current FTS implementation in SQLite is far from complete with
-respect to utf8 handling : in particular, variable-length characters
-are not treated correctly by the builtin functions
-C<offsets()> and C<snippet()>.
+The content of a full-text index can be accessed through the
+virtual table module "fts4aux". For example, assuming that
+our database contains a full-text indexed table named "ft",
+we can declare :
+
+  CREATE VIRTUAL TABLE ft_terms USING fts4aux(ft)
+
+and then query the C<ft_terms> table to access the
+list of terms, their frequency, etc.
+Examples are documented in
+L<http://www.sqlite.org/fts3.html#fts4aux>.
+
 
 =head2 Database space for FTS
 
