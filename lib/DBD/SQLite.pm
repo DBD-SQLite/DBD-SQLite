@@ -56,6 +56,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_db_filename', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_db_status', { O => 0x0004 });
         DBD::SQLite::st->install_method('sqlite_st_status', { O => 0x0004 });
+        DBD::SQLite::db->install_method('sqlite_create_module');
 
         $methods_are_installed++;
     }
