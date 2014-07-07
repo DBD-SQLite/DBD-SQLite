@@ -196,9 +196,6 @@ sub prepare {
     my $sql = shift;
     $sql = '' unless defined $sql;
 
-    # sqlite3_prepare wants an utf8-encoded SQL statement
-    utf8::upgrade($sql);
-
     my $sth = DBI::_new_sth( $dbh, {
         Statement => $sql,
     } );

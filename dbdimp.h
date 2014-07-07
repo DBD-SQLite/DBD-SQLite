@@ -64,7 +64,7 @@ struct imp_sth_st {
 #define dbd_db_STORE_attrib     sqlite_db_STORE_attrib
 #define dbd_db_FETCH_attrib     sqlite_db_FETCH_attrib
 #define dbd_db_last_insert_id   sqlite_db_last_insert_id
-#define dbd_st_prepare          sqlite_st_prepare
+#define dbd_st_prepare_sv       sqlite_st_prepare_sv
 #define dbd_st_rows             sqlite_st_rows
 #define dbd_st_execute          sqlite_st_execute
 #define dbd_st_fetch            sqlite_st_fetch
