@@ -1,4 +1,4 @@
-package DBD::SQLite::VirtualTable::Filesys;
+package DBD::SQLite::VirtualTable::FileContent;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
@@ -6,12 +6,12 @@ use base 'DBD::SQLite::VirtualTable';
 
 =head1 NAME
 
-DBD::SQLite::VirtualTable::Filesys -- virtual table for viewing file contents
+DBD::SQLite::VirtualTable::FileContent -- virtual table for viewing file contents
 
 
 =head1 SYNOPSIS
 
-  -- $dbh->sqlite_create_module(filesys => "DBD::SQLite::VirtualTable::Filesys");
+  -- $dbh->sqlite_create_module(filesys => "DBD::SQLite::VirtualTable::FileContent");
 
   CREATE VIRTUAL TABLE tbl USING filesys(file_content,
                                          index_table = idx,
@@ -20,9 +20,11 @@ DBD::SQLite::VirtualTable::Filesys -- virtual table for viewing file contents
                                          root        = "/foo/bar")
 
 
+  -- OR : expose = *
+
 =head1 DESCRIPTION
 
-A "Filesys" virtual table is like a database view on some underlying
+A "FileContent" virtual table is like a database view on some underlying
 I<index table>, which has a column containing paths to
 files; the virtual table then adds a supplementary column which exposes
 the content from those files.
@@ -45,10 +47,10 @@ sub initialize {
 
   # verifications
   @{$self->{columns}} == 1
-    or die "Filesys virtual table should declare exactly 1 content column";
+    or die "FileContent virtual table should declare exactly 1 content column";
   for my $opt (qw/index_table path_col/) {
     $self->{options}{$opt}
-      or die "Filesys virtual table: option '$opt' is missing";
+      or die "FileContent virtual table: option '$opt' is missing";
   }
 
   # get list of columns from the index table
@@ -111,7 +113,7 @@ sub BEST_INDEX {
   return $outputs;
 }
 
-package DBD::SQLite::VirtualTable::Filesys::Cursor;
+package DBD::SQLite::VirtualTable::FileContent::Cursor;
 use 5.010;
 use strict;
 use warnings;

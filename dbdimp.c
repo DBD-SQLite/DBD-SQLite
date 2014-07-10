@@ -3111,8 +3111,11 @@ static int perl_vt_BestIndex(sqlite3_vtab *pVTab, sqlite3_index_info *pIdxInfo){
     pIdxInfo->idxNum = (val && SvOK(*val)) ? SvIV(*val) : 0;
     val = hv_fetch(hv, "idxStr", 6, FALSE);
     if (val && SvOK(*val)) {
-        char *str = SvPVutf8_nolen(*val);
-        pIdxInfo->idxStr           = sqlite3_mprintf(str);
+        STRLEN len;
+        char *str = SvPVutf8(*val, len);
+        pIdxInfo->idxStr           = sqlite3_malloc(len+1);
+        memcpy(pIdxInfo->idxStr, str, len);
+        pIdxInfo->idxStr[len] = 0;
         pIdxInfo->needToFreeIdxStr = 1;
     }
     val = hv_fetch(hv, "orderByConsumed", 15, FALSE);

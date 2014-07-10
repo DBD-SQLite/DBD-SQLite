@@ -1,6 +1,4 @@
 #!/usr/bin/perl
-
-# TMP HACK
 use strict;
 BEGIN {
 	$|  = 1;
@@ -15,19 +13,23 @@ use FindBin;
 my $dbfile = "tmp.sqlite";
 
 my @tests = (
-  ["VirtualTable"   => qw[lib/DBD/SQLite/VirtualTable.pm
-                          lib/DBD/SQLite/VirtualTable/Filesys.pm]],
+  ["VirtualTable"   => qw[lib/DBD/SQLite.pm
+                          lib/DBD/SQLite/VirtualTable.pm
+                          lib/DBD/SQLite/VirtualTable/FileContent.pm
+                          lib/DBD/SQLite/VirtualTable/PerlData.pm]],
   ["install_method" => qw[lib/DBD/SQLite.pm]],
   ['"use strict"'   => qw[inc/Test/NoWarnings.pm
                           inc/Test/NoWarnings/Warning.pm
                           lib/DBD/SQLite.pm
                           lib/DBD/SQLite/VirtualTable.pm
-                          lib/DBD/SQLite/VirtualTable/Filesys.pm
+                          lib/DBD/SQLite/VirtualTable/FileContent.pm
+                          lib/DBD/SQLite/VirtualTable/PerlData.pm
                           t/lib/Test.pm
                           util/getsqlite.pl]],
   ['"use strict" AND "use warnings"' => qw[inc/Test/NoWarnings.pm
                                            lib/DBD/SQLite/VirtualTable.pm
-                                           lib/DBD/SQLite/VirtualTable/Filesys.pm
+                                           lib/DBD/SQLite/VirtualTable/FileContent.pm
+                                           lib/DBD/SQLite/VirtualTable/PerlData.pm
                                            ]],
 );
 
@@ -51,7 +53,7 @@ $sth->execute($_) foreach @perl_files;
 
 
 # create vtab table
-$dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::Filesys");
+$dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent");
 $dbh->do(<<"");
   CREATE VIRTUAL TABLE vfs USING fs(content,
                                     index_table = files,
@@ -89,7 +91,7 @@ foreach my $test (@tests) {
 # see if data was properly stored: disconnect, reconnect and test again
 undef $dbh;
 $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
-$dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::Filesys");
+$dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent");
 
 foreach my $test (@tests) {
   my ($pattern, @expected)  = @$test;

@@ -1,5 +1,4 @@
 #!/usr/bin/perl
-
 use strict;
 BEGIN {
 	$|  = 1;
@@ -86,10 +85,10 @@ use warnings;
 use base 'DBD::SQLite::VirtualTable::Cursor';
 use YAML;
 
-sub new {
+sub NEW {
   my $class = shift;
 
-  my $self = $class->SUPER::new(@_);
+  my $self = $class->SUPER::NEW(@_);
   $self->{row_count} = 5;
 
   return $self;

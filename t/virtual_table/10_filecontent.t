@@ -8,11 +8,11 @@ BEGIN {
 
 use t::lib::Test qw/connect_ok/;
 use Test::More;
-# use Test::NoWarnings;
+use Test::NoWarnings;
 use DBI qw(:sql_types);
 use FindBin;
 
-plan tests => 12;
+plan tests => 13;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 
@@ -24,12 +24,12 @@ $dbh->do(<<"");
   INSERT INTO base VALUES(1, 'foo1', '00_base.t', 'bar1')
 
 $dbh->do(<<"");
-  INSERT INTO base VALUES(2, 'foo2', '10_filesys.t', 'bar2')
+  INSERT INTO base VALUES(2, 'foo2', '10_filecontent.t', 'bar2')
 
 
 # start tests
 
-ok $dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::Filesys"),
+ok $dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent"),
    "create_module";
 
 

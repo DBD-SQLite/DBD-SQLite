@@ -1,3 +1,5 @@
+# TODO : fix bug with column name / type
+
 package DBD::SQLite::VirtualTable;
 use strict;
 use warnings;
@@ -23,7 +25,6 @@ sub CONNECT {
   my $class = shift;
   return $class->NEW(@_);
 }
-
 
 sub NEW { # called when instanciating a virtual table
   my ($class, $dbh_ref, $module_name, $db_name, $vtab_name, @args) = @_;
@@ -70,12 +71,6 @@ sub initialize {
 }
 
 
-sub connect {
-  my $class = shift;
-
-  warn "TODO -- VTAB called connect() instead of new()";
-  return $class->new(@_);
-}
 
 
 sub DROP {
@@ -132,15 +127,13 @@ sub OPEN {
 
   my $cursor_class = $class . "::Cursor";
 
-  return $cursor_class->new($self, @_);
+  return $cursor_class->NEW($self, @_);
 }
 
 
 
 sub _SQLITE_UPDATE {
   my ($self, $old_rowid, $new_rowid, @values) = @_;
-
-  warn "CURSOR->_SQLITE_UPDATE";
 
   if (! defined $old_rowid) {
     return $self->INSERT($new_rowid, @values);
@@ -156,19 +149,20 @@ sub _SQLITE_UPDATE {
 sub INSERT {
   my ($self, $new_rowid, @values) = @_;
 
-  warn "vtab->insert()";
-  my $new_computed_rowid;
-  return $new_computed_rowid;
+  die "INSERT() should be redefined in subclass";
 }
 
 sub DELETE {
   my ($self, $old_rowid) = @_;
+
+  die "DELETE() should be redefined in subclass";
 }
 
 sub UPDATE {
   my ($self, $old_rowid, $new_rowid, @values) = @_;
-}
 
+  die "UPDATE() should be redefined in subclass";
+}
 
 
 sub BEGIN_TRANSACTION    {return 0}
@@ -189,7 +183,7 @@ package DBD::SQLite::VirtualTable::Cursor;
 use strict;
 use warnings;
 
-sub new {
+sub NEW {
   my ($class, $vtable, @args) = @_;
   my $self = {vtable => $vtable,
               args   => \@args};

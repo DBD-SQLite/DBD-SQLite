@@ -2406,6 +2406,38 @@ For more detail, please see the SQLite R-Tree page
 queries using callbacks, as mentioned in the prior link, have not been
 implemented yet.
 
+=head1 VIRTUAL TABLES IMPLEMENTED IN PERL
+
+SQLite has a concept of "virtual tables" which look like regular
+tables but are implemented internally through specific functions.
+The fulltext or R* tree features described in the previous chapters
+are examples of such virtual tables, implemented in C code.
+
+C<DBD::SQLite> also supports virtual tables implemented in Perl code:
+see L<DBD::SQLite::VirtualTable>. This can have many interesting uses
+for joining regular DBMS data with some other kind of data within your
+Perl programs. Bundled with the present distribution are :
+
+=over 
+
+=item *
+
+L<DBD::SQLite::VirtualTable::FileContent> : implements a virtual
+column that exposes content from files. This is especially useful
+in conjuction with a fulltext index; see L<DBD::SQLite::Fulltext_search>.
+
+=item *
+
+L<DBD::SQLite::VirtualTable::PerlData> : binds to a Perl array
+within your main program. This can be used for simple import/export
+operations, for debugging purposes, for joining data from different
+sources, etc.
+
+=back
+
+Other Perl virtual tables may also be published separately on CPAN.
+
+
 =head1 FOR DBD::SQLITE EXTENSION AUTHORS
 
 Since 1.30_01, you can retrieve the bundled sqlite C source and/or

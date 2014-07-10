@@ -8,7 +8,8 @@ lib/DBD/SQLite.pm
 lib/DBD/SQLite/Cookbook.pod
 lib/DBD/SQLite/Fulltext_search.pod
 lib/DBD/SQLite/VirtualTable.pm
-lib/DBD/SQLite/VirtualTable/Filesys.pm
+lib/DBD/SQLite/VirtualTable/FileContent.pm
+lib/DBD/SQLite/VirtualTable/PerlData.pm
 LICENSE
 Makefile.PL
 MANIFEST			This list of files
@@ -111,7 +112,9 @@ t/rt_88228_sqlite_3_8_0_crash.t
 t/rt_96878_fts_contentless_table.t
 t/virtual_table/00_base.t
 t/virtual_table/01_destroy.t
-t/virtual_table/10_filesys.t
+t/virtual_table/10_filecontent.t
+t/virtual_table/11_filecontent_fulltext.t
+t/virtual_table/20_perldata.t
 typemap
 util/getsqlite.pl
 xt/meta.t
