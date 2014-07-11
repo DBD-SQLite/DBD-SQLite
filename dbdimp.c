@@ -2950,8 +2950,8 @@ static int perl_vt_New(const char *method,
 
     /* check the return value */
     if ( count != 1 ) {
-        *pzErr = sqlite3_mprintf("vtab->NEW() should return one value, got %d",
-                                 count );
+        *pzErr = sqlite3_mprintf("vtab->%s() should return one value, got %d",
+                                 method, count );
         SP -= count; /* Clear the stack */
         goto cleanup;
     } 
@@ -2959,11 +2959,12 @@ static int perl_vt_New(const char *method,
     /* get the VirtualTable instance */
     SV *perl_instance = POPs;
     if ( !sv_isobject(perl_instance) ) {
-        *pzErr = sqlite3_mprintf("vtab->NEW() should return a blessed reference");
+        *pzErr = sqlite3_mprintf("vtab->%s() should return a blessed reference",
+                                 method);
         goto cleanup;
     }
 
-    /* call the ->DECLARE_VTAB() method */
+    /* call the ->VTAB_TO_DECLARE() method */
     PUSHMARK(SP);
     XPUSHs(perl_instance);
     PUTBACK;
@@ -3047,12 +3048,12 @@ op2str(unsigned char op) {
         return "=";
     case SQLITE_INDEX_CONSTRAINT_GT:
         return ">";
-    case SQLITE_INDEX_CONSTRAINT_LE:
-        return "<=";
-    case SQLITE_INDEX_CONSTRAINT_LT:
-        return "<";
     case SQLITE_INDEX_CONSTRAINT_GE:
         return ">=";
+    case SQLITE_INDEX_CONSTRAINT_LT:
+        return "<";
+    case SQLITE_INDEX_CONSTRAINT_LE:
+        return "<=";
     case SQLITE_INDEX_CONSTRAINT_MATCH:
         return "MATCH";
     default:
@@ -3081,7 +3082,7 @@ static int perl_vt_BestIndex(sqlite3_vtab *pVTab, sqlite3_index_info *pIdxInfo){
     }
 
     /* build the "order_by" datastructure */
-    AV *order_by = newAV();
+     AV *order_by = newAV();
     for (i=0; i<pIdxInfo->nOrderBy; i++){
         struct sqlite3_index_orderby const *pOrder = &pIdxInfo->aOrderBy[i];
         HV *order = newHV();
@@ -3197,14 +3198,8 @@ static int perl_vt_Close(sqlite3_vtab_cursor *pVtabCursor){
     SAVETMPS;
     int count;
 
-    /* call the close() method */
-    PUSHMARK(SP);
-    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_instance);
-    PUTBACK;
-    count = call_method("CLOSE", G_VOID);
-    SPAGAIN;
-    SP -= count;
-
+    /* Note : no call to a CLOSE() method; if needed, the Perl class
+       can implement a DESTROY() method */
 
     perl_vtab_cursor *perl_pVTabCursor = (perl_vtab_cursor *) pVtabCursor;
     SvREFCNT_dec(perl_pVTabCursor->perl_cursor_instance);
@@ -3542,8 +3537,12 @@ sqlite_db_destroy_module_data(void *pAux)
 int 
 sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_class)
 {
+    dSP;
+    ENTER;
+    SAVETMPS;
+
     D_imp_dbh(dbh);
-    int rc;
+    int count, rc, retval = TRUE;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(dbh, -2, "attempt to create module on inactive database handle");
@@ -3553,7 +3552,7 @@ sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_class)
     /* load the module if needed */
     char *module_ISA = sqlite3_mprintf("%s::ISA", perl_class);
     if (!get_av(module_ISA, 0)) {
-        char *loading_code = sqlite3_mprintf("require %s", perl_class);
+        char *loading_code = sqlite3_mprintf("use %s", perl_class);
         eval_pv(loading_code, TRUE);
         sqlite3_free(loading_code);
     }
@@ -3566,20 +3565,34 @@ sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_class)
     sv_rvweaken(init_data->dbh);
     init_data->perl_class = sqlite3_mprintf(perl_class);
 
-
+    /* register within sqlite */
     rc = sqlite3_create_module_v2( imp_dbh->db,
                                    name,
                                    &perl_vt_Module, 
                                    init_data,
                                    sqlite_db_destroy_module_data
                                    );
-
     if ( rc != SQLITE_OK ) {
         sqlite_error(dbh, rc, form("sqlite_create_module failed with error %s",
                                    sqlite3_errmsg(imp_dbh->db)));
-        return FALSE;
+        retval = FALSE;
     }
-    return TRUE;
+
+
+    /* call the CREATE_MODULE() method */
+    PUSHMARK(SP);
+    XPUSHs(sv_2mortal(newSVpv(perl_class, 0)));
+    XPUSHs(sv_2mortal(newSVpv(name, 0)));
+    PUTBACK;
+    count = call_method("CREATE_MODULE", G_VOID);
+    SPAGAIN;
+    SP -= count;
+
+    PUTBACK;
+    FREETMPS;
+    LEAVE;
+
+    return retval;
 }
 
 

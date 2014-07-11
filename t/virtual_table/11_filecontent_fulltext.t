@@ -46,22 +46,20 @@ my @perl_files = grep {/\.(pl|pm|pod)$/} @files;
 # open database
 my $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
 
-# create index table
+# create the source table and populate it
 $dbh->do("CREATE TABLE files (id INTEGER PRIMARY KEY, path TEXT)");
 my $sth = $dbh->prepare("INSERT INTO files(path) VALUES (?)");
 $sth->execute($_) foreach @perl_files;
 
 
-# create vtab table
+# create the virtual table
 $dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent");
 $dbh->do(<<"");
-  CREATE VIRTUAL TABLE vfs USING fs(content,
-                                    index_table = files,
-                                    path_col    = path,
-                                    expose      = "path",
-                                    root        = "$distrib_dir")
+  CREATE VIRTUAL TABLE vfs USING fs(source = files,
+                                    expose = "path",
+                                    root   = "$distrib_dir")
 
-# create fts table
+# create the fulltext indexing table and populate it
 $dbh->do('CREATE VIRTUAL TABLE fts USING fts4(content="vfs")');
 note "building fts index....";
 $dbh->do("INSERT INTO fts(fts) VALUES ('rebuild')");
@@ -89,6 +87,7 @@ foreach my $test (@tests) {
 }
 
 # see if data was properly stored: disconnect, reconnect and test again
+$dbh->disconnect;
 undef $dbh;
 $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
 $dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent");

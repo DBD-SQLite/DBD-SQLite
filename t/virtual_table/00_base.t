@@ -29,6 +29,7 @@ is $rows->[0]{bar}, "auto_vivify:1", "bar column";
 $sql = "SELECT * FROM foobar ";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 5, "got 5 rows again";
+
 is_deeply([sort keys %{$rows->[0]}], [qw/bar foo/], "col list OK");
 
 
@@ -43,7 +44,7 @@ use warnings;
 use base 'DBD::SQLite::VirtualTable';
 use YAML;
 
-sub initialize {
+sub INITIALIZE {
   my $self = shift;
   # stupid pragma call, just to check that the dbh is OK
   $self->dbh->do("PRAGMA application_id=999");

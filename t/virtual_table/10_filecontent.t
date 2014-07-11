@@ -34,11 +34,9 @@ ok $dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent"),
 
 
 ok $dbh->do(<<""), "create vtable";
-  CREATE VIRTUAL TABLE vfs USING fs(content,
-                                    index_table = base,
-                                    path_col    = path,
-                                    expose      = "path, foo, bar",
-                                    root        = "$FindBin::Bin")
+  CREATE VIRTUAL TABLE vfs USING fs(source = base,
+                                    expose = "path, foo, bar",
+                                    root   = "$FindBin::Bin")
 
 my $sql  = "SELECT content, bar, rowid FROM vfs WHERE foo='foo2'";
 my $rows = $dbh->selectall_arrayref($sql, {Slice => {}});

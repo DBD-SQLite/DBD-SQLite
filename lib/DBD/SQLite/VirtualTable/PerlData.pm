@@ -1,38 +1,10 @@
+#======================================================================
 package DBD::SQLite::VirtualTable::PerlData;
+#======================================================================
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
 use List::MoreUtils qw/mesh/;
-
-
-=head1 NAME
-
-DBD::SQLite::VirtualTable::PerlData -- virtual table for connecting to perl data
-
-
-=head1 SYNOPSIS
-
-  -- $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
-
-  CREATE VIRTUAL TABLE tbl USING perl(foo, bar, etc,
-                                      arrayrefs="some_global_variable")
-
-  CREATE VIRTUAL TABLE tbl USING perl(foo, bar, etc,
-                                      hashrefs="some_global_variable")
-
-  CREATE VIRTUAL TABLE tbl USING perl(single_col
-                                      colref="some_global_variable")
-
-
-=head1 DESCRIPTION
-
-
-=head1 METHODS
-
-=head2 new
-
-=cut
-
 
 
 # private data for translating comparison operators from Sqlite to Perl
@@ -48,10 +20,13 @@ my %SQLOP2PERLOP = (
   'MATCH' => [ '=~',   '=~' ],
 );
 
+#----------------------------------------------------------------------
+# instanciation methods
+#----------------------------------------------------------------------
 
-sub initialize {
-  my $self  = shift;
-  my $class = ref $self;
+sub NEW {
+  my $class = shift;
+  my $self  = $class->_PREPARE_SELF(@_);
 
   # verifications
   my $n_cols = @{$self->{columns}};
@@ -68,36 +43,33 @@ sub initialize {
   no strict "refs";
   defined ${$symbolic_ref}
     or die "$class: can't find global variable \$$symbolic_ref";
-  $self->{rows} = \${$symbolic_ref};
+  $self->{rows} = \ ${$symbolic_ref};
+
+  bless $self, $class;
 }
 
-
-sub initialize_bis {
+sub _build_headers_optypes {
   my $self = shift;
 
-  # the code below cannot happen within initialize() because VTAB_TO_DECLARE()
-  # has not been called until the end of NEW(). So we do it here, which is
-  # called lazily at the first invocation if BEST_INDEX().
+  my $cols = $self->sqlite_table_info;
 
-  # get names and types of columns after they have been parsed by sqlite
-  my $sth = $self->dbh->prepare("PRAGMA table_info($self->{vtab_name})");
-  $sth->execute;
+  # headers : names of columns, without type information
+  $self->{headers} = [ map {$_->{name}} @$cols ];
 
-  # build private data 'headers' and 'optypes'
-  while (my $row = $sth->fetch) {
-    my ($colname, $coltype) = @{$row}[1, 2];
-    push @{$self->{headers}}, $colname;
-
-    # apply algorithm from datatype3.html" for type affinity
-    push @{$self->{optypes}}, $coltype =~ /INT|REAL|FLOA|DOUB/i ? $NUM : $TXT;
-  }
+  # optypes : either $NUM or $TEXT for each column
+  # (applying  algorithm from datatype3.html" for type affinity)
+  $self->{optypes}
+    = [ map {$_->{type} =~ /INT|REAL|FLOA|DOUB/i ? $NUM : $TXT} @$cols ];
 }
 
+#----------------------------------------------------------------------
+# method for initiating a search
+#----------------------------------------------------------------------
 
 sub BEST_INDEX {
   my ($self, $constraints, $order_by) = @_;
 
-  $self->initialize_bis if not exists $self->{headers};
+  $self->_build_headers_optypes if !$self->{headers};
 
   # for each constraint, build a Perl code fragment. Those will be gathered
   # in FILTER() for deciding which rows match the constraints.
@@ -107,8 +79,8 @@ sub BEST_INDEX {
     my $col = $constraint->{col};
     my ($member, $optype);
 
-    # build a Perl code fragment. Those will be gathered
-    # in FILTER() for deciding which rows match the constraints.
+    # build a Perl code fragment. Those fragments will be gathered
+    # and eval-ed in FILTER(), for deciding which rows match the constraints.
     if ($col == -1) {
       # constraint on rowid
       $member = '$i';
@@ -126,12 +98,12 @@ sub BEST_INDEX {
     my $quote = $op eq '=~' ? 'qr' : 'q';
     push @conditions, "($member $op ${quote}{%s})";
 
-    # info passed back to the sqlite kernel -- see vtab.html in sqlite doc
+    # info passed back to the SQLite core -- see vtab.html in sqlite doc
     $constraint->{argvIndex} = $ix++;
     $constraint->{omit}      = 1;
   }
 
-  # further info for the sqlite kernel
+  # further info for the SQLite core
   my $outputs = {
     idxNum           => 1,
     idxStr           => (join(" && ", @conditions) || "1"),
@@ -143,6 +115,10 @@ sub BEST_INDEX {
   return $outputs;
 }
 
+
+#----------------------------------------------------------------------
+# methods for data update
+#----------------------------------------------------------------------
 
 sub _build_new_row {
   my ($self, $values) = @_;
@@ -191,10 +167,9 @@ sub UPDATE {
 }
 
 
-
-
+#======================================================================
 package DBD::SQLite::VirtualTable::PerlData::Cursor;
-use 5.010;
+#======================================================================
 use strict;
 use warnings;
 use base "DBD::SQLite::VirtualTable::Cursor";
@@ -210,8 +185,6 @@ sub FILTER {
 
   # build a method coderef to fetch matching rows
   my $perl_code = sprintf "sub {my (\$self, \$i) = \@_; $idxStr}", @values;
-
-#  print STDERR "PERL $perl_code\n";
 
   $self->{is_wanted_row} = eval $perl_code
     or die "couldn't eval q{$perl_code} : $@";
@@ -263,24 +236,74 @@ __END__
 
 =head1 NAME
 
-DBD::SQLite::VirtualTable -- Abstract parent class for implementing virtual tables
+DBD::SQLite::VirtualTable::PerlData -- virtual table hooked to Perl data
 
 =head1 SYNOPSIS
 
-  package My::Virtual::Table;
-  use parent 'DBD::SQLite::VirtualTable';
-  
-  sub ...
+Within Perl :
+
+  $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
+
+Then, within SQL :
+
+
+  CREATE VIRTUAL TABLE atbl USING perl(foo, bar, etc,
+                                       arrayrefs="some::global::var::aref")
+
+  CREATE VIRTUAL TABLE htbl USING perl(foo, bar, etc,
+                                       hashrefs="some::global::var::href")
+
+  CREATE VIRTUAL TABLE ctbl USING perl(single_col
+                                       colref="some::global::var::ref")
+
+
+  SELECT foo, bar FROM atbl WHERE ...;
+
 
 =head1 DESCRIPTION
 
-TODO
+A C<PerlData> virtual table is a database view on some datastructure
+within a Perl program. The data can be read or modified both from SQL
+and from Perl. This is useful for simple import/export
+operations, for debugging purposes, for joining data from different
+sources, etc.
 
-=head1 METHODS
 
-TODO
+=head1 PARAMETERS
 
+Parameters for creating a C<PerlData> virtual table are specified
+within the C<CREATE VIRTUAL TABLE> statement, mixed with regular
+column declarations, but with an '=' sign.
 
+The only authorized (and mandatory) parameter is the one that
+specifies the Perl datastructure to which the virtual table is bound.
+The Perl data must be given as a fully qualified name of a global variable;
+it can be one of three different kinds :
+
+=over
+
+=item C<arrayrefs>
+
+arrayref that contains an arrayref for each row
+
+=item C<hashrefs>
+
+arrayref that contains a hashref for each row
+
+=item C<colref>
+
+arrayref that contains a single scalar for each row
+(obviously this is a single-column virtual table)
+
+=back
+
+=head1 USAGE
+
+[TODO]
+
+=head1 AUTHOR
+
+Laurent Dami E<lt>dami@cpan.orgE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
