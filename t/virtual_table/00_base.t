@@ -7,10 +7,9 @@ BEGIN {
 
 use t::lib::Test qw/connect_ok/;
 use Test::More;
-# use Test::NoWarnings;
-use DBI qw(:sql_types);
+use Test::NoWarnings;
 
-plan tests => 9;
+plan tests => 10;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 

@@ -9,7 +9,6 @@ BEGIN {
 use t::lib::Test qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
-use DBI qw(:sql_types);
 use FindBin;
 
 our $perl_rows = [
@@ -18,7 +17,7 @@ our $perl_rows = [
   [7, 8, 'nine' ],
 ];
 
-plan tests => 24;
+plan tests => 29;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -101,5 +100,22 @@ is_deeply $integers, [1 .. 10, 98, 99], "added 2 ints";
 $integers = [ 1, 7 ];
 $sql = "SELECT a FROM vtb WHERE a IN intarray";
 $res = $dbh->selectcol_arrayref($sql);
-is_deeply $res, [ 1, 7 ], "intarray as a virtual table";
+is_deeply $res, [ 1, 7 ], "IN intarray";
 
+
+# same thing with strings
+our $strings = [qw/one two three/];
+ok $dbh->do(<<""), "create vtable strarray";
+  CREATE VIRTUAL TABLE strarray USING perl(str TEXT, colref="main::strings")
+
+$sql = "INSERT INTO strarray VALUES ('aa'), ('bb')";
+ok $dbh->do($sql), $sql;
+is_deeply $strings, [qw/one two three aa bb/], "added 2 strings";
+
+$sql = "SELECT a FROM vtb WHERE c IN strarray";
+$res = $dbh->selectcol_arrayref($sql);
+is_deeply $res, [ 1 ], "IN strarray";
+
+$sql = "SELECT a FROM vtb WHERE c IN (SELECT str FROM strarray WHERE str > 'a')";
+$res = $dbh->selectcol_arrayref($sql);
+is_deeply $res, [ 1 ], "IN SELECT FROM strarray";

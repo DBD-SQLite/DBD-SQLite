@@ -87,12 +87,13 @@ sub BEST_INDEX {
       $optype = $NUM;
     }
     else {
-      my $get_col = $self->{options}{arrayrefs} ? "->[$col]"
-                  : $self->{options}{hashrefs}  ? "->{$self->{headers}[$col]}"
-                  : $self->{options}{colref}    ? ""
-                  : die "corrupted data in ->{options}";
-      $member = '$self->row($i)' . $get_col;
-      $optype = $self->{optypes}[$col];
+      # cnstraint on regular column
+      my $opts = $self->{options};
+      $member  = $opts->{arrayrefs} ? "\$row->[$col]"
+               : $opts->{hashrefs}  ? "\$row->{$self->{headers}[$col]}"
+               : $opts->{colref}    ? "\$row"
+               :                      die "corrupted data in ->{options}";
+      $optype  = $self->{optypes}[$col];
     }
     my $op    = $SQLOP2PERLOP{$constraint->{op}}[$optype];
     my $quote = $op eq '=~' ? 'qr' : 'q';
@@ -123,10 +124,11 @@ sub BEST_INDEX {
 sub _build_new_row {
   my ($self, $values) = @_;
 
-  return $self->{options}{arrayrefs} ? $values
-       : $self->{options}{hashrefs}  ? { mesh @{$self->{headers}}, @$values }
-       : $self->{options}{colref}    ? $values->[0]
-       : die "corrupted data in ->{options}";
+  my $opts = $self->{options};
+  return $opts->{arrayrefs} ? $values
+       : $opts->{hashrefs}  ? { mesh @{$self->{headers}}, @$values }
+       : $opts->{colref}    ? $values->[0]
+       :                      die "corrupted data in ->{options}";
 }
 
 
@@ -183,8 +185,15 @@ sub row {
 sub FILTER {
   my ($self, $idxNum, $idxStr, @values) = @_;
 
+  # escape '\' and '}' in values before they are sprintf'ed into q{%s}
+  s/\\/\\\\/g, s/}/\\}/g foreach @values;
+
   # build a method coderef to fetch matching rows
-  my $perl_code = sprintf "sub {my (\$self, \$i) = \@_; $idxStr}", @values;
+  my $perl_code = 'sub {my ($self, $i) = @_; my $row = $self->row($i); '
+                .        sprintf($idxStr, @values)
+                .     '}';
+
+  # print STDERR $perl_code, "\n";
 
   $self->{is_wanted_row} = eval $perl_code
     or die "couldn't eval q{$perl_code} : $@";
@@ -215,12 +224,11 @@ sub COLUMN {
 
   my $row = $self->row($self->{row_ix});
 
-
-  return $self->{vtable}{options}{arrayrefs} ? $row->[$idxCol]
-       : $self->{vtable}{options}{hashrefs}  ?
-                   $row->{$self->{vtable}{headers}[$idxCol]}
-       : $self->{vtable}{options}{colref}    ? $row
-       : die "corrupted data in ->{options}";
+  my $opts = $self->{vtable}{options};
+  return $opts->{arrayrefs} ? $row->[$idxCol]
+       : $opts->{hashrefs}  ? $row->{$self->{vtable}{headers}[$idxCol]}
+       : $opts->{colref}    ? $row
+       :                      die "corrupted data in ->{options}";
 }
 
 sub ROWID {
@@ -277,29 +285,162 @@ column declarations, but with an '=' sign.
 
 The only authorized (and mandatory) parameter is the one that
 specifies the Perl datastructure to which the virtual table is bound.
-The Perl data must be given as a fully qualified name of a global variable;
-it can be one of three different kinds :
+It must be given as the fully qualified name of a global variable;
+the parameter can be one of three different kinds :
 
 =over
 
 =item C<arrayrefs>
 
-arrayref that contains an arrayref for each row
+arrayref that contains an arrayref for each row.
+Each such row will have a size equivalent to the number
+of columns declared for the virtual table.
 
 =item C<hashrefs>
 
-arrayref that contains a hashref for each row
+arrayref that contains a hashref for each row.
+Keys in each hashref should correspond to the
+columns declared for the virtual table.
 
 =item C<colref>
 
-arrayref that contains a single scalar for each row
-(obviously this is a single-column virtual table)
+arrayref that contains a single scalar for each row;
+obviously, this is a single-column virtual table.
 
 =back
 
 =head1 USAGE
 
-[TODO]
+=head2 Common part of all examples : declaring the module
+
+In all examples below, the common part is that the Perl
+program should connect to the database and then declare the
+C<PerlData> virtual table module, like this
+
+  # connect to the database
+  my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '',
+                          {RaiseError => 1, AutoCommit => 1});
+                          # or any other options suitable to your needs
+  
+  # register the module
+  $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
+
+Then create a global arrayref variable, using C<our> instead of C<my>,
+so that the variable is stored in the symbol table of the enclosing module.
+
+  package Foo::Bar; # could as well be just "main"
+  our $rows = [ ... ];
+
+Finally, create the virtual table and bind it to the global
+variable (here we assume that C<@$rows> contains arrayrefs) :
+
+  $dbh->do('CREATE VIRTUAL TABLE temp.vtab'
+          .'  USING perl(col1 INT, col2 TEXT, etc,
+                         arrayrefs="Foo::Bar::rows');
+
+In most cases, the virtual table will be for temporary use, which is
+the reason why this example prepends C<temp.> in front of the table
+name : this tells SQLite to cleanup that table when the database
+handle will be disconnected, without the need to emit an explicit DROP
+statement.
+
+Column names (and optionally their types) are specified in the
+virtual table declaration, just like for any regular table.
+
+=head2 Arrayref example : statistics from files
+
+Let's suppose we want to perform some searches over a collection of
+files, where search constraints may be based on some of the fields
+returned by L<stat>, such as the size of the file or its last modify
+time.  Here is a way to do it with a virtual table :
+
+  my @files = ... ; # list of files to inspect
+
+  # apply the L<stat> function to each file
+  our $file_stats = [ map {($_, stat $_)} @files];
+
+  # create a temporary virtual table
+  $dbh->do(<<"");
+     CREATE VIRTUAL TABLE temp.file_stats'
+        USING perl(path, dev, ino, mode, nlink, uid, gid, rdev, size,
+                         atime, mtime, ctime, blksize, blocks,
+                   arrayrefs="main::file_stats");
+
+  # search files
+  my $sth = $dbh->prepare(<<"");
+    SELECT * FROM file_stats 
+      WHERE mtime BETWEEN ? AND ?
+        AND uid IN (...)
+
+=head2 Hashref example : unicode characters
+
+Given any unicode character, the L<Unicode::UCD/charinfo> function
+returns a hashref with various bits of information about that character.
+So this can be exploited in a virtual table :
+
+  use Unicode::UCD 'charinfo';
+  our $chars = [map {charinfo($_)} 0x300..0x400]; # arbitrary subrange
+
+  # create a temporary virtual table
+  $dbh->do(<<"");
+    CREATE VIRTUAL TABLE charinfo USING perl(
+      code, name, block, script, category,
+      hashrefs="main::chars"
+     )
+
+  # search characters
+  my $sth = $dbh->prepare(<<"");
+    SELECT * FROM charinfo 
+     WHERE script='Greek' 
+       AND name LIKE '%SIGMA%'
+
+
+=head2 Colref example: SELECT WHERE ... IN ...
+
+I<Note: The idea for the following example is borrowed from the
+C<test_intarray.h> file in SQLite's source
+(L<http://www.sqlite.org/src>).>
+
+A C<colref> virtual table is designed to facilitate using an
+array of values as the right-hand side of an IN operator. The
+usual syntax for IN is to prepare a statement like this:
+
+    SELECT * FROM table WHERE x IN (?,?,?,...,?);
+
+and then bind individual values to each of the ? slots; but this has
+the disadvantage that the number of values must be known in
+advance. Instead, we can store values in a Perl array, bind that array
+to a virtual table, and then write a statement like this
+
+    SELECT * FROM table WHERE x IN perl_array;
+
+Here is how such a program would look like :
+
+  # connect to the database
+  my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", '', '',
+                          {RaiseError => 1, AutoCommit => 1});
+  
+  # Declare a global arrayref containing the values. Here we assume
+  # they are taken from @ARGV, but any other datasource would do.
+  # Note the use of "our" instead of "my".
+  our $valuess = \@ARGV; 
+  
+  # register the module and declare the virtual table
+  $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
+  $dbh->do('CREATE VIRTUAL TABLE temp.intarray'
+          .'  USING perl(i INT, colref="main::values');
+  
+  # now we can SELECT from another table, using the intarray as a constraint
+  my $sql    = "SELECT * FROM some_table WHERE some_col IN intarray";
+  my $result = $dbh->selectall_arrayref($sql);
+
+
+Beware that the virtual table is read-write, so the statement below
+would push 99 into @ARGV !
+
+  INSERT INTO intarray VALUES (99);
+
+
 
 =head1 AUTHOR
 

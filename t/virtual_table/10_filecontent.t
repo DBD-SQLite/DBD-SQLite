@@ -9,7 +9,6 @@ BEGIN {
 use t::lib::Test qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
-use DBI qw(:sql_types);
 use FindBin;
 
 plan tests => 13;
