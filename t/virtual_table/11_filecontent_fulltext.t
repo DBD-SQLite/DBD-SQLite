@@ -53,14 +53,14 @@ $sth->execute($_) foreach @perl_files;
 
 
 # create the virtual table
-$dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent");
+$dbh->sqlite_create_module(fc => "DBD::SQLite::VirtualTable::FileContent");
 $dbh->do(<<"");
-  CREATE VIRTUAL TABLE vfs USING fs(source = files,
+  CREATE VIRTUAL TABLE vfc USING fc(source = files,
                                     expose = "path",
                                     root   = "$distrib_dir")
 
 # create the fulltext indexing table and populate it
-$dbh->do('CREATE VIRTUAL TABLE fts USING fts4(content="vfs")');
+$dbh->do('CREATE VIRTUAL TABLE fts USING fts4(content="vfc")');
 note "building fts index....";
 $dbh->do("INSERT INTO fts(fts) VALUES ('rebuild')");
 note "done";
@@ -90,7 +90,7 @@ foreach my $test (@tests) {
 $dbh->disconnect;
 undef $dbh;
 $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
-$dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent");
+$dbh->sqlite_create_module(fc => "DBD::SQLite::VirtualTable::FileContent");
 
 foreach my $test (@tests) {
   my ($pattern, @expected)  = @$test;

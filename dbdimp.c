@@ -1,12 +1,3 @@
-/* -*- c-basic-offset: 4; -*- */
-
-/* TODO : refactoring
-     - generalized use of stacked_sv_from_sqlite3_value
-     - decide about policy for errors in vtab methods : use G_EVAL or just die?
-     - find better name instead of "perl_instance"
- */
-
-
 #define PERL_NO_GET_CONTEXT
 
 #define NEED_newSVpvn_flags
@@ -1483,51 +1474,7 @@ sqlite_db_func_dispatcher(int is_unicode, sqlite3_context *context, int argc, sq
 
     PUSHMARK(SP);
     for ( i=0; i < argc; i++ ) {
-        /* TODO: XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ value[i], is_unicode)); */
-
-        SV *arg;
-        STRLEN len;
-        int type = sqlite3_value_type(value[i]);
-        sqlite_int64 iv;
-
-        /* warn("func dispatch type: %d, value: %s\n", type, sqlite3_value_text(value[i])); */
-        switch(type) {
-            case SQLITE_INTEGER:
-                iv = sqlite3_value_int64(value[i]);
-                if ( iv >= IV_MIN && iv <= IV_MAX ) {
-                    /* ^^^ compile-time constant (= true) when IV == int64 */
-                    arg = sv_2mortal(newSViv((IV)iv));
-                }
-                else if ( iv >= 0 && iv <= UV_MAX ) {
-                    /* warn("integer overflow, cast to UV"); */
-                    arg = sv_2mortal(newSVuv((UV)iv));
-                }
-                else {
-                    /* warn("integer overflow, cast to NV"); */
-                    arg = sv_2mortal(newSVnv((NV)iv));
-                }
-                break;
-            case SQLITE_FLOAT:
-                arg = sv_2mortal(newSVnv(sqlite3_value_double(value[i])));
-                break;
-            case SQLITE_TEXT:
-                len = sqlite3_value_bytes(value[i]);
-                arg = newSVpvn((const char *)sqlite3_value_text(value[i]), len);
-                if (is_unicode) {
-                  SvUTF8_on(arg);
-                }
-                arg = sv_2mortal(arg);
-                break;
-            case SQLITE_BLOB:
-                len = sqlite3_value_bytes(value[i]);
-                arg = sv_2mortal(newSVpvn(sqlite3_value_blob(value[i]), len));
-                break;
-            default:
-                arg = &PL_sv_undef;
-        }
-
-        XPUSHs(arg);
-
+        XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ value[i], is_unicode));
     }
     PUTBACK;
 
@@ -1781,30 +1728,7 @@ sqlite_db_aggr_step_dispatcher(sqlite3_context *context,
     PUSHMARK(SP);
     XPUSHs( sv_2mortal( newSVsv( aggr->aggr_inst ) ));
     for ( i=0; i < argc; i++ ) {
-        /* TODO: XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ value[i], is_unicode)); */
-
-        SV *arg;
-        int len = sqlite3_value_bytes(value[i]);
-        int type = sqlite3_value_type(value[i]);
-
-        switch(type) {
-            case SQLITE_INTEGER:
-                arg = sv_2mortal(newSViv(sqlite3_value_int(value[i])));
-                break;
-            case SQLITE_FLOAT:
-                arg = sv_2mortal(newSVnv(sqlite3_value_double(value[i])));
-                break;
-            case SQLITE_TEXT:
-                arg = sv_2mortal(newSVpvn((const char *)sqlite3_value_text(value[i]), len));
-                break;
-            case SQLITE_BLOB:
-                arg = sv_2mortal(newSVpvn(sqlite3_value_blob(value[i]), len));
-                break;
-            default:
-                arg = &PL_sv_undef;
-        }
-
-        XPUSHs(arg);
+        XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ value[i], is_unicode));
     }
     PUTBACK;
 
@@ -2848,18 +2772,18 @@ int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh)
 
 /*********************************************************************** 
 ** The set of routines that implement the perl "module" 
-** (i.e support for virtual table)
+** (i.e support for virtual tables written in Perl)
 ************************************************************************/
 
 
 typedef struct perl_vtab {
     sqlite3_vtab base;
-    SV *perl_vtab_instance;
+    SV *perl_vtab_obj;
 } perl_vtab;
 
 typedef struct perl_vtab_cursor {
     sqlite3_vtab_cursor base;
-    SV *perl_cursor_instance;
+    SV *perl_cursor_obj;
 } perl_vtab_cursor;
 
 typedef struct perl_vtab_init {
@@ -2877,7 +2801,7 @@ static int _call_perl_vtab_method(sqlite3_vtab *pVTab, const char *method) {
     int count;
 
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_instance);
+    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_obj);
     PUTBACK;
     count = call_method (method, G_VOID);
     SPAGAIN;
@@ -2900,7 +2824,7 @@ static int _call_perl_vtab_method(sqlite3_vtab *pVTab, const char *method) {
     int count;
 
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_instance);
+    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_obj);
     XPUSHs(sv_2mortal(newSViv(i)));
     PUTBACK;
     count = call_method (method, G_VOID);
@@ -2957,8 +2881,8 @@ static int perl_vt_New(const char *method,
     } 
 
     /* get the VirtualTable instance */
-    SV *perl_instance = POPs;
-    if ( !sv_isobject(perl_instance) ) {
+    SV *perl_vtab_obj = POPs;
+    if ( !sv_isobject(perl_vtab_obj) ) {
         *pzErr = sqlite3_mprintf("vtab->%s() should return a blessed reference",
                                  method);
         goto cleanup;
@@ -2966,7 +2890,7 @@ static int perl_vt_New(const char *method,
 
     /* call the ->VTAB_TO_DECLARE() method */
     PUSHMARK(SP);
-    XPUSHs(perl_instance);
+    XPUSHs(perl_vtab_obj);
     PUTBACK;
     count = call_method ("VTAB_TO_DECLARE", G_SCALAR);
     SPAGAIN;
@@ -2987,7 +2911,7 @@ static int perl_vt_New(const char *method,
     rc = sqlite3_declare_vtab(db, SvPVutf8_nolen(sql));
 
     /* record the VirtualTable perl instance within the vtab structure */
-    vt->perl_vtab_instance = SvREFCNT_inc(perl_instance);
+    vt->perl_vtab_obj = SvREFCNT_inc(perl_vtab_obj);
 
  cleanup:
     *ppVTab = &vt->base;
@@ -3019,7 +2943,7 @@ static int perl_vt_Disconnect(sqlite3_vtab *pVTab){
     _call_perl_vtab_method(pVTab, "DISCONNECT");
 
     perl_vtab *perl_pVTab = (perl_vtab *) pVTab;
-    SvREFCNT_dec(perl_pVTab->perl_vtab_instance);
+    SvREFCNT_dec(perl_pVTab->perl_vtab_obj);
 
     sqlite3_free(perl_pVTab);
 
@@ -3033,7 +2957,7 @@ static int perl_vt_Drop(sqlite3_vtab *pVTab){
     _call_perl_vtab_method(pVTab, "DROP");
 
     perl_vtab *perl_pVTab = (perl_vtab *) pVTab;
-    SvREFCNT_dec(perl_pVTab->perl_vtab_instance);
+    SvREFCNT_dec(perl_pVTab->perl_vtab_obj);
 
     sqlite3_free(perl_pVTab);
 
@@ -3093,7 +3017,7 @@ static int perl_vt_BestIndex(sqlite3_vtab *pVTab, sqlite3_index_info *pIdxInfo){
 
     /* call the ->best_index() method */
     PUSHMARK(SP);
-    XPUSHs( ((perl_vtab *) pVTab)->perl_vtab_instance);
+    XPUSHs( ((perl_vtab *) pVTab)->perl_vtab_obj);
     XPUSHs( sv_2mortal( newRV_noinc((SV*) constraints)));
     XPUSHs( sv_2mortal( newRV_noinc((SV*) order_by)));
     PUTBACK;
@@ -3164,7 +3088,7 @@ static int perl_vt_Open(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor){
 
     /* call the ->OPEN() method */
     PUSHMARK(SP);
-    XPUSHs( ((perl_vtab *) pVTab)->perl_vtab_instance);
+    XPUSHs( ((perl_vtab *) pVTab)->perl_vtab_obj);
     PUTBACK;
     count = call_method ("OPEN", G_SCALAR);
     SPAGAIN;
@@ -3180,7 +3104,7 @@ static int perl_vt_Open(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor){
     cursor = (perl_vtab_cursor *) sqlite3_malloc(sizeof(*cursor));
     if( cursor==NULL ) return SQLITE_NOMEM;
     memset(cursor, 0, sizeof(*cursor));
-    cursor->perl_cursor_instance = SvREFCNT_inc(perl_cursor);
+    cursor->perl_cursor_obj = SvREFCNT_inc(perl_cursor);
 
     /* return that cursor */
     *ppCursor = &cursor->base;
@@ -3202,7 +3126,7 @@ static int perl_vt_Close(sqlite3_vtab_cursor *pVtabCursor){
        can implement a DESTROY() method */
 
     perl_vtab_cursor *perl_pVTabCursor = (perl_vtab_cursor *) pVtabCursor;
-    SvREFCNT_dec(perl_pVTabCursor->perl_cursor_instance);
+    SvREFCNT_dec(perl_pVTabCursor->perl_cursor_obj);
     sqlite3_free(perl_pVTabCursor);
 
     PUTBACK;
@@ -3227,7 +3151,7 @@ static int perl_vt_Filter(
 
     /* call the FILTER() method with ($idxNum, $idxStr, @args) */
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_instance);
+    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_obj);
     XPUSHs(sv_2mortal(newSViv(idxNum)));
     XPUSHs(sv_2mortal(newSVpv(idxStr, 0)));
     for(i = 0; i < argc; i++) {
@@ -3255,7 +3179,7 @@ static int perl_vt_Next(sqlite3_vtab_cursor *pVtabCursor){
 
     /* call the next() method */
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_instance);
+    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_obj);
     PUTBACK;
     count = call_method ("NEXT", G_VOID);
     SPAGAIN;
@@ -3277,7 +3201,7 @@ static int perl_vt_Eof(sqlite3_vtab_cursor *pVtabCursor){
 
     /* call the eof() method */
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_instance);
+    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_obj);
     PUTBACK;
     count = call_method ("EOF", G_SCALAR);
     SPAGAIN;
@@ -3309,7 +3233,7 @@ static int perl_vt_Column(sqlite3_vtab_cursor *pVtabCursor,
 
     /* call the column() method */
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_instance);
+    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_obj);
     XPUSHs(sv_2mortal(newSViv(col)));
     PUTBACK;
     count = call_method ("COLUMN", G_SCALAR);
@@ -3340,7 +3264,7 @@ static int perl_vt_Rowid(sqlite3_vtab_cursor *pVtabCursor, sqlite3_int64 *pRowid
 
     /* call the rowid() method */
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_instance);
+    XPUSHs(((perl_vtab_cursor *) pVtabCursor)->perl_cursor_obj);
     PUTBACK;
     count = call_method ("ROWID", G_SCALAR);
     SPAGAIN;
@@ -3371,7 +3295,7 @@ static int perl_vt_Update(sqlite3_vtab *pVTab,
 
     /* call the update() method */
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_instance);
+    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_obj);
     for(i = 0; i < argc; i++) {
         XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ argv[i], is_unicode));
     }
@@ -3442,7 +3366,7 @@ static int perl_vt_Rename(sqlite3_vtab *pVTab, const char *zNew){
     int rc = SQLITE_ERROR;
 
     PUSHMARK(SP);
-    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_instance);
+    XPUSHs(((perl_vtab *) pVTab)->perl_vtab_obj);
     XPUSHs(sv_2mortal(newSVpv(zNew, 0)));
     PUTBACK;
     count = call_method("RENAME", G_SCALAR);
