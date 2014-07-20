@@ -1756,7 +1756,7 @@ current number of seconds since the epoch:
 
   $dbh->sqlite_create_function( 'now', 0, sub { return time } );
 
-After this, it could be use from SQL as:
+After this, it could be used from SQL as:
 
   INSERT INTO mytable ( now() );
 
