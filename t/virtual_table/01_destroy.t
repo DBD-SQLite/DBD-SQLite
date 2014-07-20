@@ -51,8 +51,8 @@ ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT,     "no vtab created";
 ok !$DBD::SQLite::VirtualTable::T::CONNECT_COUNT,    "no vtab connected";
 
 my $sth = $dbh->prepare("SELECT * FROM barfoo");
-ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT,      "no vtab created";
-is $DBD::SQLite::VirtualTable::T::CONNECT_COUNT,    1, "1 vtab connected";
+ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT,    "no vtab created";
+is $DBD::SQLite::VirtualTable::T::CONNECT_COUNT, 1, "1 vtab connected";
 
 
 package DBD::SQLite::VirtualTable::T;

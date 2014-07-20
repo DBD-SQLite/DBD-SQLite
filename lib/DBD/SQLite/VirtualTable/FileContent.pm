@@ -73,7 +73,8 @@ sub NEW {
   $self->{columns} = [ "$self->{options}{content_col} TEXT",
                        map {"$_ $src_col{$_}"} @exposed_cols ];
 
-  # acquire a coderef to the get_content() implementation
+  # acquire a coderef to the get_content() implementation, which
+  # was given as a symbolic reference in %options
   no strict 'refs';
   $self->{get_content} = \ &{$self->{options}{get_content}};
 
@@ -179,7 +180,7 @@ sub FILTER {
   # build SQL
   local $" = ", ";
   my @cols = @{$vtable->{headers}};
-  $cols[0] = 'rowid';                     # replace the content column by the rowid
+  $cols[0] = 'rowid';                 # replace the content column by the rowid
   push @cols, $vtable->{options}{path_col}; # path col in last position
   my $sql  = "SELECT @cols FROM $vtable->{options}{source}";
   $sql .= " WHERE $idxStr" if $idxStr;
@@ -207,7 +208,6 @@ sub NEXT {
   $self->{row} = $self->{sth}->fetchrow_arrayref;
 }
 
-
 sub COLUMN {
   my ($self, $idxCol) = @_;
 
@@ -220,14 +220,14 @@ sub ROWID {
   return $self->{row}[0];
 }
 
-
 sub file_content {
   my ($self) = @_;
 
   my $root = $self->{vtable}{options}{root};
   my $path = $self->{row}[-1];
+  my $get_content_func = $self->{vtable}{get_content};
 
-  return $self->{vtable}{get_content}->($path, $root);
+  return $get_content_func->($path, $root);
 }
 
 

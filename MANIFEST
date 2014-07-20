@@ -112,6 +112,7 @@ t/rt_88228_sqlite_3_8_0_crash.t
 t/rt_96878_fts_contentless_table.t
 t/virtual_table/00_base.t
 t/virtual_table/01_destroy.t
+t/virtual_table/02_find_function.t
 t/virtual_table/10_filecontent.t
 t/virtual_table/11_filecontent_fulltext.t
 t/virtual_table/20_perldata.t

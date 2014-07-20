@@ -43,10 +43,16 @@ use warnings;
 use base 'DBD::SQLite::VirtualTable';
 use YAML;
 
-sub INITIALIZE {
-  my $self = shift;
+sub NEW {
+  my $class = shift;
+
+  my $self  = $class->_PREPARE_SELF(@_);
+  bless $self, $class;
+
   # stupid pragma call, just to check that the dbh is OK
   $self->dbh->do("PRAGMA application_id=999");
+
+  return $self;
 }
 
 
@@ -118,7 +124,6 @@ sub COLUMN {
   my ($self, $idxCol) = @_;
 
   return "auto_vivify:$idxCol";
-  return $idxCol;
 }
 
 sub ROWID {

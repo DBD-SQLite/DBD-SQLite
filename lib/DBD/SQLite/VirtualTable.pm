@@ -161,7 +161,7 @@ sub ROLLBACK_TRANSACTION {return 0}
 sub SAVEPOINT            {return 0}
 sub RELEASE              {return 0}
 sub ROLLBACK_TO          {return 0}
-sub FIND_METHOD          {return 0}
+sub FIND_FUNCTION        {return 0}
 sub RENAME               {return 0}
 
 
@@ -196,12 +196,30 @@ sub NEW {
 }
 
 
-# methods to be redefined in subclasses (here are stupid implementations)
-sub FILTER { my ($self, $idxNum, $idxStr, @values) = @_; return   }
-sub EOF    { my ($self) = @_;                            return 1 }
-sub NEXT   { my ($self) = @_;                            return   }
-sub COLUMN { my ($self, $idxCol) = @_;                   return   }
-sub ROWID  { my ($self) = @_;                            return 1 }
+sub FILTER {
+  my ($self, $idxNum, $idxStr, @values) = @_;
+  die "FILTER() should be redefined in cursor subclass";
+}
+
+sub EOF {
+  my ($self) = @_;
+  die "EOF() should be redefined in cursor subclass";
+}
+
+sub NEXT {
+  my ($self) = @_;
+  die "NEXT() should be redefined in cursor subclass";
+}
+
+sub COLUMN {
+  my ($self, $idxCol) = @_;
+  die "COLUMN() should be redefined in cursor subclass";
+}
+
+sub ROWID {
+  my ($self) = @_;
+  die "ROWID() should be redefined in cursor subclass";
+}
 
 
 1;
@@ -347,11 +365,10 @@ The default implementation just calls L</NEW>.
 
   $class->_PREPARE_SELF($dbh_ref, $module_name, $db_name, $vtab_name, @args);
 
-Prepares the datastructure for a virtual table instance.
- C<@args> is just the collection
-of strings (comma-separated) that were given within the
-C<CREATE VIRTUAL TABLE> statement; each subclass should decide
-what to do with this information,
+Prepares the datastructure for a virtual table instance.  C<@args> is
+ just the collection of strings (comma-separated) that were given
+ within the C<CREATE VIRTUAL TABLE> statement; each subclass should
+ decide what to do with this information,
 
 The method parses C<@args> to differentiate between I<options>
 (strings of shape C<$key>=C<$value> or C<$key>=C<"$value">, stored in
@@ -437,8 +454,11 @@ The default implementation for DISCONNECT is empty.
 This method is called automatically just after L</CREATE> or L</CONNECT>,
 to register the columns of the virtual table within the sqlite kernel.
 The method should return a string containing a SQL C<CREATE TABLE> statement;
-but only the column declaration parts will be considered (see
-L<http://sqlite.org/c3ref/declare_vtab.html>).
+but only the column declaration parts will be considered.
+Columns may be declared with the special keyword "HIDDEN", which means that
+they are used internally for the the virtual table implementation, and are
+not visible to users -- see L<http://sqlite.org/c3ref/declare_vtab.html>
+and L<http://www.sqlite.org/vtab.html#hiddencol> for detailed explanations.
 
 The default implementation returns:
 
@@ -636,6 +656,22 @@ to C<$new_rowid>, which is a regular update; however, the rowid
 could be changed from a SQL statement such as
 
   UPDATE table SET rowid=rowid+1 WHERE ...; 
+
+=head3 FIND_FUNCTION
+
+  $vtab->FIND_FUNCTION($num_args, $func_name);
+
+When a function uses a column from a virtual table as its first
+argument, this method is called to see if the virtual table would like
+to overload the function. Parameters are the number of arguments to
+the function, and the name of the function. If no overloading is
+desired, this method should return false. To overload the function,
+this method should return a coderef to the function implementation.
+
+Each virtual table keeps a cache of results from L<FIND_FUNCTION> calls,
+so the method will be called only once for each pair 
+C<< ($num_args, $func_name) >>.
+
 
 =head3 BEGIN_TRANSACTION
 
