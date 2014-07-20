@@ -2659,7 +2659,6 @@ static int perl_tokenizer_Next(
     perl_tokenizer_cursor *c = (perl_tokenizer_cursor *) pCursor;
     int result;
     int n_retval;
-    STRLEN n_a;
     char *token;
     char *byteOffset;
     I32 hop;
@@ -2885,7 +2884,6 @@ static int perl_vt_New(const char *method,
 
     /* check the return value */
     if (count != 1 ) {
-        int i;
         *pzErr = sqlite3_mprintf("vtab->VTAB_TO_DECLARE() should return one value, got %d",
                                  count );
         SP -= count; /* Clear the stack */
@@ -3126,7 +3124,6 @@ static int perl_vt_Open(sqlite3_vtab *pVTab, sqlite3_vtab_cursor **ppCursor){
 static int perl_vt_Close(sqlite3_vtab_cursor *pVtabCursor){
     dTHX;
     dSP;
-    int count;
     perl_vtab_cursor *perl_pVTabCursor;
 
     ENTER;
@@ -3181,7 +3178,7 @@ static int perl_vt_Filter( sqlite3_vtab_cursor *pVtabCursor,
 static int perl_vt_Next(sqlite3_vtab_cursor *pVtabCursor){
     dTHX;
     dSP;
-    int i, count;
+    int count;
 
     ENTER;
     SAVETMPS;
