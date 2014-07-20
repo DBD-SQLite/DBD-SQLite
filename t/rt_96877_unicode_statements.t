@@ -30,7 +30,7 @@ CREATE TABLE foo (
 END_SQL
 
 foreach ( "A", "\xe9", "\x{20ac}" ) {
-	diag sprintf "testing \\x{%x}", ord($_);
+	note sprintf "testing \\x{%x}", ord($_);
 	ok( $dbh->do("INSERT INTO foo VALUES ( ? )", {}, $_), 'INSERT with bind' );
 	ok( $dbh->do("INSERT INTO foo VALUES ( '$_' )"),      'INSERT without bind' );
 	my $vals = $dbh->selectcol_arrayref("SELECT bar FROM foo");
