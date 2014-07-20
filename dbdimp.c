@@ -645,11 +645,12 @@ sqlite_db_last_insert_id(SV *dbh, imp_dbh_t *imp_dbh, SV *catalog, SV *schema, S
 }
 
 int
-sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
+sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
 {
     dTHX;
     int rc = 0;
     const char *extra;
+    char *statement;
     D_imp_dbh_from_sth;
 
     last_prepared_dbh = imp_dbh;
@@ -658,6 +659,13 @@ sqlite_st_prepare(SV *sth, imp_sth_t *imp_sth, char *statement, SV *attribs)
         sqlite_error(sth, -2, "attempt to prepare on inactive database handle");
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
+
+    /* sqlite3_prepare wants an utf8-encoded SQL statement */
+    if (imp_dbh->unicode) {
+        sv_utf8_upgrade(sv_statement);
+    }
+
+    statement = SvPV_nolen(sv_statement);
 
 #if 0
     if (*statement == '\0') {
