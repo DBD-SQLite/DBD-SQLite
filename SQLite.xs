@@ -283,6 +283,21 @@ db_status(dbh, reset = 0)
         RETVAL
 
 
+static int
+create_module(dbh, name, perl_class)
+    SV *dbh
+    char *name
+    char *perl_class
+    ALIAS:
+        DBD::SQLite::db::sqlite_create_module = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_create_module(aTHX_ dbh, name, perl_class);
+    }
+    OUTPUT:
+        RETVAL
+
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE

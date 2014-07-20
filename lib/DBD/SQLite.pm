@@ -56,6 +56,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_db_filename', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_db_status', { O => 0x0004 });
         DBD::SQLite::st->install_method('sqlite_st_status', { O => 0x0004 });
+        DBD::SQLite::db->install_method('sqlite_create_module');
 
         $methods_are_installed++;
     }
@@ -2159,6 +2160,13 @@ Returns a hash reference that holds a set of status information of SQLite statem
 
 You may also pass 0 as an argument to reset the status.
 
+=head2 $sth->sqlite_create_module()
+
+Registers a name for a I<virtual table module>. Module names must be
+registered before creating a new virtual table using the module and
+before using a preexisting virtual table for the module.
+Virtual tables are explained in L<DBD::SQLite::VirtualTable>.
+
 =head1 DRIVER CONSTANTS
 
 A subset of SQLite C constants are made available to Perl,
@@ -2404,6 +2412,38 @@ For more detail, please see the SQLite R-Tree page
 (L<http://www.sqlite.org/rtree.html>). Note that custom R-Tree
 queries using callbacks, as mentioned in the prior link, have not been
 implemented yet.
+
+=head1 VIRTUAL TABLES IMPLEMENTED IN PERL
+
+SQLite has a concept of "virtual tables" which look like regular
+tables but are implemented internally through specific functions.
+The fulltext or R* tree features described in the previous chapters
+are examples of such virtual tables, implemented in C code.
+
+C<DBD::SQLite> also supports virtual tables implemented in I<Perl code>:
+see L<DBD::SQLite::VirtualTable> for using or implementing such
+virtual tables. These can have many interesting uses
+for joining regular DBMS data with some other kind of data within your
+Perl programs. Bundled with the present distribution are :
+
+=over 
+
+=item *
+
+L<DBD::SQLite::VirtualTable::FileContent> : implements a virtual
+column that exposes file contents. This is especially useful
+in conjunction with a fulltext index; see L<DBD::SQLite::Fulltext_search>.
+
+=item *
+
+L<DBD::SQLite::VirtualTable::PerlData> : binds to a Perl array
+within the Perl program. This can be used for simple import/export
+operations, for debugging purposes, for joining data from different
+sources, etc.
+
+=back
+
+Other Perl virtual tables may also be published separately on CPAN.
 
 =head1 FOR DBD::SQLITE EXTENSION AUTHORS
 

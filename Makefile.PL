@@ -367,6 +367,9 @@ WriteMakefile(
 	clean            => {
 		FILES => 'SQLite.xsi config.h tv.log *.old',
 	},
+        test             => {
+                TESTS => 't/*.t t/**/*.t',
+        },
 	PL_FILES         => {},
 	EXE_FILES        => [],
 
