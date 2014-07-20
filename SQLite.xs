@@ -332,9 +332,7 @@ compile_options()
                 PUSHs(AvARRAY(av)[i]);
             }
         }
-        RETVAL = n;
-    OUTPUT:
-        RETVAL
+        XSRETURN(n);
 
 HV*
 sqlite_status(reset = 0)
