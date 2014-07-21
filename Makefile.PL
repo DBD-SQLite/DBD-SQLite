@@ -1,5 +1,5 @@
 # From ExtUtils::MakeMaker 6.48 and DBI 1.43
-use 5.006;
+use 5.008001;
 use strict;
 use ExtUtils::MakeMaker;
 use Config;
