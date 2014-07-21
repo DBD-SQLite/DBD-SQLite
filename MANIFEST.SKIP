@@ -11,6 +11,7 @@ CVS/.*
 \.pdb$
 \.xsi$
 \.bs$
+\.el$
 ^.#
 ^mess/
 ^sqlite/
@@ -25,3 +26,4 @@ CVS/.*
 ^\.git
 ^bugs/
 ^MYMETA\.[a-z]+$
+^SQLite.c$
