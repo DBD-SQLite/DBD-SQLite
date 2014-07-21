@@ -4,7 +4,6 @@ package DBD::SQLite::VirtualTable::FileContent;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
-use List::MoreUtils qw/none/;
 
 my %option_ok = map {($_ => 1)} qw/source content_col path_col
                                    expose root get_content/;
@@ -65,9 +64,10 @@ sub NEW {
     my @bad_cols  = grep { !$src_col{$_} } @exposed_cols;
     die "table $src_table has no column named @bad_cols" if @bad_cols;
   }
-  none {$_ eq $self->{options}{content_col}} @exposed_cols
-    or die "$class: $self->{options}{content_col} cannot be both the "
-         . "content_col and an exposed col";
+  for (@exposed_cols) {
+    die "$class: $self->{options}{content_col} cannot be both the "
+      . "content_col and an exposed col" if $_ eq $self->{options}{content_col};
+  }
 
   # build the list of columns for this table
   $self->{columns} = [ "$self->{options}{content_col} TEXT",

@@ -41,7 +41,6 @@ package DBD::SQLite::VirtualTable::T;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
-use YAML;
 
 sub NEW {
   my $class = shift;
@@ -89,7 +88,6 @@ package DBD::SQLite::VirtualTable::T::Cursor;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable::Cursor';
-use YAML;
 
 sub NEW {
   my $class = shift;
