@@ -1,8 +1,15 @@
 Changes for Perl extension DBD-SQLite
 
-1.43_04 to be released
+1.43_04 2014-07-21
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Resolved #96877: sql statements should be converted to utf8 (DAMI)
+      If you set sqlite_unicode to true, SQL statements will be upgraded
+      to avoid inconsistency between embedded params and bind params.
+
     - Resolved #96494: [PATCH] add SYSTEM TABLE to table_info() type
       list (MJP)
+    - Supported virtual tables in Perl, and added two sample tables
+      (DAMI++)
 
 1.43_03 2014-06-12
     - Updated to SQLite 3.8.5, which should fix query planner's 
