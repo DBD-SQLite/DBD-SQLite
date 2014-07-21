@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_05 2014-07-21
+    - No significant code changes; removed unnecessary dependencies.
+
 1.43_04 2014-07-21
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Resolved #96877: sql statements should be converted to utf8 (DAMI)
