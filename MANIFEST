@@ -1,3 +1,4 @@
+.travis.yml
 Changes
 dbdimp.c
 dbdimp.h
@@ -109,6 +110,8 @@ t/rt_77724_primary_key_with_a_whitespace.t
 t/rt_78833_utf8_flag_for_column_names.t
 t/rt_81536_multi_column_primary_key_info.t
 t/rt_88228_sqlite_3_8_0_crash.t
+t/rt_96050_db_filename_for_a_closed_database.t
+t/rt_96877_unicode_statements.t
 t/rt_96878_fts_contentless_table.t
 t/virtual_table/00_base.t
 t/virtual_table/01_destroy.t
