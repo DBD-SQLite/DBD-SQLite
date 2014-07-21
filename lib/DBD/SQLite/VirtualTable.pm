@@ -4,9 +4,6 @@ package DBD::SQLite::VirtualTable;
 use strict;
 use warnings;
 use Scalar::Util    qw/weaken/;
-use List::MoreUtils qw/part/;
-use YAML::XS;
-use Data::Dumper;
 
 our $VERSION = '0.01';
 our @ISA;

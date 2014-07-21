@@ -4,7 +4,6 @@ package DBD::SQLite::VirtualTable::PerlData;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
-use List::MoreUtils qw/mesh/;
 
 
 # private data for translating comparison operators from Sqlite to Perl
@@ -126,11 +125,10 @@ sub _build_new_row {
 
   my $opts = $self->{options};
   return $opts->{arrayrefs} ? $values
-       : $opts->{hashrefs}  ? { mesh @{$self->{headers}}, @$values }
+       : $opts->{hashrefs}  ? { map {$self->{headers}->[$_], $values->[$_]} (0 .. @{$self->{headers}} - 1) }
        : $opts->{colref}    ? $values->[0]
        :                      die "corrupted data in ->{options}";
 }
-
 
 sub INSERT {
   my ($self, $new_rowid, @values) = @_;
