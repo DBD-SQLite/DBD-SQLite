@@ -340,7 +340,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
     if (SvROK(attr) && hv_exists((HV*)SvRV(attr), "sqlite_open_flags", 17)) {
-        rc = sqlite_open2(dbname, &(imp_dbh->db), SvIV(*hv_fetch((HV*)SvRV(attr), "sqlite_open_flags", 17, NULL)));
+        rc = sqlite_open2(dbname, &(imp_dbh->db), SvIV(*hv_fetch((HV*)SvRV(attr), "sqlite_open_flags", 17, 0)));
     } else {
         rc = sqlite_open(dbname, &(imp_dbh->db));
     }
@@ -2661,6 +2661,7 @@ static int perl_tokenizer_Next(
     int n_retval;
     char *token;
     char *byteOffset;
+    STRLEN n_a;
     I32 hop;
 
     dTHX;
