@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_06 2014-07-22
+    - Fixed compile error/warning for older perls (reported by ribasushi)
+      (ISHIGAKI)
+
 1.43_05 2014-07-21
     - No significant code changes; removed unnecessary dependencies.
 
