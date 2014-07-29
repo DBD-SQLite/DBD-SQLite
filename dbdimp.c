@@ -358,6 +358,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->allow_multiple_statements = FALSE;
     imp_dbh->use_immediate_transaction = TRUE;
     imp_dbh->see_if_its_a_number       = FALSE;
+    imp_dbh->stmt_list                 = NULL;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
@@ -482,26 +483,31 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
 
     croak_if_db_is_null();
 
-    rc = sqlite3_close(imp_dbh->db);
-    if (rc != SQLITE_OK) {
-        /*
-        ** Most probably we still have unfinalized statements.
-        ** Let's try to close them.
-        */
-        /* COMPAT: sqlite3_next_stmt is only available for 3006000 or newer */
-        while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
-            sqlite3_finalize(pStmt);
+    sqlite_trace( dbh, imp_dbh, 1, "Closing DB" );
+    rc = sqlite3_close( imp_dbh->db );
+    sqlite_trace( dbh, imp_dbh, 1, form("rc = %d", rc) );
+    if ( SQLITE_BUSY == rc ) { /* We have unfinalized statements */
+        /* Only close the statements that were prepared by this module */
+        stmt_list_s * s;
+        while ( s = imp_dbh->stmt_list ) {
+            sqlite_trace( dbh, imp_dbh, 1, form("Finalizing statement (%p)", s->stmt) );
+            sqlite3_finalize( s->stmt );
+            imp_dbh->stmt_list = s->prev;
+            sqlite3_free( s );
         }
-
-        rc = sqlite3_close(imp_dbh->db);
-        if (rc != SQLITE_OK) {
-            /*
-            ** We still have problems. probably a backup operation
-            ** is not finished. We may need to wait for a while if
-            ** we get SQLITE_BUSY...
-            */
-            sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
-        }
+        imp_dbh->stmt_list = NULL;
+        sqlite_trace( dbh, imp_dbh, 1, "Trying to close DB again" );
+        rc = sqlite3_close( imp_dbh->db );
+    }
+    if ( SQLITE_OK != rc ) {
+        sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
+    }
+    /* The list should be empty at this point, but if for some unforseen reason
+       it isn't, free remaining nodes here */
+    stmt_list_s * s;
+    while( s = imp_dbh->stmt_list ) {
+        imp_dbh->stmt_list = s->prev;
+        sqlite3_free( s );
     }
     imp_dbh->db = NULL;
 
@@ -701,6 +707,12 @@ sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
     else {
         imp_sth->unprepared_statements = NULL;
     }
+    /* Add the statement to the front of the list to keep track of
+       statements that might need to be finalized later on disconnect */
+    stmt_list_s * new_stmt = (stmt_list_s *) sqlite3_malloc( sizeof(stmt_list_s) );
+    new_stmt->stmt = imp_sth->stmt;
+    new_stmt->prev = imp_dbh->stmt_list;
+    imp_dbh->stmt_list = new_stmt;
 
     DBIc_NUM_PARAMS(imp_sth) = sqlite3_bind_parameter_count(imp_sth->stmt);
     DBIc_NUM_FIELDS(imp_sth) = sqlite3_column_count(imp_sth->stmt);
@@ -1143,11 +1155,29 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
             croak_if_stmt_is_null();
 
             /* finalize sth when active connection */
+            sqlite_trace( sth, imp_sth, 1, form("Finalizing statement: %p", imp_sth->stmt) );
             rc = sqlite3_finalize(imp_sth->stmt);
-            imp_sth->stmt = NULL;
             if (rc != SQLITE_OK) {
                 sqlite_error(sth, rc, sqlite3_errmsg(imp_dbh->db));
             }
+
+            /* find the statement in the statement list and delete it */
+            stmt_list_s * i = imp_dbh->stmt_list;
+            stmt_list_s * temp = i;
+            while( i ) {
+                if ( i->stmt == imp_sth->stmt ) {
+                    if ( temp != i ) temp->prev = i->prev;
+                    if ( i == imp_dbh->stmt_list ) imp_dbh->stmt_list = i->prev;
+                    sqlite_trace( sth, imp_sth, 1, form("Removing statement from list: %p", imp_sth->stmt) );
+                    sqlite3_free( i );
+                    break;
+                }
+                else {
+                    temp = i;
+                    i = i->prev;
+                }
+            }
+            imp_sth->stmt = NULL;
         }
     }
     SvREFCNT_dec((SV*)imp_sth->params);

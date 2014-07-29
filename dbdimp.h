@@ -16,6 +16,14 @@
 #define sqlite3_int64 sqlite_int64
 #endif
 
+/* A linked list of statements prepared by this module */
+typedef struct stmt_list_s stmt_list_s;
+
+struct stmt_list_s {
+   sqlite3_stmt * stmt;
+   stmt_list_s  * prev;
+};
+
 /* Driver Handle */
 struct imp_drh_st {
     dbih_drc_t com;
@@ -36,6 +44,7 @@ struct imp_dbh_st {
     bool allow_multiple_statements;
     bool use_immediate_transaction;
     bool see_if_its_a_number;
+    stmt_list_s * stmt_list;
 };
 
 /* Statement Handle */
