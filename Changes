@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_08 to be released
+    - Updated to SQLite 3.8.6, which should fix a unique index
+      issue: see http://www.sqlite.org/src/info/9a6daf340df99ba93c
+      for details (ISHIGAKI)
+
 1.43_07 2014-07-30
     - Resolved #97598: Crash on disconnect with virtual tables (FTS4)
       (patch and test code by Rob++) (ISHIGAKI)
