@@ -217,7 +217,6 @@ if ( $sqlite_inc ) {
 
 my @CC_DEFINE = (
 	'-DSQLITE_ENABLE_FTS4',
-	'-DSQLITE_ENABLE_FTS4_UNICODE61',   # for sqlite >= 3.7.13
 	'-DSQLITE_ENABLE_FTS3_PARENTHESIS', # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_RTREE',            # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_COLUMN_METADATA',
