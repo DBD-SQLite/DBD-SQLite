@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.43_08 to be released
+1.43_08 2014-08-21
     - Updated to SQLite 3.8.6, which should fix a unique index
       issue: see http://www.sqlite.org/src/info/9a6daf340df99ba93c
       for details (ISHIGAKI)
