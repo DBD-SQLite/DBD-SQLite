@@ -113,6 +113,7 @@ t/rt_88228_sqlite_3_8_0_crash.t
 t/rt_96050_db_filename_for_a_closed_database.t
 t/rt_96877_unicode_statements.t
 t/rt_96878_fts_contentless_table.t
+t/rt_97598_crash_on_disconnect_with_virtual_tables.t
 t/virtual_table/00_base.t
 t/virtual_table/01_destroy.t
 t/virtual_table/02_find_function.t
