@@ -112,17 +112,13 @@ sub connect {
 
     # To avoid unicode and long file name problems on Windows,
     # convert to the shortname if the file (or parent directory) exists.
-    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '' and $real !~ /^file:/) {
-        require Win32;
+    if ( $^O =~ /MSWin32/ and $real ne ':memory:' and $real ne '' and $real !~ /^file:/ and !-f $real ) {
         require File::Basename;
         my ($file, $dir, $suffix) = File::Basename::fileparse($real);
-        my $short = Win32::GetShortPathName($real);
-        if ( $short && -f $short ) {
-            # Existing files will work directly.
-            $real = $short;
-        } elsif ( -d $dir ) {
-            # We are creating a new file.
-            # Does the directory it's in at least exist?
+        # We are creating a new file.
+        # Does the directory it's in at least exist?
+        if ( -d $dir ) {
+            require Win32;
             $real = join '', grep { defined } Win32::GetShortPathName($dir), $file, $suffix;
         } else {
             # SQLite can't do mkpath anyway.

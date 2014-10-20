@@ -13,7 +13,7 @@ use t::lib::Test;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => (($^O eq 'cygwin') ? 14 : 26) );
+		plan( tests => 2 + 12 * (($^O eq 'cygwin') ? 2 : 4) );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -45,6 +45,18 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 	};
 	is( $@, '', "Could connect to database in $subdir" );
 	diag( $@ ) if $@;
+
+	# Reopen the database
+	eval {
+		my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", undef, undef, {
+			RaiseError => 1,
+			PrintError => 0,
+		} );
+		isa_ok( $dbh, 'DBI::db' );
+	};
+	is( $@, '', "Could connect to database in $subdir" );
+	diag( $@ ) if $@;
+
 	unlink(_path($dbfile))  if -e _path($dbfile);
 
 	# Repeat with the unicode flag on
@@ -59,6 +71,19 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 	};
 	is( $@, '', "Could connect to database in $subdir" );
 	diag( $@ ) if $@;
+
+	# Reopen the database
+	eval {
+		my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", undef, undef, {
+			RaiseError => 1,
+			PrintError => 0,
+			sqlite_unicode    => 1,
+		} );
+		isa_ok( $dbh, 'DBI::db' );
+	};
+	is( $@, '', "Could connect to database in $subdir" );
+	diag( $@ ) if $@;
+
 	unlink(_path($ufile))  if -e _path($ufile);
 	
 	# when the name of the database file has non-latin characters
@@ -67,6 +92,14 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 		DBI->connect("dbi:SQLite:dbname=$dbfilex", "", "", {RaiseError => 1, PrintError => 0});
 	};
 	ok(!$@, "Could connect to database in $dbfilex") or diag $@;
+	ok -f _path($dbfilex), "file exists: "._path($dbfilex)." ($dbfilex)";
+
+	# Reopen the database
+	eval {
+		DBI->connect("dbi:SQLite:dbname=$dbfilex", "", "", {RaiseError => 1, PrintError => 0});
+	};
+	ok(!$@, "Could connect to database in $dbfilex") or diag $@;
+
 	unlink(_path($dbfilex))  if -e _path($dbfilex);
 }
 
