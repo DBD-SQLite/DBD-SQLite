@@ -462,6 +462,7 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
     dTHX;
     int rc;
     sqlite3_stmt *pStmt;
+    stmt_list_s * s;
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit) == FALSE) {
         sqlite_db_rollback(dbh, imp_dbh);
@@ -488,7 +489,6 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
     sqlite_trace( dbh, imp_dbh, 1, form("rc = %d", rc) );
     if ( SQLITE_BUSY == rc ) { /* We have unfinalized statements */
         /* Only close the statements that were prepared by this module */
-        stmt_list_s * s;
         while ( s = imp_dbh->stmt_list ) {
             sqlite_trace( dbh, imp_dbh, 1, form("Finalizing statement (%p)", s->stmt) );
             sqlite3_finalize( s->stmt );
@@ -504,7 +504,6 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
     }
     /* The list should be empty at this point, but if for some unforseen reason
        it isn't, free remaining nodes here */
-    stmt_list_s * s;
     while( s = imp_dbh->stmt_list ) {
         imp_dbh->stmt_list = s->prev;
         sqlite3_free( s );
@@ -657,6 +656,7 @@ sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
     int rc = 0;
     const char *extra;
     char *statement;
+    stmt_list_s * new_stmt;
     D_imp_dbh_from_sth;
 
     last_prepared_dbh = imp_dbh;
@@ -709,7 +709,7 @@ sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
     }
     /* Add the statement to the front of the list to keep track of
        statements that might need to be finalized later on disconnect */
-    stmt_list_s * new_stmt = (stmt_list_s *) sqlite3_malloc( sizeof(stmt_list_s) );
+    new_stmt = (stmt_list_s *) sqlite3_malloc( sizeof(stmt_list_s) );
     new_stmt->stmt = imp_sth->stmt;
     new_stmt->prev = imp_dbh->stmt_list;
     imp_dbh->stmt_list = new_stmt;
@@ -1142,6 +1142,8 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
 {
     dTHX;
     int rc;
+    stmt_list_s * i;
+    stmt_list_s * temp;
 
     D_imp_dbh_from_sth;
 
@@ -1162,8 +1164,8 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
             }
 
             /* find the statement in the statement list and delete it */
-            stmt_list_s * i = imp_dbh->stmt_list;
-            stmt_list_s * temp = i;
+            i = imp_dbh->stmt_list;
+            temp = i;
             while( i ) {
                 if ( i->stmt == imp_sth->stmt ) {
                     if ( temp != i ) temp->prev = i->prev;
