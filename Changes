@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.43_09 2014-10-20
+    - Resolved #99583: Legacy DOS 8.3 filename support incompatible
+      with SQLITE WAL journal mode (spotted by Pat Horton) (ISHIGAKI)
+    - 1.43_07/08 were not VC6 compatible (ISHIGAKI)
+
 1.43_08 2014-08-21
     - Updated to SQLite 3.8.6, which should fix a unique index
       issue: see http://www.sqlite.org/src/info/9a6daf340df99ba93c
