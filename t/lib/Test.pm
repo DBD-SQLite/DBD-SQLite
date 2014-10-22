@@ -7,7 +7,7 @@ use Exporter   ();
 use File::Spec ();
 use Test::More ();
 
-our $VERSION = '1.43_09';
+our $VERSION = '1.44';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS/;
 our @CALL_FUNCS;
