@@ -2,6 +2,8 @@ Changes for Perl extension DBD-SQLite
 
 1.45_01 to be released
     - Updated to SQLite 3.8.7 (ISHIGAKI)
+    - Resolved #76395 (hopefully): int values over 32 bit in length
+      produce an error "datatype mismatch" (ISHIGAKI)
 
 1.44 2014-10-22
     - Switched to a production version. (ISHIGAKI)
