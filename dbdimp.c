@@ -41,6 +41,13 @@ imp_dbh_t *last_prepared_dbh;   /* see _last_dbh_is_unicode() */
 #define sqlite_open2(dbname,db,flags) _sqlite_open(aTHX_ dbh, dbname, db, flags)
 #define _isspace(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f')
 
+#if defined(_MSC_VER)
+  #define _sqlite_atoi(v) _atoi64(v)
+#elif defined(HAS_ATOLL)
+  #define _sqlite_atoi(v) atoll(v)
+#else
+  #define _sqlite_atoi(v) atol(v)
+#endif
 
 int _last_dbh_is_unicode() {
     /* some functions need to know if the unicode flag is on, but
@@ -215,13 +222,8 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
             s = SvPV(result, len);
             sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
         }
-    }
-    else if ( SvIOK(result) ) {
-#if defined(USE_64_BIT_INT)
-        sqlite3_result_int64( context, SvIV(result));
-#else
-        sqlite3_result_int( context, SvIV(result));
-#endif
+    } else if ( SvIOK(result) ) {
+        sqlite3_result_int64( context, _sqlite_atoi(SvPV(result, len)) );
     } else if ( SvNOK(result) && ( sizeof(NV) == sizeof(double) || SvNVX(result) == (double) SvNVX(result) ) ) {
         sqlite3_result_double( context, SvNV(result));
     } else {
@@ -255,7 +257,6 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     else                { neg = 0; }
     if (!isdigit(*z)) return 0;
     while (isdigit(*z)) { digit++; z++; }
-#if defined(USE_64_BIT_INT)
     if (digit > 19) maybe_int = FALSE; /* too large for i64 */
     if (digit == 19) {
         int c;
@@ -267,19 +268,6 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
         }
         if (c > 0) maybe_int = FALSE;
     }
-#else
-    if (digit > 10) maybe_int = FALSE; /* too large for i32 */
-    if (digit == 10) {
-        int c;
-        char tmp[14];
-        strncpy(tmp, d, z - d + 1);
-        c = memcmp(tmp, "214748364", 9);
-        if (c == 0) {
-            c = tmp[9] - '7' - neg;
-        }
-        if (c > 0) maybe_int = FALSE;
-    }
-#endif
     if (*z == '.') {
         maybe_int = FALSE;
         z++;
@@ -295,16 +283,8 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     }
     if (*z && !isdigit(*z)) return 0;
 
-    if (maybe_int || sql_type == SQLITE_INTEGER) {
-#if defined(USE_64_BIT_INT)
-    #if defined(HAS_ATOLL)
-        if (strEQ(form((has_plus ? "+%lli" : "%lli"), atoll(v)), v)) return 1;
-    #else
-        if (strEQ(form((has_plus ? "+%li" : "%li"), atol(v)), v)) return 1;
-    #endif
-#else
-        if (strEQ(form((has_plus ? "+%i" : "%i"), atoi(v)), v)) return 1;
-#endif
+    if (maybe_int && digit) {
+        if (_sqlite_atoi(v)) return 1;
     }
     if (sql_type != SQLITE_INTEGER) {
         sprintf(format, (has_plus ? "+%%.%df" : "%%.%df"), precision);
@@ -803,15 +783,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
 
             if (numtype == 1) {
-#if defined(USE_64_BIT_INT)
-    #if defined(HAS_ATOLL)
-                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atoll(data));
-    #else
-                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, atol(data));
-    #endif
-#else
-                rc = sqlite3_bind_int(imp_sth->stmt, i+1, atoi(data));
-#endif
+                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, _sqlite_atoi(data));
             }
             else if (numtype == 2 && sql_type != SQLITE_INTEGER) {
                 rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
@@ -1001,6 +973,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
     int numFields = DBIc_NUM_FIELDS(imp_sth);
     int chopBlanks = DBIc_is(imp_sth, DBIcf_ChopBlanks);
     int i;
+    sqlite3_int64 iv;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(sth, -2, "attempt to fetch on inactive database handle");
@@ -1044,17 +1017,15 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
         switch(col_type) {
             case SQLITE_INTEGER:
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as integer", i));
-#if defined(USE_64_BIT_INT)
-                sv_setiv(AvARRAY(av)[i], sqlite3_column_int64(imp_sth->stmt, i));
-#else
-                val = (char*)sqlite3_column_text(imp_sth->stmt, i);
-                if (sqlite_is_number(aTHX_ val, SQLITE_NULL) == 1) {
-                    sv_setiv(AvARRAY(av)[i], atoi(val));
-                } else {
+                iv = sqlite3_column_int64(imp_sth->stmt, i);
+                if ( iv >= IV_MIN && iv <= IV_MAX ) {
+                    sv_setiv(AvARRAY(av)[i], iv);
+                }
+                else {
+                    val = (char*)sqlite3_column_text(imp_sth->stmt, i);
                     sv_setpv(AvARRAY(av)[i], val);
                     SvUTF8_off(AvARRAY(av)[i]);
                 }
-#endif
                 break;
             case SQLITE_FLOAT:
                 /* fetching as float may lose precision info in the perl world */
