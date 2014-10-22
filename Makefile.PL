@@ -342,6 +342,7 @@ WriteMakefile(
 			requires => {
 				'Tie::Hash' => 0,
 				'DBI'       => $DBI_required,
+                'Scalar::Util' => 0,
 				( WINLIKE ? (
 					'Win32' => '0.30',
 				) : () ),
