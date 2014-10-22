@@ -1,52 +1,112 @@
 #!/usr/bin/perl
 
+use warnings;
 use strict;
-my $INTMAX;
 BEGIN {
 	$|  = 1;
 	$^W = 1;
-	use Config;
-	$INTMAX = (1 << ($Config{ivsize}*4-1)) - 1;
 }
 use t::lib::Test;
-use Test::More tests => 7 + (2147483647 == $INTMAX ? 2 : 4);
-use Test::NoWarnings;
-use DBI qw(:sql_types);
+use Test::More;
+
+use DBI;
+
+my @tests = qw(
+  -9223372036854775808
+  -9223372036854775807
+  -8694837494948124658
+  -6848440844435891639
+  -5664812265578554454
+  -5380388020020483213
+  -2564279463598428141
+  2442753333597784273
+  4790993557925631491
+  6773854980030157393
+  7627910776496326154
+  8297530189347439311
+  9223372036854775806
+  9223372036854775807
+
+  4294967295
+  4294967296
+
+  -4294967296
+  -4294967295
+  -4294967294
+
+  -2147483649
+  -2147483648
+  -2147483647
+  -2147483646
+
+  2147483646
+  2147483647
+  2147483648
+  2147483649
+);
+
+plan tests => 1 + @tests * 6 * 6;
 
 my $dbh = connect_ok();
+$dbh->do('
+  CREATE TABLE t (
+    pk INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    int INTEGER,
+    bigint BIGINT
+  )
+');
 
-# testing results
-sub intmax {
-  my $intmax = shift;
-  my ($statement, $sth, $result);
-  $statement = "SELECT $intmax + 1";
-  $sth = $dbh->prepare($statement);
-  ok( $sth->execute, "execute: $statement" );
-  $result = $sth->fetchrow_arrayref->[0];
-  is( $result, $intmax + 1, "result: $result" );
+for my $val (@tests) {
+  for my $col (qw(int bigint)) {
+    for my $bindtype (undef, 'DBI::SQL_INTEGER', 'DBI::SQL_BIGINT') {
+
+      my $tdesc = sprintf "value '%s' with %s bindtype on '%s' column",
+        $val,
+        $bindtype || 'no',
+        $col
+      ;
+
+      my $sth = $dbh->prepare_cached(
+        "INSERT INTO t ( $col ) VALUES ( ? )",
+        {},
+        3
+      );
+
+      my @w;
+      local $SIG{__WARN__} = sub { push @w, @_ };
+
+      ok (
+        $sth->bind_param(1, $val, ( $bindtype and do { no strict 'refs'; &{$bindtype} } )),
+        "Succesfully bound $tdesc",
+      );
+      is_deeply(
+        \@w,
+        [],
+        "No warnings during bind of $tdesc",
+      );
+
+      ok (
+        eval { $sth->execute ; 1 },
+        "Succesfully inserted $tdesc" . ($@ ? ": $@" : ''),
+      );
+      is_deeply(
+        \@w,
+        [],
+        "No warnings during insertion of $tdesc",
+      );
+
+      my $id;
+      ok (
+        $id = $dbh->last_insert_id(undef, undef, 't', 'pk'),
+        "Got id $id of inserted $tdesc",
+      );
+
+      is_deeply(
+        $dbh->selectall_arrayref("SELECT $col FROM t WHERE pk = $id"),
+        [[ $val ]],
+        "Proper roundtrip (insert/select) of $tdesc",
+      );
+
+    }
+  }
 }
-
-intmax($INTMAX);
-intmax(2147483647) if 2147483647 != $INTMAX;
-
-# testing int column type, which should default to int(8) or int(4)
-$dbh->do('drop table if exists artist');
-$dbh->do(<<'END_SQL');
-create table artist (
-  id int not null,
-  name text not null
-)
-END_SQL
-
-$INTMAX = 2147483647;
-my ($sth, $result);
-ok( $dbh->do(qq/insert into artist (id,name) values($INTMAX+1, 'Leonardo')/), 'insert int INTMAX+1');
-$sth = $dbh->prepare('select id from artist where name=?');
-ok( $sth->execute('Leonardo'), 'bind to name' );
-$result = $sth->fetchrow_arrayref->[0];
-is( $result, $INTMAX+1, "result: $result" );
-
-$sth = $dbh->prepare('select name from artist where id=?');
-ok( $sth->execute($INTMAX+1), 'bind to INTMAX+1' );
-$result = $sth->fetchrow_arrayref->[0];
-is( $result, 'Leonardo', "result: $result" );
