@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.45_02 2014-10-23
+    - Improved int overflow handling under 32bit strawberry perl
+      (ISHIGAKI)
+
 1.45_01 2014-10-22
     - Updated to SQLite 3.8.7 (ISHIGAKI)
     - Resolved #76395 (hopefully): int values over 32 bit in length
