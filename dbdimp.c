@@ -41,13 +41,40 @@ imp_dbh_t *last_prepared_dbh;   /* see _last_dbh_is_unicode() */
 #define sqlite_open2(dbname,db,flags) _sqlite_open(aTHX_ dbh, dbname, db, flags)
 #define _isspace(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f')
 
-#if defined(_MSC_VER)
-  #define _sqlite_atoi(v) _atoi64(v)
-#elif defined(HAS_ATOLL)
-  #define _sqlite_atoi(v) atoll(v)
-#else
-  #define _sqlite_atoi(v) atol(v)
-#endif
+/* adopted from sqlite3.c */
+
+#define LARGEST_INT64  (0xffffffff|(((sqlite3_int64)0x7fffffff)<<32))
+#define SMALLEST_INT64 (((sqlite3_int64)-1) - LARGEST_INT64)
+
+sqlite3_int64 _sqlite_atoi64(const char *zNum) {
+  sqlite3_uint64 u = 0;
+  int neg = 0;
+  int i;
+  int c = 0;
+  const char *zStart;
+  const char *zEnd = zNum + strlen(zNum);
+  while(zNum < zEnd && _isspace(*zNum)) zNum++;
+  if (zNum < zEnd) {
+    if (*zNum == '-') {
+      neg = 1;
+      zNum++;
+    } else if (*zNum == '+') {
+      zNum++;
+    }
+  }
+  zStart = zNum;
+  while(zNum < zEnd && zNum[0] == '0') zNum++;
+  for(i = 0; &zNum[i] < zEnd && (c = zNum[i]) >= '0' && c <= '9'; i++) {
+    u = u * 10 + c - '0';
+  }
+  if (u > LARGEST_INT64) {
+    return neg ? SMALLEST_INT64 : LARGEST_INT64;
+  } else if (neg) {
+    return -(sqlite3_int64)u;
+  } else {
+    return (sqlite3_int64)u;
+  }
+}
 
 int _last_dbh_is_unicode() {
     /* some functions need to know if the unicode flag is on, but
@@ -223,7 +250,7 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
             sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
         }
     } else if ( SvIOK(result) ) {
-        sqlite3_result_int64( context, _sqlite_atoi(SvPV(result, len)) );
+        sqlite3_result_int64( context, _sqlite_atoi64(SvPV(result, len)) );
     } else if ( SvNOK(result) && ( sizeof(NV) == sizeof(double) || SvNVX(result) == (double) SvNVX(result) ) ) {
         sqlite3_result_double( context, SvNV(result));
     } else {
@@ -284,7 +311,7 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     if (*z && !isdigit(*z)) return 0;
 
     if (maybe_int && digit) {
-        if (_sqlite_atoi(v)) return 1;
+        if (_sqlite_atoi64(v)) return 1;
     }
     if (sql_type != SQLITE_INTEGER) {
         sprintf(format, (has_plus ? "+%%.%df" : "%%.%df"), precision);
@@ -783,7 +810,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
 
             if (numtype == 1) {
-                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, _sqlite_atoi(data));
+                rc = sqlite3_bind_int64(imp_sth->stmt, i+1, _sqlite_atoi64(data));
             }
             else if (numtype == 2 && sql_type != SQLITE_INTEGER) {
                 rc = sqlite3_bind_double(imp_sth->stmt, i+1, atof(data));
