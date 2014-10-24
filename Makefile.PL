@@ -216,11 +216,12 @@ if ( $sqlite_inc ) {
 }
 
 my @CC_DEFINE = (
-	'-DSQLITE_ENABLE_FTS4',
+	'-DSQLITE_ENABLE_FTS4',             # for sqlite >= 3.7.4
 	'-DSQLITE_ENABLE_FTS3_PARENTHESIS', # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_RTREE',            # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_COLUMN_METADATA',
-	'-DSQLITE_ENABLE_STAT3',
+	'-DSQLITE_ENABLE_STAT3',            # for sqlite >= 3.7.9
+	'-DSQLITE_ENABLE_STAT4',            # for sqlite >= 3.8.3.1
 	'-DNDEBUG=1',
 );
 if ( $^O eq 'cygwin') {
