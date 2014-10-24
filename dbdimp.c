@@ -498,26 +498,12 @@ sqlite_db_disconnect(SV *dbh, imp_dbh_t *imp_dbh)
 {
     dTHX;
     int rc;
-    sqlite3_stmt *pStmt;
     stmt_list_s * s;
 
     if (DBIc_is(imp_dbh, DBIcf_AutoCommit) == FALSE) {
         sqlite_db_rollback(dbh, imp_dbh);
     }
     DBIc_ACTIVE_off(imp_dbh);
-
-#if 0
-    /*
-    ** This cause segfaults when we have virtual tables, as sqlite3
-    ** seems to try to finalize the statements for the tables (freed
-    ** here) while closing. So we need to find other ways to do the
-    ** right thing.
-    */
-    /* COMPAT: sqlite3_next_stmt is only available for 3006000 or newer */
-    while ( (pStmt = sqlite3_next_stmt(imp_dbh->db, 0)) != NULL ) {
-        sqlite3_finalize(pStmt);
-    }
-#endif
 
     croak_if_db_is_null();
 
@@ -1077,7 +1063,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as integer", i));
                 iv = sqlite3_column_int64(imp_sth->stmt, i);
                 if ( iv >= IV_MIN && iv <= IV_MAX ) {
-                    sv_setiv(AvARRAY(av)[i], iv);
+                    sv_setiv(AvARRAY(av)[i], (IV)iv);
                 }
                 else {
                     val = (char*)sqlite3_column_text(imp_sth->stmt, i);
@@ -2404,7 +2390,7 @@ sqlite_db_profile_dispatcher(void *callback, const char *sql, sqlite3_uint64 ela
      * in the time are meaningless.
      * (http://sqlite.org/c3ref/profile.html)
      */
-    XPUSHs( sv_2mortal( newSViv( elapsed / 1000000 ) ) );
+    XPUSHs( sv_2mortal( newSViv((IV)( elapsed / 1000000 )) ) );
     PUTBACK;
 
     n_retval = call_sv( callback, G_SCALAR );
@@ -2722,7 +2708,6 @@ static int perl_tokenizer_Next(
     int n_retval;
     char *token;
     char *byteOffset;
-    STRLEN n_a;
     I32 hop;
 
     dTHX;
@@ -3398,7 +3383,7 @@ static int perl_vt_Update( sqlite3_vtab *pVTab,
             else if (SvIOK(rowidsv))
                 *pRowid = SvIV(rowidsv);
             else
-                *pRowid = SvNV(rowidsv);
+                *pRowid = (sqlite3_int64)SvNV(rowidsv);
         }
         rc = SQLITE_OK;
     }
