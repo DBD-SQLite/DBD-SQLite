@@ -95,8 +95,8 @@ sub BEST_INDEX {
       $optype  = $self->{optypes}[$col];
     }
     my $op    = $SQLOP2PERLOP{$constraint->{op}}[$optype];
-    my $quote = $op eq '=~' ? 'qr' : 'q';
-    push @conditions, "($member $op ${quote}{%s})";
+    my $quote = $op eq '=~' ? 'm' : 'q';
+    push @conditions, "(defined($member) && $member $op ${quote}{%s})";
 
     # info passed back to the SQLite core -- see vtab.html in sqlite doc
     $constraint->{argvIndex} = $ix++;
@@ -125,7 +125,8 @@ sub _build_new_row {
 
   my $opts = $self->{options};
   return $opts->{arrayrefs} ? $values
-       : $opts->{hashrefs}  ? { map {$self->{headers}->[$_], $values->[$_]} (0 .. @{$self->{headers}} - 1) }
+       : $opts->{hashrefs}  ? { map {$self->{headers}->[$_], $values->[$_]}
+                                    (0 .. @{$self->{headers}} - 1) }
        : $opts->{colref}    ? $values->[0]
        :                      die "corrupted data in ->{options}";
 }
@@ -191,7 +192,7 @@ sub FILTER {
                 .        sprintf($idxStr, @values)
                 .     '}';
 
-  # print STDERR $perl_code, "\n";
+  # print STDERR "PERL COODE:\n", $perl_code, "\n";
 
   $self->{is_wanted_row} = eval $perl_code
     or die "couldn't eval q{$perl_code} : $@";
@@ -232,7 +233,7 @@ sub COLUMN {
 sub ROWID {
   my ($self) = @_;
 
-  return $self->{row_ix};
+  return $self->{row_ix} + 1; # rowids start at 1 in SQLite
 }
 
 
@@ -421,7 +422,7 @@ Here is how such a program would look like :
   # Declare a global arrayref containing the values. Here we assume
   # they are taken from @ARGV, but any other datasource would do.
   # Note the use of "our" instead of "my".
-  our $valuess = \@ARGV; 
+  our $values = \@ARGV; 
   
   # register the module and declare the virtual table
   $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");

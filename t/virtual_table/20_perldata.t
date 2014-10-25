@@ -48,7 +48,7 @@ is $res->[1]{a}, 1, 'got 1 in second a';
 
 $sql = "SELECT rowid FROM vtb WHERE c = 'six'";
 $res = $dbh->selectall_arrayref($sql, {Slice => {}});
-is_deeply $res, [{rowid => 1}], $sql;
+is_deeply $res, [{rowid => 2}], $sql;
 
 $sql = "SELECT c FROM vtb WHERE c MATCH '^.i' ORDER BY c";
 $res = $dbh->selectcol_arrayref($sql);

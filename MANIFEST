@@ -121,6 +121,7 @@ t/virtual_table/10_filecontent.t
 t/virtual_table/11_filecontent_fulltext.t
 t/virtual_table/20_perldata.t
 t/virtual_table/21_perldata_charinfo.t
+t/virtual_table/rt_99748.t
 typemap
 util/getsqlite.pl
 xt/meta.t
