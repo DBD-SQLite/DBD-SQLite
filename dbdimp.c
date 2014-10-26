@@ -2708,6 +2708,7 @@ static int perl_tokenizer_Next(
     int n_retval;
     char *token;
     char *byteOffset;
+    STRLEN n_a; /* this is required for older perls < 5.8.8 */
     I32 hop;
 
     dTHX;
