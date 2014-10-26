@@ -23,7 +23,6 @@ my @interpolation_attempts = (
   '$foobar',
   '$self->{row_ix}',
   '(?{die 999})',
-  '(?[die 999])',
  );
 
 # unfortunately the examples below don't fail, but I don't know how to
