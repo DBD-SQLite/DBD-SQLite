@@ -20,10 +20,16 @@ our $perl_rows = [
 # tests for security holes. All of these fail when compiling the regex
 my @interpolation_attempts = (
   '@[{die -1}]',
-  '$foobar',
-  '$self->{row_ix}',
   '(?{die 999})',
  );
+
+if ($] > 5.008008) {
+  # don't really know why, but the tests below (interpolating variables
+  # within regexes) cause segfaults under Perl <= 5.8.8, during the END
+  # phase -- probably something to do with closure destruction.
+  push @interpolation_attempts, '$foobar',
+                                '$self->{row_ix}';
+}
 
 # unfortunately the examples below don't fail, but I don't know how to
 # prevent variable interpolation (that we don't want) while keeping
@@ -51,7 +57,6 @@ ok $dbh->do(<<""), "create vtable";
 # run same tests on both the regular and the virtual table
 test_table($dbh, 'rtb');
 test_table($dbh, 'vtb', 1);
-
 
 
 sub test_table {
@@ -94,7 +99,7 @@ sub test_table {
     is_deeply $res, [qw/six/], $sql;
 
     $sql = "SELECT c FROM $table WHERE c MATCH ? ORDER BY c";
-    ok !eval{$dbh->selectcol_arrayref($sql, {}, $_); 1}, $_ # "$_ : $@"
+    ok !eval{$dbh->selectcol_arrayref($sql, {}, $_); 1}, $_
       foreach @interpolation_attempts;
   }
 }
