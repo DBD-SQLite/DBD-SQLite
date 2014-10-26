@@ -6,7 +6,7 @@ BEGIN {
 }
 
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 use FindBin;
@@ -28,7 +28,7 @@ $dbh->do(<<"");
 
 # start tests
 
-ok $dbh->sqlite_create_module(fs => "DBD::SQLite::VirtualTable::FileContent"),
+ok $dbh->$sqlite_call(create_module => fs => "DBD::SQLite::VirtualTable::FileContent"),
    "create_module";
 
 

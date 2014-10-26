@@ -5,21 +5,23 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 20;
+plan tests => 1 + 19;
 
 my $dbfile = "tmp.sqlite";
+
 my $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
 
 ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT &&
    !$DBD::SQLite::VirtualTable::T::CONNECT_COUNT,  "no vtab created";
 
 # create 2 separate SQLite modules from the same Perl class
-$dbh->sqlite_create_module(vtab1 => "DBD::SQLite::VirtualTable::T");
-$dbh->sqlite_create_module(vtab2 => "DBD::SQLite::VirtualTable::T");
+$dbh->$sqlite_call(create_module => vtab1 => "DBD::SQLite::VirtualTable::T");
+$dbh->$sqlite_call(create_module => vtab2 => "DBD::SQLite::VirtualTable::T");
+
 ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT &&
    !$DBD::SQLite::VirtualTable::T::CONNECT_COUNT,  "still no vtab";
 
@@ -46,7 +48,7 @@ undef $DBD::SQLite::VirtualTable::T::CREATE_COUNT;
 undef $DBD::SQLite::VirtualTable::T::CONNECT_COUNT;
 
 $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
-$dbh->sqlite_create_module(vtab1 => "DBD::SQLite::VirtualTable::T");
+$dbh->$sqlite_call(create_module => vtab1 => "DBD::SQLite::VirtualTable::T");
 ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT,     "no vtab created";
 ok !$DBD::SQLite::VirtualTable::T::CONNECT_COUNT,    "no vtab connected";
 

@@ -6,7 +6,7 @@ BEGIN {
 }
 
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 use FindBin;
@@ -21,7 +21,8 @@ plan tests => 29;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
-ok $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData"),
+ok $dbh->$sqlite_call(create_module =>
+                        perl => "DBD::SQLite::VirtualTable::PerlData"),
    "create_module";
 
 #======================================================================

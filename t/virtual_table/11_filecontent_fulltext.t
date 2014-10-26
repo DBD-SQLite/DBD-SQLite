@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 use FindBin;
@@ -53,7 +53,7 @@ $sth->execute($_) foreach @perl_files;
 
 
 # create the virtual table
-$dbh->sqlite_create_module(fc => "DBD::SQLite::VirtualTable::FileContent");
+$dbh->$sqlite_call(create_module => fc => "DBD::SQLite::VirtualTable::FileContent");
 $dbh->do(<<"");
   CREATE VIRTUAL TABLE vfc USING fc(source = files,
                                     expose = "path",
@@ -90,7 +90,7 @@ foreach my $test (@tests) {
 $dbh->disconnect;
 undef $dbh;
 $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
-$dbh->sqlite_create_module(fc => "DBD::SQLite::VirtualTable::FileContent");
+$dbh->$sqlite_call(create_module => fc => "DBD::SQLite::VirtualTable::FileContent");
 
 foreach my $test (@tests) {
   my ($pattern, @expected)  = @$test;

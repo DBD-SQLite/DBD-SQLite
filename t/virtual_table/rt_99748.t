@@ -6,7 +6,7 @@ BEGIN {
 }
 
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
@@ -38,7 +38,8 @@ if ($] > 5.008008) {
   # '$0',
   # '$self',
 
-plan tests => 25 + @interpolation_attempts;
+plan tests => 1 + 24 + @interpolation_attempts;
+
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -48,7 +49,8 @@ my $sth = $dbh->prepare("INSERT INTO rtb(a, b, c) VALUES (?, ?, ?)");
 $sth->execute(@$_) foreach @$perl_rows;
 
 # create the virtual table
-ok $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData"),
+ok $dbh->$sqlite_call(create_module =>
+                        perl => "DBD::SQLite::VirtualTable::PerlData"),
    "create_module";
 ok $dbh->do(<<""), "create vtable";
   CREATE VIRTUAL TABLE vtb USING perl(a INT, b INT, c TEXT,

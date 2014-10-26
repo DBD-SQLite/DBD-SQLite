@@ -9,8 +9,9 @@ use Test::More ();
 
 our $VERSION = '1.45_03';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS/;
+our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS $sqlite_call/;
 our @CALL_FUNCS;
+our $sqlite_call;
 
 my $parent;
 my %dbfiles;
@@ -125,5 +126,26 @@ $DBI::VERSION >= 1.608 and push @CALL_FUNCS, sub {
   my $method    = "sqlite_" . $func_name;
   return $dbh->$method(@_);
 };
+
+
+=head2 $sqlite_call
+
+  $dbh->$sqlite_call(meth_name => @args);
+
+This is another way of testing driver-private methods, in a portable
+manner that works for DBI versions before or after 1.608. Unlike
+C<@CALL_FUNCS>, this does not require to loop -- because after all,
+it doesn't make much sense to test the old ->func() interface if
+we have support for the new ->sqlite_*() interface. With C<$sqlite_call>,
+the most appropriate API is chosen automatically and called only once.
+
+=cut
+
+$sqlite_call = sub {
+  my $dbh = shift;
+  my $func_to_call = shift;
+  $CALL_FUNCS[-1]->($dbh, @_, $func_to_call);
+};
+
 
 1;

@@ -5,17 +5,17 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 10;
+plan tests => 1 + 9;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 
-$dbh->sqlite_create_module(vtab => "DBD::SQLite::VirtualTable::T");
+$dbh->$sqlite_call(create_module => vtab => "DBD::SQLite::VirtualTable::T");
 
-ok $dbh->do("CREATE VIRTUAL TABLE foobar USING vtab(foo INTEGER, bar INTEGER)"); 
+ok $dbh->do("CREATE VIRTUAL TABLE foobar USING vtab(foo INTEGER, bar INTEGER)");
 
 my $sql = "SELECT rowid, foo, bar FROM foobar ";
 my $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
@@ -30,7 +30,6 @@ $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 5, "got 5 rows again";
 
 is_deeply([sort keys %{$rows->[0]}], [qw/bar foo/], "col list OK");
-
 
 $sql = "SELECT * FROM foobar WHERE foo > -1 and bar < 33";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
