@@ -5,7 +5,6 @@ BEGIN {
 	$^W = 1;
 }
 
-
 use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
@@ -15,6 +14,8 @@ our $perl_rows = [
   [1, 2, 'three'],
   [4, undef, 'six'  ],
   [7, 8, undef ],
+  [10, undef, '}'],
+  [11, undef,  '\}'],
 ];
 
 # tests for security holes. All of these fail when compiling the regex
@@ -28,7 +29,9 @@ if ($] > 5.008008) {
   # within regexes) cause segfaults under Perl <= 5.8.8, during the END
   # phase -- probably something to do with closure destruction.
   push @interpolation_attempts, '$foobar',
-                                '$self->{row_ix}';
+                                '$self->{row_ix}',
+                                '$main::ARGV[ die 999 ]',
+                                ;
 }
 
 # unfortunately the examples below don't fail, but I don't know how to
@@ -38,8 +41,7 @@ if ($] > 5.008008) {
   # '$0',
   # '$self',
 
-plan tests => 1 + 24 + @interpolation_attempts;
-
+plan tests => 4 + 2 * 12 + @interpolation_attempts + 4;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -58,21 +60,22 @@ ok $dbh->do(<<""), "create vtable";
 
 # run same tests on both the regular and the virtual table
 test_table($dbh, 'rtb');
-test_table($dbh, 'vtb', 1);
+test_table($dbh, 'vtb');
 
+# the match operator only works on the virtual table
+test_match_operator($dbh, 'vtb');
 
 sub test_table {
-  my ($dbh, $table, $should_test_match) = @_;
+  my ($dbh, $table) = @_;
 
   my $sql = "SELECT rowid, * FROM $table";
   my $res = $dbh->selectall_arrayref($sql, {Slice => {}});
-  is scalar(@$res), 3, "$sql: got 3 rows";
+  is scalar(@$res), scalar(@$perl_rows), "$sql: got 3 rows";
   is $res->[0]{a}, 1, 'got 1 in a';
   is $res->[0]{b}, 2, 'got undef in b';
 
   $sql  = "SELECT a FROM $table WHERE b < 8 ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
-  is scalar(@$res), 1, "$sql: got 1 row";
   is_deeply $res, [1], "got 1 in a";
 
   $sql = "SELECT rowid FROM $table WHERE c = 'six'";
@@ -81,7 +84,7 @@ sub test_table {
 
   $sql = "SELECT a FROM $table WHERE b IS NULL ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
-  is_deeply $res, [4], $sql;
+  is_deeply $res, [4, 10, 11], $sql;
 
   $sql = "SELECT a FROM $table WHERE b IS NOT NULL ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
@@ -93,15 +96,38 @@ sub test_table {
 
   $sql = "SELECT a FROM $table WHERE c IS NOT NULL ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
-  is_deeply $res, [1, 4], $sql;
+  is_deeply $res, [1, 4, 10, 11], $sql;
 
-  if ($should_test_match) {
-    $sql = "SELECT c FROM $table WHERE c MATCH '^.i' ORDER BY c";
-    $res = $dbh->selectcol_arrayref($sql);
-    is_deeply $res, [qw/six/], $sql;
+  $sql = "SELECT a FROM $table WHERE c = ?";
+  $res = $dbh->selectcol_arrayref($sql, {}, '}');
+  is_deeply $res, [10], $sql;
 
-    $sql = "SELECT c FROM $table WHERE c MATCH ? ORDER BY c";
-    ok !eval{$dbh->selectcol_arrayref($sql, {}, $_); 1}, $_
-      foreach @interpolation_attempts;
-  }
+  $res = $dbh->selectcol_arrayref($sql, {}, '\}');
+  is_deeply $res, [11], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '\\');
+  is_deeply $res, [], $sql;
+}
+
+sub test_match_operator {
+  my ($dbh, $table) = @_;
+
+  my $sql = "SELECT c FROM $table WHERE c MATCH '^.i' ORDER BY c";
+  my $res = $dbh->selectcol_arrayref($sql);
+  is_deeply $res, [qw/six/], $sql;
+
+  $sql = "SELECT c FROM $table WHERE c MATCH ? ORDER BY c";
+  ok !eval{$dbh->selectcol_arrayref($sql, {}, $_); 1}, $_
+    foreach @interpolation_attempts;
+
+  $sql = "SELECT a FROM $table WHERE c MATCH ?";
+  $res = $dbh->selectcol_arrayref($sql, {}, '}');
+  is_deeply $res, [10, 11], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '\}');
+  is_deeply $res, [11], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '\\');
+  is_deeply $res, [11], $sql;
+
 }
