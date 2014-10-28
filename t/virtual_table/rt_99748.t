@@ -16,6 +16,7 @@ our $perl_rows = [
   [7, 8, undef ],
   [10, undef, '}'],
   [11, undef,  '\}'],
+  [12, undef,  "data\nhas\tspaces"],
 ];
 
 # tests for security holes. All of these fail when compiling the regex
@@ -24,7 +25,7 @@ my @interpolation_attempts = (
   '(?{die 999})',
  );
 
-if ($] > 5.008008) {
+#if ($] > 5.008008) {
   # don't really know why, but the tests below (interpolating variables
   # within regexes) cause segfaults under Perl <= 5.8.8, during the END
   # phase -- probably something to do with closure destruction.
@@ -32,7 +33,7 @@ if ($] > 5.008008) {
                                 '$self->{row_ix}',
                                 '$main::ARGV[ die 999 ]',
                                 ;
-}
+#}
 
 # unfortunately the examples below don't fail, but I don't know how to
 # prevent variable interpolation (that we don't want) while keeping
@@ -41,7 +42,7 @@ if ($] > 5.008008) {
   # '$0',
   # '$self',
 
-plan tests => 4 + 2 * 12 + @interpolation_attempts + 4;
+plan tests => 4 + 2 * 13 + @interpolation_attempts + 8;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -84,7 +85,7 @@ sub test_table {
 
   $sql = "SELECT a FROM $table WHERE b IS NULL ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
-  is_deeply $res, [4, 10, 11], $sql;
+  is_deeply $res, [4, 10, 11, 12], $sql;
 
   $sql = "SELECT a FROM $table WHERE b IS NOT NULL ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
@@ -96,7 +97,7 @@ sub test_table {
 
   $sql = "SELECT a FROM $table WHERE c IS NOT NULL ORDER BY a";
   $res = $dbh->selectcol_arrayref($sql);
-  is_deeply $res, [1, 4, 10, 11], $sql;
+  is_deeply $res, [1, 4, 10, 11, 12], $sql;
 
   $sql = "SELECT a FROM $table WHERE c = ?";
   $res = $dbh->selectcol_arrayref($sql, {}, '}');
@@ -107,17 +108,21 @@ sub test_table {
 
   $res = $dbh->selectcol_arrayref($sql, {}, '\\');
   is_deeply $res, [], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '{');
+  is_deeply $res, [], $sql;
 }
 
 sub test_match_operator {
   my ($dbh, $table) = @_;
 
-  my $sql = "SELECT c FROM $table WHERE c MATCH '^.i' ORDER BY c";
+#  my $sql = "SELECT c FROM $table WHERE c MATCH '^.i' ORDER BY c";
+  my $sql = "SELECT c FROM $table WHERE c MATCH 'i' ORDER BY c";
   my $res = $dbh->selectcol_arrayref($sql);
   is_deeply $res, [qw/six/], $sql;
 
   $sql = "SELECT c FROM $table WHERE c MATCH ? ORDER BY c";
-  ok !eval{$dbh->selectcol_arrayref($sql, {}, $_); 1}, $_
+  is_deeply $dbh->selectcol_arrayref($sql, {}, $_) => [], $_
     foreach @interpolation_attempts;
 
   $sql = "SELECT a FROM $table WHERE c MATCH ?";
@@ -129,5 +134,17 @@ sub test_match_operator {
 
   $res = $dbh->selectcol_arrayref($sql, {}, '\\');
   is_deeply $res, [11], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, "\n");
+  is_deeply $res, [12], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, "\t");
+  is_deeply $res, [12], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '{');
+  is_deeply $res, [], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '$x[$y]');
+  is_deeply $res, [], $sql;
 
 }
