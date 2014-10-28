@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.45_04 2014-10-28
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Changed to apply quotemeta() to parameters while building
+      a query for a virtual table using PerlData for security.
+      (RIBASUSHI++ and MAUKE++) (DAMI, ISHIGAKI) 
+
 1.45_03 2014-10-25
     - Fixed regression of 0 as integer (ISHIGAKI)
 
