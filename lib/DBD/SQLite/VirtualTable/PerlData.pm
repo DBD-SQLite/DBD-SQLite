@@ -185,7 +185,7 @@ sub FILTER {
   my ($self, $idxNum, $idxStr, @values) = @_;
 
   # escape '\' and '}' in values before they are sprintf'ed into q{%s}
-  @values = map {quotemeta($_)} @values;
+  @values = map {defined $_ ? quotemeta($_) : 'NULL'} @values;
 
   # build a method coderef to fetch matching rows
   my $perl_code = 'sub {my ($self, $i) = @_; my $row = $self->row($i); '

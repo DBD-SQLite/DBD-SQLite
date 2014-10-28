@@ -42,7 +42,7 @@ my @interpolation_attempts = (
   # '$0',
   # '$self',
 
-plan tests => 4 + 2 * 13 + @interpolation_attempts + 8;
+plan tests => 4 + 2 * 15 + @interpolation_attempts + 8;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -111,6 +111,13 @@ sub test_table {
 
   $res = $dbh->selectcol_arrayref($sql, {}, '{');
   is_deeply $res, [], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, undef);
+  is_deeply $res, [], $sql;
+
+  $sql = "SELECT a FROM $table WHERE c IS ?";
+  $res = $dbh->selectcol_arrayref($sql, {}, undef);
+  is_deeply $res, [7], $sql;
 }
 
 sub test_match_operator {
