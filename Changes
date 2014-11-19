@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.45_05 to be released
+    - Updated to SQLite 3.8.7.2
+
 1.45_04 2014-10-28
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Changed to apply quotemeta() to parameters while building
