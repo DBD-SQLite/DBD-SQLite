@@ -1,7 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
-1.45_05 to be released
+1.45_05 2014-11-25
     - Updated to SQLite 3.8.7.2
+    - Restored regexp support in PerlData virtual table
+      by secure reimplementation using closure (DAMI++)
 
 1.45_04 2014-10-28
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
