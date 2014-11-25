@@ -9,6 +9,20 @@ use t::lib::Test qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
+# tests that the MATCH operator does not allow code injection
+my @interpolation_attempts = (
+  '@{[die -1]}',
+  '(foobar',      # will die - incorrect regex
+  '(?{die 999})', # will die - Eval-group not allowed at runtime
+  '$foobar',
+  '$self->{row_ix}',
+  '$main::ARGV[ die 999 ]',
+  '@main::ARGV',
+  '$0',
+  '$self',
+ );
+
+
 # sample data
 our $perl_rows = [
   [1, 2, 'three'],
@@ -19,30 +33,7 @@ our $perl_rows = [
   [12, undef,  "data\nhas\tspaces"],
 ];
 
-# tests for security holes. All of these fail when compiling the regex
-my @interpolation_attempts = (
-  '@[{die -1}]',
-  '(?{die 999})',
- );
-
-#if ($] > 5.008008) {
-  # don't really know why, but the tests below (interpolating variables
-  # within regexes) cause segfaults under Perl <= 5.8.8, during the END
-  # phase -- probably something to do with closure destruction.
-  push @interpolation_attempts, '$foobar',
-                                '$self->{row_ix}',
-                                '$main::ARGV[ die 999 ]',
-                                ;
-#}
-
-# unfortunately the examples below don't fail, but I don't know how to
-# prevent variable interpolation (that we don't want) while keeping
-# character interpolation like \n, \t, etc. (that we do want)
-  # '@main::ARGV',
-  # '$0',
-  # '$self',
-
-plan tests => 4 + 2 * 15 + @interpolation_attempts + 8;
+plan tests => 4 + 2 * 15 + @interpolation_attempts + 9;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -123,8 +114,7 @@ sub test_table {
 sub test_match_operator {
   my ($dbh, $table) = @_;
 
-#  my $sql = "SELECT c FROM $table WHERE c MATCH '^.i' ORDER BY c";
-  my $sql = "SELECT c FROM $table WHERE c MATCH 'i' ORDER BY c";
+  my $sql = "SELECT c FROM $table WHERE c MATCH '^.i' ORDER BY c";
   my $res = $dbh->selectcol_arrayref($sql);
   is_deeply $res, [qw/six/], $sql;
 
@@ -137,9 +127,12 @@ sub test_match_operator {
   is_deeply $res, [10, 11], $sql;
 
   $res = $dbh->selectcol_arrayref($sql, {}, '\}');
+  is_deeply $res, [10, 11], $sql;
+
+  $res = $dbh->selectcol_arrayref($sql, {}, '\\\\}');
   is_deeply $res, [11], $sql;
 
-  $res = $dbh->selectcol_arrayref($sql, {}, '\\');
+  $res = $dbh->selectcol_arrayref($sql, {}, '\\\\');
   is_deeply $res, [11], $sql;
 
   $res = $dbh->selectcol_arrayref($sql, {}, "\n");

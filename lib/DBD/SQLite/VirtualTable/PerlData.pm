@@ -86,7 +86,7 @@ sub BEST_INDEX {
       $optype = $NUM;
     }
     else {
-      # cnstraint on regular column
+      # constraint on regular column
       my $opts = $self->{options};
       $member  = $opts->{arrayrefs} ? "\$row->[$col]"
                : $opts->{hashrefs}  ? "\$row->{$self->{headers}[$col]}"
@@ -94,9 +94,12 @@ sub BEST_INDEX {
                :                      die "corrupted data in ->{options}";
       $optype  = $self->{optypes}[$col];
     }
-    my $op    = $SQLOP2PERLOP{$constraint->{op}}[$optype];
-    my $quote = $op eq '=~' ? 'm' : 'q';
-    push @conditions, "(defined($member) && $member $op ${quote}{%s})";
+    my $op = $SQLOP2PERLOP{$constraint->{op}}[$optype];
+    push @conditions,
+      "(defined($member) && defined(\$vals[$ix]) && $member $op \$vals[$ix])";
+      # Note : $vals[$ix] refers to an array of values passed to the
+      # FILTER method (see below); so the eval-ed perl code will be a
+      # closure on those values
 
     # info passed back to the SQLite core -- see vtab.html in sqlite doc
     $constraint->{argvIndex} = $ix++;
@@ -182,17 +185,14 @@ sub row {
 }
 
 sub FILTER {
-  my ($self, $idxNum, $idxStr, @values) = @_;
-
-  # escape '\' and '}' in values before they are sprintf'ed into q{%s}
-  @values = map {defined $_ ? quotemeta($_) : 'NULL'} @values;
+  my ($self, $idxNum, $idxStr, @vals) = @_;
 
   # build a method coderef to fetch matching rows
   my $perl_code = 'sub {my ($self, $i) = @_; my $row = $self->row($i); '
-                .        sprintf($idxStr, @values)
+                .        $idxStr
                 .     '}';
 
-  # print STDERR "PERL COODE:\n", $perl_code, "\n";
+  # print STDERR "PERL CODE:\n", $perl_code, "\n";
 
   $self->{is_wanted_row} = eval $perl_code
     or die "couldn't eval q{$perl_code} : $@";
@@ -214,7 +214,14 @@ sub NEXT {
 
   do {
     $self->{row_ix} += 1
-  } until $self->EOF || $self->{is_wanted_row}->($self, $self->{row_ix});
+  } until $self->EOF
+       || eval {$self->{is_wanted_row}->($self, $self->{row_ix})};
+
+  # NOTE: the eval above is required for cases when user data, injected
+  # into Perl comparison operators, generates errors; for example
+  # WHERE col MATCH '(foo' will die because the regex is not well formed
+  # (no matching parenthesis). In such cases no row is selected and the
+  # query just returns an empty list.
 }
 
 
