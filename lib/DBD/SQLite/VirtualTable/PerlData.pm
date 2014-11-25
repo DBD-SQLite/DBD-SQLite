@@ -214,7 +214,14 @@ sub NEXT {
 
   do {
     $self->{row_ix} += 1
-  } until $self->EOF || $self->{is_wanted_row}->($self, $self->{row_ix});
+  } until $self->EOF
+       || eval {$self->{is_wanted_row}->($self, $self->{row_ix})};
+
+  # NOTE: the eval above is required for cases when user data, injected
+  # into Perl comparison operators, generates errors; for example
+  # WHERE col MATCH '(foo' will die because the regex is not well formed
+  # (no matching parenthesis). In such cases no row is selected and the
+  # query just returns an empty list.
 }
 
 

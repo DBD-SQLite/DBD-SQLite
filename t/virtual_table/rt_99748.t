@@ -12,7 +12,8 @@ use Test::NoWarnings;
 # tests that the MATCH operator does not allow code injection
 my @interpolation_attempts = (
   '@{[die -1]}',
-  # '(?{die 999})', # Eval-group not allowed at runtime
+  '(foobar',      # will die - incorrect regex
+  '(?{die 999})', # will die - Eval-group not allowed at runtime
   '$foobar',
   '$self->{row_ix}',
   '$main::ARGV[ die 999 ]',
