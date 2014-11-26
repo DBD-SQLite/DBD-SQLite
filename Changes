@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.45_06 2014-11-26
+    - Silenced a compile-time warning (Unescaped left brace
+      in regex is deprecated) in PerlData virtual table
+      under bleadperl
+
 1.45_05 2014-11-25
     - Updated to SQLite 3.8.7.2
     - Restored regexp support in PerlData virtual table
