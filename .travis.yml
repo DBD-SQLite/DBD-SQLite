@@ -14,7 +14,8 @@ before_install:
   - source ~/travis-perl-helpers/init
   - build-perl
   - perl -V
-  - cpanm -n DBI
+  - local-lib
+  - cpan-install DBI
   - build-dist
   - cd $BUILD_DIR
 matrix:
