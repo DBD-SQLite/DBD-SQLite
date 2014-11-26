@@ -194,7 +194,7 @@ sub FILTER {
 
   # print STDERR "PERL CODE:\n", $perl_code, "\n";
 
-  $self->{is_wanted_row} = eval $perl_code
+  $self->{is_wanted_row} = do { no warnings; eval $perl_code }
     or die "couldn't eval q{$perl_code} : $@";
 
   # position the cursor to the first matching row (or to eof)
