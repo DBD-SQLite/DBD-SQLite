@@ -14,9 +14,10 @@ before_install:
   - source ~/travis-perl-helpers/init
   - build-perl
   - perl -V
-  - cpan-install DBI
   - build-dist
   - cd $BUILD_DIR
 matrix:
   allow_failures:
     - perl: blead
+install:
+  - cpan-install DBI
