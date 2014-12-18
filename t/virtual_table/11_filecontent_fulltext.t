@@ -10,6 +10,8 @@ use Test::More;
 use Test::NoWarnings;
 use FindBin;
 
+plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;
+
 my $dbfile = "tmp.sqlite";
 
 my @tests = (

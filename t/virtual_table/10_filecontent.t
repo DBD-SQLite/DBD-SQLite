@@ -11,6 +11,8 @@ use Test::More;
 use Test::NoWarnings;
 use FindBin;
 
+plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;
+
 plan tests => 13;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
