@@ -42,7 +42,7 @@ my $distrib_dir = "$FindBin::Bin/../..";
 open my $fh, "<", "$distrib_dir/MANIFEST" or die "open $distrib_dir/MANIFEST: $!";
 my @files = <$fh>;
 close $fh;
-chomp foreach @files;
+s/(\r\n|\r|\n)$// foreach @files;
 my @perl_files = grep {/\.(pl|pm|pod)$/} @files;
 
 # open database
