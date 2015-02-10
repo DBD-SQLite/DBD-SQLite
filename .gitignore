@@ -10,3 +10,10 @@ dll.*
 *.def
 MYMETA.*
 *~
+sqlite-3.*
+sqlite-autoconf-3*
+sqlite-amalgamation-3.*
+sqlite.tar.gz
+foo*
+tmp/
+*.pl
