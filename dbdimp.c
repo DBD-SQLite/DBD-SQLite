@@ -1439,7 +1439,9 @@ _sqlite_status(int reset)
     _stores_status(SQLITE_STATUS_PARSER_STACK, "parser_stack");
     _stores_status(SQLITE_STATUS_PAGECACHE_SIZE, "pagecache_size");
     _stores_status(SQLITE_STATUS_SCRATCH_SIZE, "scratch_size");
+#if SQLITE_VERSION_NUMBER >= 3007001
     _stores_status(SQLITE_STATUS_MALLOC_COUNT, "malloc_count");
+#endif
     _stores_status(SQLITE_STATUS_SCRATCH_OVERFLOW, "scratch_overflow");
 
     return hv;
@@ -1454,15 +1456,25 @@ _sqlite_db_status(pTHX_ SV* dbh, int reset)
     HV *anon;
 
     _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_USED, "lookaside_used");
+#if SQLITE_VERSION_NUMBER >= 3007000
     _stores_dbstatus(SQLITE_DBSTATUS_CACHE_USED, "cache_used");
+#endif
+#if SQLITE_VERSION_NUMBER >= 3007001
     _stores_dbstatus(SQLITE_DBSTATUS_SCHEMA_USED, "schema_used");
     _stores_dbstatus(SQLITE_DBSTATUS_STMT_USED, "stmt_used");
+#endif
+#if SQLITE_VERSION_NUMBER >= 3007005
     _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_HIT, "lookaside_hit");
     _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_MISS_SIZE, "lookaside_miss_size");
     _stores_dbstatus(SQLITE_DBSTATUS_LOOKASIDE_MISS_FULL, "lookaside_miss_full");
+#endif
+#if SQLITE_VERSION_NUMBER >= 3007009
     _stores_dbstatus(SQLITE_DBSTATUS_CACHE_HIT, "cache_hit");
     _stores_dbstatus(SQLITE_DBSTATUS_CACHE_MISS, "cache_miss");
+#endif
+#if SQLITE_VERSION_NUMBER >= 3007012
     _stores_dbstatus(SQLITE_DBSTATUS_CACHE_WRITE, "cache_write");
+#endif
 
     return hv;
 }
@@ -1473,9 +1485,13 @@ _sqlite_st_status(pTHX_ SV* sth, int reset)
     D_imp_sth(sth);
     HV *hv = newHV();
 
+#if SQLITE_VERSION_NUMBER >= 3006004
     _stores_ststatus(SQLITE_STMTSTATUS_FULLSCAN_STEP, "fullscan_step");
     _stores_ststatus(SQLITE_STMTSTATUS_SORT, "sort");
+#endif
+#if SQLITE_VERSION_NUMBER >= 3007000
     _stores_ststatus(SQLITE_STMTSTATUS_AUTOINDEX, "autoindex");
+#endif
 
     return hv;
 }
@@ -1492,7 +1508,9 @@ sqlite_db_filename(pTHX_ SV *dbh)
 
     croak_if_db_is_null();
 
+#if SQLITE_VERSION_NUMBER >= 3007010
     filename = sqlite3_db_filename(imp_dbh->db, "main");
+#endif
     return filename ? newSVpv(filename, 0) : &PL_sv_undef;
 }
 
@@ -2828,7 +2846,6 @@ int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh)
 ** (i.e support for virtual tables written in Perl)
 ************************************************************************/
 
-
 typedef struct perl_vtab {
     sqlite3_vtab base;
     SV *perl_vtab_obj;
@@ -3087,8 +3104,10 @@ static int perl_vt_BestIndex(sqlite3_vtab *pVTab, sqlite3_index_info *pIdxInfo){
     pIdxInfo->orderByConsumed = (val && SvTRUE(*val)) ? 1 : 0;
     val = hv_fetch(hv, "estimatedCost", 13, FALSE);
     pIdxInfo->estimatedCost = (val && SvOK(*val)) ? SvNV(*val) : 0;
+#if SQLITE_VERSION_NUMBER >= 3008002
     val = hv_fetch(hv, "estimatedRows", 13, FALSE);
     pIdxInfo->estimatedRows = (val && SvOK(*val)) ? SvIV(*val) : 0;
+#endif
 
     /* loop over constraints to get back the "argvIndex" and "omit" keys
        that shoud have been added by the best_index() method call */
@@ -3543,9 +3562,11 @@ static sqlite3_module perl_vt_Module = {
     perl_vt_Rollback,     /* xRollback (optional) */
     perl_vt_FindFunction, /* xFindFunction (optional) */
     perl_vt_Rename,       /* xRename */
+#if SQLITE_VERSION_NUMBER >= 3007007
     perl_vt_Savepoint,    /* xSavepoint (optional) */
     perl_vt_Release,      /* xRelease (optional) */
     perl_vt_RollbackTo    /* xRollbackTo (optional) */
+#endif
 };
 
 

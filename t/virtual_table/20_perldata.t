@@ -6,8 +6,11 @@ BEGIN {
 }
 
 
-use t::lib::Test qw/connect_ok $sqlite_call/;
+use t::lib::Test qw/connect_ok $sqlite_call requires_sqlite has_sqlite/;
 use Test::More;
+
+BEGIN { requires_sqlite('3.7.4') }
+
 use Test::NoWarnings;
 use FindBin;
 
@@ -17,7 +20,9 @@ our $perl_rows = [
   [7, 8, 'nine' ],
 ];
 
-plan tests => 29;
+my $tests = 25;
+$tests += 2 * 2 if has_sqlite('3.7.11');
+plan tests => $tests;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -92,11 +97,11 @@ $sql = "SELECT i FROM intarray WHERE i BETWEEN 0 AND 5";
 $res = $dbh->selectcol_arrayref($sql);
 is_deeply $res, [1 .. 5], $sql;
 
-
-$sql = "INSERT INTO intarray VALUES (98), (99)";
-ok $dbh->do($sql), $sql;
-is_deeply $integers, [1 .. 10, 98, 99], "added 2 ints";
-
+if (has_sqlite('3.7.10')) {
+  $sql = "INSERT INTO intarray VALUES (98), (99)";
+  ok $dbh->do($sql), $sql;
+  is_deeply $integers, [1 .. 10, 98, 99], "added 2 ints";
+}
 
 # test below inspired by sqlite "test_intarray.{h,c})
 $integers = [ 1, 7 ];
@@ -110,9 +115,11 @@ our $strings = [qw/one two three/];
 ok $dbh->do(<<""), "create vtable strarray";
   CREATE VIRTUAL TABLE strarray USING perl(str TEXT, colref="main::strings")
 
-$sql = "INSERT INTO strarray VALUES ('aa'), ('bb')";
-ok $dbh->do($sql), $sql;
-is_deeply $strings, [qw/one two three aa bb/], "added 2 strings";
+if (has_sqlite('3.7.10')) {
+  $sql = "INSERT INTO strarray VALUES ('aa'), ('bb')";
+  ok $dbh->do($sql), $sql;
+  is_deeply $strings, [qw/one two three aa bb/], "added 2 strings";
+}
 
 $sql = "SELECT a FROM vtb WHERE c IN strarray";
 $res = $dbh->selectcol_arrayref($sql);

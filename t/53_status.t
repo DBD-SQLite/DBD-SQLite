@@ -6,11 +6,15 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok @CALL_FUNCS/;
+use t::lib::Test qw/connect_ok @CALL_FUNCS has_sqlite/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 8 * @CALL_FUNCS + 1;
+my $tests = 5;
+$tests += 2 if has_sqlite('3.6.4');
+$tests += 1 if has_sqlite('3.7.0');
+
+plan tests => $tests * @CALL_FUNCS + 1;
 
 my $dbh = connect_ok();
 {
@@ -34,8 +38,10 @@ for my $func (@CALL_FUNCS) {
 		ok $db_status && ref $db_status eq ref {}, "db status is a hashref";
 		my $num_of_keys = scalar keys %$db_status;
 		ok $num_of_keys, "db status: $num_of_keys indicators";
-		my $used_cache = $db_status->{cache_used}{current};
-		ok defined $used_cache && $used_cache, "current used cache: $used_cache";
+		if (has_sqlite('3.7.0')) {
+			my $used_cache = $db_status->{cache_used}{current};
+			ok defined $used_cache && $used_cache, "current used cache: $used_cache";
+		}
 	}
 
 	{
@@ -43,9 +49,11 @@ for my $func (@CALL_FUNCS) {
 		$sth->execute("text1");
 		my $st_status = $sth->$func('st_status');
 		ok $st_status && ref $st_status eq ref {}, "st status is a hashref";
-		my $num_of_keys = scalar keys %$st_status;
-		ok $num_of_keys, "st status: $num_of_keys indicators";
-		my $sort = $st_status->{sort};
-		ok defined $sort, "num of sort: $sort";
+		if (has_sqlite('3.6.4')) {
+			my $num_of_keys = scalar keys %$st_status;
+			ok $num_of_keys, "st status: $num_of_keys indicators";
+			my $sort = $st_status->{sort};
+			ok defined $sort, "num of sort: $sort";
+		}
 	}
 }

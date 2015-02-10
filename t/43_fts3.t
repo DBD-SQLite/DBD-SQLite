@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test     qw/connect_ok/;
+use t::lib::Test     qw/connect_ok has_sqlite/;
 use Test::More;
 use DBD::SQLite;
 
@@ -36,7 +36,9 @@ BEGIN {
 }
 use Test::NoWarnings;
 
-plan tests => 4 * @tests  # each test with unicode y/n and with fts3/fts4
+my $num = has_sqlite('3.7.4') ? 4 : 2;
+
+plan tests => $num * @tests # each test with unicode y/n and with fts3/fts4
             + 2           # connect_ok with unicode y/n
             + 1;          # Test::NoWarnings
 
@@ -80,6 +82,7 @@ for my $use_unicode (0, 1) {
   my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
 
   for my $fts (qw/fts3 fts4/) {
+    next if $fts eq 'fts4' && !has_sqlite('3.7.4');
     # create fts table
     $dbh->do(<<"") or die DBI::errstr;
       CREATE VIRTUAL TABLE try_$fts

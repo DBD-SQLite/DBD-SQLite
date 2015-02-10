@@ -6,8 +6,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok @CALL_FUNCS/;
+use t::lib::Test qw/connect_ok @CALL_FUNCS requires_sqlite/;
 use Test::More;
+
+BEGIN { requires_sqlite('3.6.21') }
+
 use Test::NoWarnings;
 
 plan tests => 12 * @CALL_FUNCS + 1;

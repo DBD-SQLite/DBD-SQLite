@@ -8,9 +8,12 @@ BEGIN {
 
 use t::lib::Test;
 use Test::More;
+
 BEGIN {
 	if ( $] >= 5.008005 ) {
-		plan( tests => 29 * 2 + 1 );
+		my $tests = 27;
+		$tests += 2 if has_sqlite('3.6.14');
+		plan( tests => $tests * 2 + 1 );
 	} else {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
@@ -83,7 +86,7 @@ sub unicode_test {
             is $primary_key_info->{COLUMN_NAME} => $unicode_encoded, "primary_key_info returns the correctly encoded primary key name";
         }
 
-        {
+        if (has_sqlite('3.6.14')) {
             my $sth = $dbh->foreign_key_info(undef, undef, $unicode_encoded, undef, undef, 'bar');
             my $foreign_key_info = $sth->fetchrow_hashref;
             is $foreign_key_info->{PKCOLUMN_NAME} => $unicode_encoded, "foreign_key_info returns the correctly encoded foreign key name";
@@ -151,7 +154,7 @@ sub unicode_test {
             is $primary_key_info->{COLUMN_NAME} => $unicode, "primary_key_info returns the correctly decoded primary key name";
         }
 
-        {
+        if (has_sqlite('3.6.14')) {
             my $sth = $dbh->foreign_key_info(undef, undef, $unicode, undef, undef, 'bar');
             my $foreign_key_info = $sth->fetchrow_hashref;
             is $foreign_key_info->{PKCOLUMN_NAME} => $unicode, "foreign_key_info returns the correctly decoded foreign key name";

@@ -586,7 +586,7 @@ SAVEPOINT()
 #if SQLITE_VERSION_NUMBER >= 3006011
         RETVAL = SQLITE_SAVEPOINT;
 #else
-		RETVAL = -1;
+        RETVAL = -1;
 #endif
     OUTPUT:
         RETVAL
@@ -622,28 +622,44 @@ OPEN_NOMUTEX()
 static int
 OPEN_FULLMUTEX()
     CODE:
+#if SQLITE_VERSION_NUMBER >= 3006006
         RETVAL = SQLITE_OPEN_FULLMUTEX;
+#else
+        RETVAL = -1;
+#endif
     OUTPUT:
         RETVAL
 
 static int
 OPEN_SHAREDCACHE()
     CODE:
+#if SQLITE_VERSION_NUMBER >= 3006018
         RETVAL = SQLITE_OPEN_SHAREDCACHE;
+#else
+        RETVAL = -1;
+#endif
     OUTPUT:
         RETVAL
 
 static int
 OPEN_PRIVATECACHE()
     CODE:
+#if SQLITE_VERSION_NUMBER >= 3006018
         RETVAL = SQLITE_OPEN_PRIVATECACHE;
+#else
+        RETVAL = -1;
+#endif
     OUTPUT:
         RETVAL
 
 static int
 OPEN_URI()
     CODE:
+#if SQLITE_VERSION_NUMBER >= 3007007
         RETVAL = SQLITE_OPEN_URI;
+#else
+        RETVAL = -1;
+#endif
     OUTPUT:
         RETVAL
 

@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok $sqlite_call/;
+use t::lib::Test qw/connect_ok $sqlite_call has_sqlite/;
 use Test::More;
 use Test::NoWarnings;
 
@@ -33,7 +33,9 @@ our $perl_rows = [
   [12, undef,  "data\nhas\tspaces"],
 ];
 
-plan tests => 4 + 2 * 15 + @interpolation_attempts + 9;
+my $tests = 14;
+$tests += 1 if has_sqlite('3.6.10');
+plan tests => 4 + 2 * $tests + @interpolation_attempts + 9;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
@@ -106,9 +108,11 @@ sub test_table {
   $res = $dbh->selectcol_arrayref($sql, {}, undef);
   is_deeply $res, [], $sql;
 
-  $sql = "SELECT a FROM $table WHERE c IS ?";
-  $res = $dbh->selectcol_arrayref($sql, {}, undef);
-  is_deeply $res, [7], $sql;
+  if (has_sqlite('3.6.10')) {
+    $sql = "SELECT a FROM $table WHERE c IS ?";
+    $res = $dbh->selectcol_arrayref($sql, {}, undef);
+    is_deeply $res, [7], $sql;
+  }
 }
 
 sub test_match_operator {

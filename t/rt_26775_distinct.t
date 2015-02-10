@@ -2,7 +2,12 @@
 use strict;
 use warnings;
 use DBI;
-use Test::More tests => 22;
+use Test::More;
+use t::lib::Test;
+
+BEGIN { requires_sqlite('3.6.3') }
+
+plan tests => 22;
 
 use_ok('DBD::SQLite');
 

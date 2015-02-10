@@ -4,15 +4,9 @@ use strict;
 use warnings;
 
 use Test::More;
-use t::lib::Test qw/connect_ok dbfile @CALL_FUNCS/;
+use t::lib::Test qw/connect_ok dbfile @CALL_FUNCS requires_sqlite/;
 
-BEGIN {
-	use DBD::SQLite;
-	unless ($DBD::SQLite::sqlite_version_number && $DBD::SQLite::sqlite_version_number >= 3006011) {
-		plan skip_all => "this test requires SQLite 3.6.11 and newer";
-		exit;
-	}
-}
+BEGIN { requires_sqlite('3.6.11') }
 
 use Test::NoWarnings;
 use DBI;

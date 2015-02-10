@@ -6,12 +6,6 @@
 # constraint on the 'docid' column. So we have to explicitly type that
 # column, using a CAST expression or a call to bind_param().
 
-# TMP HACK
-use lib "..";
-use lib "../blib/arch";
-use lib "../lib";
-
-
 use strict;
 BEGIN {
 	$|  = 1;
@@ -20,6 +14,9 @@ BEGIN {
 
 use t::lib::Test;
 use Test::More;
+
+BEGIN { requires_sqlite('3.7.9') }
+
 use DBI qw/SQL_INTEGER/;
 plan tests => 8;
 use Test::NoWarnings;

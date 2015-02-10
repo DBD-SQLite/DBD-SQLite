@@ -7,7 +7,12 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 8;
+use Test::More;
+
+my $tests = 7;
+$tests += 1 if has_sqlite('3.7.7');
+plan tests => $tests;
+
 use DBI;
 use DBD::SQLite;
 
@@ -51,7 +56,7 @@ unlink $dbfile if -f $dbfile;
   unlink $dbfile if -f $dbfile;
 }
 
-{
+if (has_sqlite('3.7.7')) {
   my $dbh = eval {
     DBI->connect("dbi:SQLite:$dbfile", undef, undef, {
       PrintError => 0,

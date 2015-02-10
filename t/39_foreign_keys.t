@@ -9,13 +9,7 @@ BEGIN {
 use t::lib::Test;
 use Test::More;
 
-BEGIN {
-    use DBD::SQLite;
-    unless ($DBD::SQLite::sqlite_version_number && $DBD::SQLite::sqlite_version_number >= 3006019) {
-        plan skip_all => "this test requires SQLite 3.6.19 and newer";
-        exit;
-    }
-}
+BEGIN { requires_sqlite('3.6.19') }
 
 use Test::NoWarnings;
 

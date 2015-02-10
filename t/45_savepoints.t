@@ -7,7 +7,11 @@ BEGIN {
 }
 
 use t::lib::Test;
-use Test::More tests => 5;
+use Test::More;
+
+BEGIN { requires_sqlite('3.6.8') }
+
+plan tests => 5;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(

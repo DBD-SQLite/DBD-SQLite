@@ -9,7 +9,7 @@ use Test::More ();
 
 our $VERSION = '1.46';
 our @ISA     = 'Exporter';
-our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS $sqlite_call/;
+our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS $sqlite_call has_sqlite requires_sqlite/;
 our @CALL_FUNCS;
 our $sqlite_call;
 
@@ -147,5 +147,37 @@ $sqlite_call = sub {
   $CALL_FUNCS[-1]->($dbh, @_, $func_to_call);
 };
 
+=head2 has_sqlite
+
+  has_sqlite('3.6.11');
+
+returns true if DBD::SQLite is built with a version of SQLite equal to or higher than the specified version.
+
+=cut
+
+sub has_sqlite {
+  my $version = shift;
+  my @version_parts = split /\./, $version;
+  my $format = '%d%03d%03d';
+  my $version_number = sprintf $format, @version_parts[0..2];
+  use DBD::SQLite;
+  return ($DBD::SQLite::sqlite_version_number && $DBD::SQLite::sqlite_version_number >= $version_number) ? 1 : 0;
+}
+
+=head2 requires_sqlite
+
+  BEGIN { requires_sqlite('3.6.11'); }
+
+skips all the tests if DBD::SQLite is not built with a version of SQLite equal to or higher than the specified version.
+
+=cut
+
+sub requires_sqlite {
+  my $version = shift;
+  unless (has_sqlite($version)) {
+    Test::More::plan skip_all => "this test requires SQLite $version and newer";
+    exit;
+  }
+}
 
 1;

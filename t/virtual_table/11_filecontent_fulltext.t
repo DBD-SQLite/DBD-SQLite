@@ -5,8 +5,11 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok $sqlite_call/;
+use t::lib::Test qw/connect_ok $sqlite_call requires_sqlite/;
 use Test::More;
+
+BEGIN { requires_sqlite('3.7.12') }
+
 use Test::NoWarnings;
 use FindBin;
 
