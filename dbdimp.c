@@ -27,7 +27,7 @@ DBISTATE_DECLARE;
 /*-----------------------------------------------------*
  * Globals
  *-----------------------------------------------------*/
-imp_dbh_t *last_prepared_dbh;   /* see _last_dbh_is_unicode() */
+static int last_dbh_is_unicode;   /* see _last_dbh_is_unicode() */
 
 
 /*-----------------------------------------------------*
@@ -108,7 +108,7 @@ int _last_dbh_is_unicode() {
     /* some functions need to know if the unicode flag is on, but
        don't have a dbh pointer ... so unfortunately the only way is
        to use a global variable */
-    return last_prepared_dbh && last_prepared_dbh->unicode;
+    return last_dbh_is_unicode;
 }
 
 
@@ -682,7 +682,7 @@ sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
     stmt_list_s * new_stmt;
     D_imp_dbh_from_sth;
 
-    last_prepared_dbh = imp_dbh;
+    last_dbh_is_unicode = imp_dbh->unicode;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(sth, -2, "attempt to prepare on inactive database handle");
