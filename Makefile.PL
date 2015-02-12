@@ -5,6 +5,10 @@ use ExtUtils::MakeMaker;
 use Config;
 use File::Spec;
 
+sub DEVELOPER_ONLY () {
+	return -d '.git' ? 1 : 0;
+}
+
 # Some dependencies need to be more aggressive on Windows
 sub WINLIKE () {
 	return 1 if $^O eq 'MSWin32';
@@ -224,6 +228,12 @@ my @CC_DEFINE = (
 	'-DSQLITE_ENABLE_STAT4',            # for sqlite >= 3.8.3.1
 	'-DNDEBUG=1',
 );
+
+if (DEVELOPER_ONLY) {
+	# for sqlite >= 3.8.8
+	push @CC_DEFINE, '-DSQLITE_ENABLE_API_ARMOR';
+}
+
 if ( $^O eq 'cygwin') {
 	push @CC_DEFINE, '-DSQLITE_TEMP_STORE=2';
 }
