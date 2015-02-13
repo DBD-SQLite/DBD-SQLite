@@ -3,7 +3,7 @@
 use strict;
 use FindBin;
 use File::Spec::Functions ':ALL';
-use LWP::Simple qw(getstore);
+use HTTP::Tiny;
 use ExtUtils::Command;
 
 chdir(catdir($FindBin::Bin, updir())) or die "Failed to change to the dist root";
@@ -41,11 +41,11 @@ my $url_to_download = qq{http://www.sqlite.org/${year}sqlite-}
     . ($is_pre_30704_style ? q{amalgamation} : q{autoconf})
     . qq{-$version_for_url.tar.gz};
 print("downloading $url_to_download\n");
-my $rv = getstore(
+my $rv = HTTP::Tiny->new->mirror(
 	$url_to_download, 
 	"sqlite.tar.gz",
 );
-die "Failed to download" if $rv != 200;
+die "Failed to download" if !$rv->{success};
 print("done\n");
 
 rm_rf('sqlite') || rm_rf("sqlite-$version_dotty") || rm_rf("sqlite-amalgamation-$version_dotty");
