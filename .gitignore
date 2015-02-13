@@ -17,3 +17,4 @@ sqlite.tar.gz
 foo*
 tmp/
 *.pl
+*.old
