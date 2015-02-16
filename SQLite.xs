@@ -12,6 +12,24 @@ BOOT:
     sv_setpv(get_sv("DBD::SQLite::sqlite_version",        TRUE|GV_ADDMULTI), SQLITE_VERSION);
     sv_setiv(get_sv("DBD::SQLite::sqlite_version_number", TRUE|GV_ADDMULTI), SQLITE_VERSION_NUMBER);
 
+void
+_do(dbh, statement)
+    SV *dbh
+    SV *statement
+    CODE:
+    {
+        D_imp_dbh(dbh);
+        IV retval;
+        retval = sqlite_db_do_sv(dbh, imp_dbh, statement);
+        /* remember that dbd_db_do_sv must return <= -2 for error     */
+        if (retval == 0)            /* ok with no rows affected     */
+            XST_mPV(0, "0E0");      /* (true but zero)              */
+        else if (retval < -1)       /* -1 == unknown number of rows */
+            XST_mUNDEF(0);          /* <= -2 means error            */
+        else
+            XST_mIV(0, retval);     /* typically 1, rowcount or -1  */
+    }
+
 IV
 last_insert_rowid(dbh)
     SV *dbh

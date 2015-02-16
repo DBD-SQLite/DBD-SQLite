@@ -205,6 +205,16 @@ sub prepare {
 sub do {
     my ($dbh, $statement, $attr, @bind_values) = @_;
 
+    # shortcut
+    if  (defined $statement && !defined $attr && !@bind_values) {
+        # _do() (i.e. sqlite3_exec()) runs semicolon-separate SQL
+        # statements, which is handy but insecure sometimes.
+        # Use this only when it's safe or explicitly allowed.
+        if (index($statement, ';') == -1 or $dbh->FETCH('sqlite_allow_multiple_statements')) {
+            return DBD::SQLite::db::_do($dbh, $statement);
+        }
+    }
+
     my @copy = @{[@bind_values]};
     my $rows = 0;
 

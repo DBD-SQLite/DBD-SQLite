@@ -41,6 +41,97 @@ static int last_dbh_is_unicode;   /* see _last_dbh_is_unicode() */
 #define sqlite_open2(dbname,db,flags) _sqlite_open(aTHX_ dbh, dbname, db, flags)
 #define _isspace(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f')
 
+#define _skip_whitespaces(sql) \
+  while ( _isspace(sql[0]) || (sql[0] == '-' && sql[1] == '-')) { \
+    if ( _isspace(sql[0]) ) { \
+      while ( _isspace(sql[0]) ) sql++; \
+      continue; \
+    } \
+    else if (sql[0] == '-') { \
+      while ( sql[0] != 0 && sql[0] != '\n' ) sql++; \
+      continue; \
+    } \
+  }
+
+bool
+_starts_with_begin(const char *sql) {
+  return (
+    (sql[0] == 'B' || sql[0] == 'b') &&
+    (sql[1] == 'E' || sql[1] == 'e') &&
+    (sql[2] == 'G' || sql[2] == 'g') &&
+    (sql[3] == 'I' || sql[3] == 'i') &&
+    (sql[4] == 'N' || sql[4] == 'n')
+  ) ? TRUE : FALSE;
+}
+
+bool
+_starts_with_commit(const char *sql) {
+  return (
+    ((sql[0] == 'C' || sql[0] == 'c') &&
+     (sql[1] == 'O' || sql[1] == 'o') &&
+     (sql[2] == 'M' || sql[2] == 'm') &&
+     (sql[3] == 'M' || sql[3] == 'm') &&
+     (sql[4] == 'I' || sql[4] == 'i') &&
+     (sql[5] == 'T' || sql[5] == 't')) ||
+    ((sql[0] == 'E' || sql[0] == 'e') &&
+     (sql[1] == 'N' || sql[1] == 'n') &&
+     (sql[2] == 'D' || sql[2] == 'd'))
+  ) ? TRUE : FALSE;
+}
+
+bool
+_starts_with_rollback(const char *sql) {
+  int i;
+  if (
+    (sql[0] == 'R' || sql[0] == 'r') &&
+    (sql[1] == 'O' || sql[1] == 'o') &&
+    (sql[2] == 'L' || sql[2] == 'l') &&
+    (sql[3] == 'L' || sql[3] == 'l') &&
+    (sql[4] == 'B' || sql[4] == 'b') &&
+    (sql[5] == 'A' || sql[5] == 'a') &&
+    (sql[6] == 'C' || sql[6] == 'c') &&
+    (sql[7] == 'K' || sql[7] == 'k')) {
+    int l = strlen(sql);
+    bool is_savepoint = FALSE;
+    for(i = 8; i < l; i++) {
+      if (_isspace(sql[i])) continue;
+      if (sql[i] == '-' && sql[i+1] == '-') {
+        while (sql[i] != 0 && sql[i] != '\n') i++;
+        continue;
+      }
+      if (sql[i] == 'T' || sql[i] == 't') {
+        if (
+          (sql[i+0]  == 'T' || sql[i+0]  == 't') &&
+          (sql[i+1]  == 'R' || sql[i+1]  == 'r') &&
+          (sql[i+2]  == 'A' || sql[i+2]  == 'a') &&
+          (sql[i+3]  == 'N' || sql[i+3]  == 'n') &&
+          (sql[i+4]  == 'S' || sql[i+4]  == 's') &&
+          (sql[i+5]  == 'A' || sql[i+5]  == 'a') &&
+          (sql[i+6]  == 'C' || sql[i+6]  == 'c') &&
+          (sql[i+7]  == 'T' || sql[i+7]  == 't') &&
+          (sql[i+8]  == 'I' || sql[i+8]  == 'i') &&
+          (sql[i+9]  == 'O' || sql[i+9]  == 'o') &&
+          (sql[i+10] == 'N' || sql[i+10] == 'n')) {
+          i += 10; continue;
+        }
+        else if (
+          (sql[i+0] == 'T' || sql[i+0] == 't') &&
+          (sql[i+1] == 'O' || sql[i+1] == 'o') &&
+          (sql[i+2] == ' ' || sql[i+2] == '\t')) {
+          /* rolling back to a savepoint should not
+             change AutoCommit status */
+          is_savepoint = TRUE;
+        }
+      }
+      break;
+    }
+    if (!is_savepoint) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 /* adopted from sqlite3.c */
 
 #define LARGEST_INT64  (0xffffffff|(((sqlite3_int64)0x7fffffff)<<32))
@@ -425,6 +516,73 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     DBIc_ACTIVE_on(imp_dbh);
 
     return TRUE;
+}
+
+int
+sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement)
+{
+    dTHX;
+    int rc = 0;
+    int i;
+    char *statement;
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to do on inactive database handle");
+        return -2; /* -> undef in SQLite.xsi */
+    }
+
+    /* sqlite3_prepare wants an utf8-encoded SQL statement */
+    if (imp_dbh->unicode) {
+        sv_utf8_upgrade(sv_statement);
+    }
+
+    statement = SvPV_nolen(sv_statement);
+
+    sqlite_trace(dbh, imp_dbh, 3, form("do statement: %s", statement));
+
+    croak_if_db_is_null();
+
+    if (sqlite3_get_autocommit(imp_dbh->db)) {
+        const char *sql = statement;
+        _skip_whitespaces(sql);
+        if (_starts_with_begin(sql)) {
+            if (DBIc_is(imp_dbh,  DBIcf_AutoCommit)) {
+                DBIc_on(imp_dbh,  DBIcf_BegunWork);
+                DBIc_off(imp_dbh, DBIcf_AutoCommit);
+            }
+        }
+        else if (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
+            sqlite_trace(dbh, imp_dbh, 3, "BEGIN TRAN");
+            if (imp_dbh->use_immediate_transaction) {
+                rc = sqlite_exec(dbh, "BEGIN IMMEDIATE TRANSACTION");
+            } else {
+                rc = sqlite_exec(dbh, "BEGIN TRANSACTION");
+            }
+            if (rc != SQLITE_OK) {
+                return -2; /* -> undef in SQLite.xsi */
+            }
+        }
+    }
+    else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+        const char *sql = statement;
+        _skip_whitespaces(sql);
+        if (_starts_with_commit(sql)) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        }
+        else if (_starts_with_rollback(sql)) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        }
+    }
+
+    rc = sqlite_exec(dbh, statement);
+    if (rc != SQLITE_OK) {
+        sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
+        return -2;
+    }
+
+    return sqlite3_changes(imp_dbh->db);
 }
 
 int
@@ -859,21 +1017,8 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     if (sqlite3_get_autocommit(imp_dbh->db)) {
         /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
         const char *sql = sqlite3_sql(imp_sth->stmt);
-        while ( _isspace(sql[0]) || (sql[0] == '-' && sql[1] == '-')) {
-          if ( _isspace(sql[0]) ) {
-            while ( _isspace(sql[0]) ) sql++;
-            continue;
-          }
-          else if (sql[0] == '-') {
-            while ( sql[0] != 0 && sql[0] != '\n' ) sql++;
-            continue;
-          }
-        }
-        if ((sql[0] == 'B' || sql[0] == 'b') &&
-            (sql[1] == 'E' || sql[1] == 'e') &&
-            (sql[2] == 'G' || sql[2] == 'g') &&
-            (sql[3] == 'I' || sql[3] == 'i') &&
-            (sql[4] == 'N' || sql[4] == 'n')) {
+        _skip_whitespaces(sql);
+        if (_starts_with_begin(sql)) {
             if (DBIc_is(imp_dbh,  DBIcf_AutoCommit)) {
                 DBIc_on(imp_dbh,  DBIcf_BegunWork);
                 DBIc_off(imp_dbh, DBIcf_AutoCommit);
@@ -894,74 +1039,14 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
     else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
         /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
         const char *sql = sqlite3_sql(imp_sth->stmt);
-        while ( _isspace(sql[0]) || (sql[0] == '-' && sql[1] == '-')) {
-          if ( _isspace(sql[0]) ) {
-            while ( _isspace(sql[0]) ) sql++;
-            continue;
-          }
-          else if (sql[0] == '-') {
-            while ( sql[0] != 0 && sql[0] != '\n' ) sql++;
-            continue;
-          }
-        }
-        if (((sql[0] == 'C' || sql[0] == 'c') &&
-             (sql[1] == 'O' || sql[1] == 'o') &&
-             (sql[2] == 'M' || sql[2] == 'm') &&
-             (sql[3] == 'M' || sql[3] == 'm') &&
-             (sql[4] == 'I' || sql[4] == 'i') &&
-             (sql[5] == 'T' || sql[5] == 't')) ||
-            ((sql[0] == 'E' || sql[0] == 'e') &&
-             (sql[1] == 'N' || sql[1] == 'n') &&
-             (sql[2] == 'D' || sql[2] == 'd'))) {
+        _skip_whitespaces(sql);
+        if (_starts_with_commit(sql)) {
             DBIc_off(imp_dbh, DBIcf_BegunWork);
             DBIc_on(imp_dbh,  DBIcf_AutoCommit);
         }
-        else if (
-            ((sql[0] == 'R' || sql[0] == 'r') &&
-             (sql[1] == 'O' || sql[1] == 'o') &&
-             (sql[2] == 'L' || sql[2] == 'l') &&
-             (sql[3] == 'L' || sql[3] == 'l') &&
-             (sql[4] == 'B' || sql[4] == 'b') &&
-             (sql[5] == 'A' || sql[5] == 'a') &&
-             (sql[6] == 'C' || sql[6] == 'c') &&
-             (sql[7] == 'K' || sql[7] == 'k'))) {
-            int l = strlen(sql);
-            bool is_savepoint = FALSE;
-            for(i = 8; i < l; i++) {
-                if (_isspace(sql[i])) continue;
-                if (sql[i] == '-' && sql[i+1] == '-') {
-                    while (sql[i] != 0 && sql[i] != '\n') i++;
-                    continue;
-                }
-                if (sql[i] == 'T' || sql[i] == 't') {
-                    if ((sql[i+0]  == 'T' || sql[i+0]  == 't') &&
-                        (sql[i+1]  == 'R' || sql[i+1]  == 'r') &&
-                        (sql[i+2]  == 'A' || sql[i+2]  == 'a') &&
-                        (sql[i+3]  == 'N' || sql[i+3]  == 'n') &&
-                        (sql[i+4]  == 'S' || sql[i+4]  == 's') &&
-                        (sql[i+5]  == 'A' || sql[i+5]  == 'a') &&
-                        (sql[i+6]  == 'C' || sql[i+6]  == 'c') &&
-                        (sql[i+7]  == 'T' || sql[i+7]  == 't') &&
-                        (sql[i+8]  == 'I' || sql[i+8]  == 'i') &&
-                        (sql[i+9]  == 'O' || sql[i+9]  == 'o') &&
-                        (sql[i+10] == 'N' || sql[i+10] == 'n')) {
-                        i += 10; continue;
-                    }
-                    else if (
-                        (sql[i+0] == 'T' || sql[i+0] == 't') &&
-                        (sql[i+1] == 'O' || sql[i+1] == 'o') &&
-                        (sql[i+2] == ' ' || sql[i+2] == '\t')) {
-                      /* rolling back to a savepoint should not
-                         change AutoCommit status */
-                        is_savepoint = TRUE;
-                    }
-                }
-                break;
-            }
-            if (!is_savepoint) {
-                DBIc_off(imp_dbh, DBIcf_BegunWork);
-                DBIc_on(imp_dbh,  DBIcf_AutoCommit);
-            }
+        else if (_starts_with_rollback(sql)) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
         }
     }
 
