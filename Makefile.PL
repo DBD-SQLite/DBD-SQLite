@@ -326,7 +326,7 @@ WriteMakefile(
 	# this change broke a test under some environment, and thus, may
 	# break other applications eventually. I'm not sure if this is
 	# worth the trouble.
-	OPTIMIZE => $Config{optimize} . ($^O eq 'solaris' && !$Config{gccversion} ? "" : " -O2"),
+	# OPTIMIZE => $Config{optimize} . ($^O eq 'solaris' && !$Config{gccversion} ? "" : " -O2"),
 	OPTIONAL( '6.48',
 		MIN_PERL_VERSION => '5.006',
 	),
