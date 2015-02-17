@@ -1,7 +1,16 @@
 Changes for Perl extension DBD-SQLite
 
-1.47_01 to be released
+1.47_01 2015-02-17
+    *** (EXPERIMENTAL) CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Commented OPTIMIZE out of WriteMakefile (RT #94207).
+      If your perl is not compiled with -O2, your DBD::SQLite may
+      possibly behave differently under some circumstances.
+      (This release is to find notable examples from CPAN Testers).
+    - Set THREADSAFE to 0 under Cygwin to cope with an upstream
+      regression since 3.8.7 (GH #7).
+
     - Updated to SQLite 3.8.8.2
+    - Resolved #35449: Fast DBH->do (ptushnik, ISHIGAKI)
 
 1.46 2014-12-10
     - Switched to a production version. (ISHIGAKI)
