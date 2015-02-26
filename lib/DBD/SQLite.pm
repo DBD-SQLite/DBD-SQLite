@@ -2513,6 +2513,14 @@ Note that bugs of bundled sqlite library (i.e. bugs in C<sqlite3.[ch]>)
 should be reported to the sqlite developers at sqlite.org via their bug
 tracker or via their mailing list.
 
+The master repository is on GitHub:
+
+L<https://github.com/DBD-SQLite/DBD-SQLite>.
+
+We also have a mailing list:
+
+L<http://lists.scsys.co.uk/cgi-bin/mailman/listinfo/dbd-sqlite>
+
 =head1 AUTHORS
 
 Matt Sergeant E<lt>matt@sergeant.orgE<gt>
