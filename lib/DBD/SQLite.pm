@@ -1200,7 +1200,7 @@ bind values with no explicit type.
 =head2 Placeholders
 
 SQLite supports several placeholder expressions, including C<?>
-and C<:AAAA>. Consult the L<DBI> and sqlite documentation for
+and C<:AAAA>. Consult the L<DBI> and SQLite documentation for
 details. 
 
 L<http://www.sqlite.org/lang_expr.html#varparam>
@@ -1235,13 +1235,13 @@ turning the pragma off:
   $dbh->do("PRAGMA foreign_keys = OFF");
 
 As of this writing, this feature is disabled by default by the
-sqlite team, and by us, to secure backward compatibility, as
+SQLite team, and by us, to secure backward compatibility, as
 this feature may break your applications, and actually broke
 some for us. If you have used a schema with foreign key constraints
 but haven't cared them much and supposed they're always ignored for
 SQLite, be prepared, and B<please do extensive testing to ensure
 that your applications will continue to work when the foreign keys
-support is enabled by default>. It is very likely that the sqlite
+support is enabled by default>. It is very likely that the SQLite
 team will turn it default-on in the future, and we plan to do it
 NO LATER THAN they do so.
 
@@ -1456,7 +1456,7 @@ are using linux. Also you might want to set:
 
   PRAGMA synchronous = OFF
 
-Which will prevent sqlite from doing fsync's when writing (which
+Which will prevent SQLite from doing fsync's when writing (which
 slows down non-transactional writes significantly) at the expense
 of some peace of mind. Also try playing with the cache_size pragma.
 
@@ -1713,7 +1713,7 @@ method (to avoid conflict with DBI's trace() method).
 
 This method returns the last inserted rowid. If you specify an INTEGER PRIMARY
 KEY as the first column in your table, that is the column that is returned.
-Otherwise, it is the hidden ROWID column. See the sqlite docs for details.
+Otherwise, it is the hidden ROWID column. See the SQLite docs for details.
 
 Generally you should not be using this method. Use the L<DBI> last_insert_id
 method instead. The usage of this is:
@@ -2070,7 +2070,7 @@ the currently connected database, and write it out to the named file.
 =head2 $dbh->sqlite_enable_load_extension( $bool )
 
 Calling this method with a true value enables loading (external)
-sqlite3 extensions. After the call, you can load extensions like this:
+SQLite3 extensions. After the call, you can load extensions like this:
 
   $dbh->sqlite_enable_load_extension(1);
   $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
@@ -2078,7 +2078,7 @@ sqlite3 extensions. After the call, you can load extensions like this:
 
 =head2 $dbh->sqlite_load_extension( $file, $proc )
 
-Loading an extension by a select statement (with the "load_extension" sqlite3 function like above) has some limitations. If you need to, say, create other functions from an extension, use this method. $file (a path to the extension) is mandatory, and $proc (an entry point name) is optional. You need to call C<sqlite_enable_load_extension> before calling C<sqlite_load_extension>.
+Loading an extension by a select statement (with the "load_extension" SQLite3 function like above) has some limitations. If you need to, say, create other functions from an extension, use this method. $file (a path to the extension) is mandatory, and $proc (an entry point name) is optional. You need to call C<sqlite_enable_load_extension> before calling C<sqlite_load_extension>.
 
 =head2 $dbh->sqlite_trace( $code_ref )
 
@@ -2139,7 +2139,7 @@ is for internal use only.
 
 =head2 DBD::SQLite::compile_options()
 
-Returns an array of compile options (available since sqlite 3.6.23,
+Returns an array of compile options (available since SQLite 3.6.23,
 bundled in DBD::SQLite 1.30_01), or an empty array if the bundled
 library is old or compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
 
@@ -2453,7 +2453,7 @@ Other Perl virtual tables may also be published separately on CPAN.
 
 =head1 FOR DBD::SQLITE EXTENSION AUTHORS
 
-Since 1.30_01, you can retrieve the bundled sqlite C source and/or
+Since 1.30_01, you can retrieve the bundled SQLite C source and/or
 header like this:
 
   use File::ShareDir 'dist_dir';
@@ -2509,8 +2509,8 @@ Bugs should be reported via the CPAN bug tracker at
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
 
-Note that bugs of bundled sqlite library (i.e. bugs in C<sqlite3.[ch]>)
-should be reported to the sqlite developers at sqlite.org via their bug
+Note that bugs of bundled SQLite library (i.e. bugs in C<sqlite3.[ch]>)
+should be reported to the SQLite developers at sqlite.org via their bug
 tracker or via their mailing list.
 
 The master repository is on GitHub:
