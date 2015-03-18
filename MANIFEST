@@ -1,11 +1,13 @@
 .travis.yml
 Changes
+constants.inc
 dbdimp.c
 dbdimp.h
 fts3_tokenizer.h
 inc/Test/NoWarnings.pm
 inc/Test/NoWarnings/Warning.pm
 lib/DBD/SQLite.pm
+lib/DBD/SQLite/Constants.pm
 lib/DBD/SQLite/Cookbook.pod
 lib/DBD/SQLite/Fulltext_search.pod
 lib/DBD/SQLite/VirtualTable.pm
