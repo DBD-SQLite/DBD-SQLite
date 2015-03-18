@@ -75,7 +75,8 @@ sub CLONE {
 }
 
 
-package DBD::SQLite::dr;
+package # hide from PAUSE
+    DBD::SQLite::dr;
 
 sub connect {
     my ($drh, $dbname, $user, $auth, $attr) = @_;
@@ -186,7 +187,8 @@ sub regexp {
     return scalar($_[1] =~ $_[0]);
 }
 
-package DBD::SQLite::db;
+package # hide from PAUSE
+    DBD::SQLite::db;
 
 sub prepare {
     my $dbh = shift;
@@ -893,7 +895,8 @@ END_SQL
 # An internal tied hash package used for %DBD::SQLite::COLLATION, to
 # prevent people from unintentionally overriding globally registered collations.
 
-package DBD::SQLite::_WriteOnceHash;
+package # hide from PAUSE
+    DBD::SQLite::_WriteOnceHash;
 
 require Tie::Hash;
 
