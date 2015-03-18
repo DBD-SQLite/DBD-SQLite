@@ -27,3 +27,4 @@ CVS/.*
 ^bugs/
 ^MYMETA\.[a-z]+$
 ^SQLite.c$
+^util/
