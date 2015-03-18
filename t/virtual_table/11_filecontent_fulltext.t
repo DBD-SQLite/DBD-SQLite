@@ -26,12 +26,13 @@ my @tests = (
   ['"use strict"'   => qw[inc/Test/NoWarnings.pm
                           inc/Test/NoWarnings/Warning.pm
                           lib/DBD/SQLite.pm
+                          lib/DBD/SQLite/Constants.pm
                           lib/DBD/SQLite/VirtualTable.pm
                           lib/DBD/SQLite/VirtualTable/FileContent.pm
                           lib/DBD/SQLite/VirtualTable/PerlData.pm
-                          t/lib/Test.pm
-                          util/getsqlite.pl]],
+                          t/lib/Test.pm]],
   ['"use strict" AND "use warnings"' => qw[inc/Test/NoWarnings.pm
+                                           lib/DBD/SQLite/Constants.pm
                                            lib/DBD/SQLite/VirtualTable.pm
                                            lib/DBD/SQLite/VirtualTable/FileContent.pm
                                            lib/DBD/SQLite/VirtualTable/PerlData.pm
