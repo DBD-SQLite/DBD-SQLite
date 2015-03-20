@@ -8,6 +8,11 @@ BEGIN {
 
 use t::lib::Test qw/connect_ok/;
 use Test::More;
+
+BEGIN{
+    plan skip_all => 'this test is for Win32 only' unless $^O eq 'MSWin32';
+}
+
 use Test::NoWarnings;
 use DBD::SQLite::Constants qw/:extended_result_codes :result_codes/;
 use File::Temp;
