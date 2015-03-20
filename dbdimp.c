@@ -37,8 +37,8 @@ static int last_dbh_is_unicode;   /* see _last_dbh_is_unicode() */
 #define sqlite_error(h,rc,what) _sqlite_error(aTHX_ __FILE__, __LINE__, h, rc, what)
 #define sqlite_trace(h,xxh,level,what) if ( DBIc_TRACE_LEVEL((imp_xxh_t*)xxh) >= level ) _sqlite_trace(aTHX_ __FILE__, __LINE__, h, (imp_xxh_t*)xxh, what)
 #define sqlite_exec(h,sql) _sqlite_exec(aTHX_ h, imp_dbh->db, sql)
-#define sqlite_open(dbname,db) _sqlite_open(aTHX_ dbh, dbname, db, 0)
-#define sqlite_open2(dbname,db,flags) _sqlite_open(aTHX_ dbh, dbname, db, flags)
+#define sqlite_open(dbname,db) _sqlite_open(aTHX_ dbh, dbname, db, 0, 0)
+#define sqlite_open2(dbname,db,flags,extended) _sqlite_open(aTHX_ dbh, dbname, db, flags, extended)
 #define _isspace(c) (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f')
 
 #define _skip_whitespaces(sql) \
@@ -245,7 +245,7 @@ _sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
 }
 
 int
-_sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db, int flags)
+_sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db, int flags, int extended)
 {
     int rc;
     if (flags) {
@@ -254,6 +254,8 @@ _sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db, int flags)
         rc = sqlite3_open(dbname, db);
     }
     if ( rc != SQLITE_OK ) {
+        if (extended)
+            rc = sqlite3_extended_errcode(*db);
         sqlite_error(dbh, rc, sqlite3_errmsg(*db));
         if (*db) sqlite3_close(*db);
     }
@@ -464,14 +466,25 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 {
     dTHX;
     int rc;
+    HV *hv;
+    SV **val;
+    int extended = 0;
+    int flag = 0;
 
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
-    if (SvROK(attr) && hv_exists((HV*)SvRV(attr), "sqlite_open_flags", 17)) {
-        rc = sqlite_open2(dbname, &(imp_dbh->db), SvIV(*hv_fetch((HV*)SvRV(attr), "sqlite_open_flags", 17, 0)));
-    } else {
-        rc = sqlite_open(dbname, &(imp_dbh->db));
+    if (SvROK(attr)) {
+        hv = (HV*)SvRV(attr);
+        if (hv_exists(hv, "sqlite_extended_result_codes", 28)) {
+            val = hv_fetch(hv, "sqlite_extended_result_codes", 28, 0);
+            extended = (val && SvOK(*val)) ? !(!SvTRUE(*val)) : 0;
+        }
+        if (hv_exists(hv, "sqlite_open_flags", 17)) {
+            val = hv_fetch(hv, "sqlite_open_flags", 17, 0);
+            flag = (val && SvOK(*val)) ? SvIV(*val) : 0;
+        }
     }
+    rc = sqlite_open2(dbname, &(imp_dbh->db), flag, extended);
     if ( rc != SQLITE_OK ) {
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
@@ -486,6 +499,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->allow_multiple_statements = FALSE;
     imp_dbh->use_immediate_transaction = TRUE;
     imp_dbh->see_if_its_a_number       = FALSE;
+    imp_dbh->extended_result_codes     = extended;
     imp_dbh->stmt_list                 = NULL;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
@@ -752,6 +766,11 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         imp_dbh->see_if_its_a_number = !(! SvTRUE(valuesv));
         return TRUE;
     }
+    if (strEQ(key, "sqlite_extended_result_codes")) {
+        imp_dbh->extended_result_codes = !(! SvTRUE(valuesv));
+        sqlite3_extended_result_codes(imp_dbh->db, imp_dbh->extended_result_codes);
+        return TRUE;
+    }
     if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
         sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
@@ -792,6 +811,9 @@ sqlite_db_FETCH_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv)
    }
    if (strEQ(key, "sqlite_see_if_its_a_number")) {
        return sv_2mortal(newSViv(imp_dbh->see_if_its_a_number ? 1 : 0));
+   }
+   if (strEQ(key, "sqlite_extended_result_codes")) {
+       return sv_2mortal(newSViv(imp_dbh->extended_result_codes ? 1 : 0));
    }
    if (strEQ(key, "sqlite_unicode")) {
 #if PERL_UNICODE_DOES_NOT_WORK_WELL

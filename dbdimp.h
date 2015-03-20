@@ -44,6 +44,7 @@ struct imp_dbh_st {
     bool allow_multiple_statements;
     bool use_immediate_transaction;
     bool see_if_its_a_number;
+    int extended_result_codes;
     stmt_list_s * stmt_list;
 };
 
