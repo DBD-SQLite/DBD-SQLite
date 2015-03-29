@@ -11,3 +11,10 @@ perl:
 #  - "blead"
 before_install:
   - cpanm -n DBI
+script:
+  - make test
+  - make clean
+  - cpanm -n DBI@1.57
+  - perl Makefile.PL
+  - make
+  - make test
