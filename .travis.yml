@@ -9,12 +9,11 @@ perl:
   - "5.18"
   - "5.20"
 #  - "blead"
+env:
+  - DBI_VERSION=
+matrix:
+  include:
+    - perl: 5.8
+      env: DBI_VERSION=1.58
 before_install:
-  - cpanm -n DBI
-script:
-  - make test
-  - make clean
-  - cpanm -n DBI@1.57
-  - perl Makefile.PL
-  - make
-  - make test
+  - test $DBI_VERSION && cpanm -n DBI@$DBI_VERSION || cpanm -n DBI
