@@ -10,11 +10,11 @@ use t::lib::Test qw/connect_ok @CALL_FUNCS has_sqlite/;
 use Test::More;
 use Test::NoWarnings;
 
-my $tests = 5;
+my $tests = 3;
 $tests += 2 if has_sqlite('3.6.4');
 $tests += 1 if has_sqlite('3.7.0');
 
-plan tests => $tests * @CALL_FUNCS + 1;
+plan tests => 4 + $tests * @CALL_FUNCS + 1;
 
 my $dbh = connect_ok();
 {
