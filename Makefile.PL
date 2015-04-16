@@ -236,7 +236,7 @@ if (DEVELOPER_ONLY) {
 
 if ( $^O eq 'cygwin') {
 	push @CC_DEFINE, '-DSQLITE_TEMP_STORE=2';
-	push @CC_DEFINE, '-DTHREADSAFE=0';
+#	push @CC_DEFINE, '-DTHREADSAFE=0'; # requires this for 3.8.7-8
 }
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 	push @CC_DEFINE, '-DHAVE_USLEEP=1';
