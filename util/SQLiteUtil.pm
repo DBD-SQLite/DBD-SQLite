@@ -170,7 +170,7 @@ sub extract_constants {
       $tag =~ s/[ \-]+/_/g;
       ($tag) = $tag =~ /^(\w+)/;
       $tag =~ s/_$//;
-      $tag = '' if $tag =~ /
+      if ($tag =~ /
         testing_interface |
         library_version_numbers |
         configuration_options | device_characteristics |
@@ -181,7 +181,10 @@ sub extract_constants {
         virtual_table_indexing_information |
         checkpoint_operation_parameters | checkpoint_mode | 
         conflict_resolution | text_encodings
-      /x;
+      /x) {
+        print "$tag is ignored\n";
+        $tag = '';
+      }
       next;
     }
     if ($tag && /^#define SQLITE_(\S+)\s+(?:\d|\(SQLITE)/) {
