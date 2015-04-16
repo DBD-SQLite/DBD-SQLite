@@ -162,6 +162,9 @@ END
     }
   }
 
+  my %seen;
+  $constants{all} = [sort grep {!$seen{$_}++} map {@$_} values %constants];
+
   for my $tag (sort keys %constants) {
     print $fh <<"END";
     $tag => [qw/
