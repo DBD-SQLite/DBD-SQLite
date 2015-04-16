@@ -34,7 +34,7 @@ our $perl_rows = [
 ];
 
 my $tests = 14;
-$tests += 1 if has_sqlite('3.6.10');
+$tests += 1 if has_sqlite('3.6.19');
 plan tests => 4 + 2 * $tests + @interpolation_attempts + 9;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
@@ -108,7 +108,7 @@ sub test_table {
   $res = $dbh->selectcol_arrayref($sql, {}, undef);
   is_deeply $res, [], $sql;
 
-  if (has_sqlite('3.6.10')) {
+  if (has_sqlite('3.6.19')) {
     $sql = "SELECT a FROM $table WHERE c IS ?";
     $res = $dbh->selectcol_arrayref($sql, {}, undef);
     is_deeply $res, [7], $sql;
