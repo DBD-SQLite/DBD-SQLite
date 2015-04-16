@@ -10,8 +10,15 @@ BEGIN {
 use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
+use DBD::SQLite;
+use DBD::SQLite::Constants;
 
-plan tests => 29 * @CALL_FUNCS + 1;
+my @function_flags = (undef, 0);
+if ($DBD::SQLite::sqlite_version_number >= 3008003) {
+  push @function_flags, DBD::SQLite::Constants::SQLITE_DETERMINISTIC;
+}
+
+plan tests => 29 * @CALL_FUNCS * @function_flags + 1;
 
 sub now {
     return time();
@@ -53,10 +60,10 @@ sub noop {
         return $_[0];
 }
 
-foreach my $call_func (@CALL_FUNCS) {
+foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
 	my $dbh = connect_ok( PrintError => 0 );
 
-	ok($dbh->$call_func( "now", 0, \&now, "create_function" ));
+	ok($dbh->$call_func( "now", 0, \&now, defined $flags ? $flags : (), "create_function" ));
 	my $result = $dbh->selectrow_arrayref( "SELECT now()" );
 
 	ok( $result->[0], 'Got a result' );
@@ -65,35 +72,35 @@ foreach my $call_func (@CALL_FUNCS) {
 	$dbh->do( 'INSERT INTO func_test VALUES ( 1, 3 )' );
 	$dbh->do( 'INSERT INTO func_test VALUES ( 0, 4 )' );
 
-	ok($dbh->$call_func( "add2", 2, \&add2, "create_function" ));
+	ok($dbh->$call_func( "add2", 2, \&add2, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT add2(1,3)" );
 	is($result->[0], 4, "SELECT add2(1,3)" );
 
 	$result = $dbh->selectall_arrayref( "SELECT add2(a,b) FROM func_test" );
 	is_deeply( $result, [ [4], [4] ], "SELECT add2(a,b) FROM func_test" );
 
-	ok($dbh->$call_func( "my_sum", -1, \&my_sum, "create_function" ));
+	ok($dbh->$call_func( "my_sum", -1, \&my_sum, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT my_sum( '2', 3, 4, '5')" );
 	is( $result->[0], 14, "SELECT my_sum( '2', 3, 4, '5')" );
 
-	ok($dbh->$call_func( "error", -1, \&error, "create_function" ));
+	ok($dbh->$call_func( "error", -1, \&error, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT error( 'I died' )" );
 	ok( !$result );
 	like( $DBI::errstr, qr/function is dying: I died/ );
 
-	ok($dbh->$call_func( "void_return", -1, \&void_return, "create_function" ));
+	ok($dbh->$call_func( "void_return", -1, \&void_return, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT void_return( 'I died' )" );
 	is_deeply( $result, [ undef ], "SELECT void_return( 'I died' )" );
 
-	ok($dbh->$call_func( "return_null", -1, \&return_null, "create_function" ));
+	ok($dbh->$call_func( "return_null", -1, \&return_null, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT return_null()" );
 	is_deeply( $result, [ undef ], "SELECT return_null()" );
 
-	ok($dbh->$call_func( "return2", -1, \&return2, "create_function" ));
+	ok($dbh->$call_func( "return2", -1, \&return2, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT return2()" );
 	is_deeply( $result, [ 2 ], "SELECT return2()" );
 
-	ok($dbh->$call_func( "my_defined", 1, \&my_defined, "create_function" ));
+	ok($dbh->$call_func( "my_defined", 1, \&my_defined, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT my_defined(1)" );
 	is_deeply( $result, [ 1 ], "SELECT my_defined(1)" );
 
@@ -106,7 +113,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	$result = $dbh->selectrow_arrayref( "SELECT my_defined(NULL)" );
 	is_deeply( $result, [ '0' ], "SELECT my_defined(NULL)" );
 
-	ok($dbh->$call_func( "noop", 1, \&noop, "create_function" ));
+	ok($dbh->$call_func( "noop", 1, \&noop, defined $flags ? $flags : (), "create_function" ));
 	$result = $dbh->selectrow_arrayref( "SELECT noop(NULL)" );
 	is_deeply( $result, [ undef ], "SELECT noop(NULL)" );
 
@@ -127,4 +134,4 @@ foreach my $call_func (@CALL_FUNCS) {
 	is_deeply( $result, [ 'integer' ], "SELECT typeof(noop(2147483648))" );
 
 	$dbh->disconnect;
-}
+}}

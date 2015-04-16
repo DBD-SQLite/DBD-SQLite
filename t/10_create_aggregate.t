@@ -9,8 +9,15 @@ BEGIN {
 use t::lib::Test qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
+use DBD::SQLite;
+use DBD::SQLite::Constants;
 
-plan tests => 21 * @CALL_FUNCS + 1;
+my @function_flags = (undef, 0);
+if ($DBD::SQLite::sqlite_version_number >= 3008003) {
+  push @function_flags, DBD::SQLite::Constants::SQLITE_DETERMINISTIC;
+}
+
+plan tests => 21 * @CALL_FUNCS * @function_flags + 1;
 
 # Create the aggregate test packages
 SCOPE: {
@@ -70,7 +77,7 @@ SCOPE: {
 	}
 }
 
-foreach my $call_func (@CALL_FUNCS) {
+foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
 	my $dbh = connect_ok( PrintError => 0 );
 
 	$dbh->do( "CREATE TABLE aggr_test ( field )" );
@@ -78,7 +85,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	    $dbh->do( "INSERT INTO aggr_test VALUES ( $val )" );
 	}
 
-	ok($dbh->$call_func( "newcount", 0, "count_aggr", "create_aggregate" ));
+	ok($dbh->$call_func( "newcount", 0, "count_aggr", defined $flags ? $flags : (), "create_aggregate" ));
 	my $result = $dbh->selectrow_arrayref( "SELECT newcount() FROM aggr_test" );
 	ok( $result && $result->[0] == 3 );
 
@@ -96,7 +103,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	$result = $dbh->selectrow_arrayref( "SELECT newcount() FROM aggr_empty_test" );
 	ok( $result && !$result->[0] );
 
-	ok($dbh->$call_func( "defined", 1, 'obj_aggregate', "create_aggregate" ));
+	ok($dbh->$call_func( "defined", 1, 'obj_aggregate', defined $flags ? $flags : (), "create_aggregate" ));
 	$result = $dbh->selectrow_arrayref( "SELECT defined(field) FROM aggr_test" );
 	ok( $result && $result->[0] == 2 );
 	$result = $dbh->selectrow_arrayref( "SELECT defined(field) FROM aggr_test" );
@@ -111,7 +118,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	foreach my $fail ( qw/ new step finalize/ ) {
 	    $last_warn = '';  
 	    my $aggr = fail_aggregate->new( $fail );
-	    ok($dbh->$call_func( "fail_$fail", -1, $aggr, 'create_aggregate' ));
+	    ok($dbh->$call_func( "fail_$fail", -1, $aggr, defined $flags ? $flags : (), 'create_aggregate' ));
 	    $result = $dbh->selectrow_arrayref( "SELECT fail_$fail() FROM aggr_test" );
 	#   ok( !$result && $DBI::errstr =~ /$fail\(\) failed on request/ );
 	    ok( !defined $result->[0] && $last_warn =~ /$fail\(\) failed on request/ );
@@ -126,10 +133,10 @@ foreach my $call_func (@CALL_FUNCS) {
 
 	my $aggr = fail_aggregate->new( 'undef' );
 	$last_warn = '';
-	ok($dbh->$call_func( "fail_undef", -1, $aggr, 'create_aggregate' ));
+	ok($dbh->$call_func( "fail_undef", -1, $aggr, defined $flags ? $flags : (), 'create_aggregate' ));
 	$result = $dbh->selectrow_arrayref( "SELECT fail_undef() FROM aggr_test" );
 	# ok( !$result && $DBI::errstr =~ /new\(\) should return a blessed reference/ );
 	ok( !defined $result->[0] && $last_warn =~ /new\(\) should return a blessed reference/ );
 
 	$dbh->disconnect;
-}
+}}

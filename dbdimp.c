@@ -1698,7 +1698,7 @@ sqlite_db_func_dispatcher_no_unicode(sqlite3_context *context, int argc, sqlite3
 }
 
 int
-sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func)
+sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func, int flags)
 {
     D_imp_dbh(dbh);
     int rc;
@@ -1716,7 +1716,7 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func)
     croak_if_db_is_null();
 
     /* warn("create_function %s with %d args\n", name, argc); */
-    rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
+    rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8|flags,
                                   func_sv,
                                   imp_dbh->unicode ? sqlite_db_func_dispatcher_unicode
                                                    : sqlite_db_func_dispatcher_no_unicode,
@@ -1991,7 +1991,7 @@ sqlite_db_aggr_finalize_dispatcher( sqlite3_context *context )
 }
 
 int
-sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_pkg)
+sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_pkg, int flags)
 {
     D_imp_dbh(dbh);
     int rc;
@@ -2008,7 +2008,7 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
 
     croak_if_db_is_null();
 
-    rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8,
+    rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8|flags,
                                   aggr_pkg_copy,
                                   NULL,
                                   sqlite_db_aggr_step_dispatcher,

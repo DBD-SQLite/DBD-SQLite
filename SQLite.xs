@@ -44,16 +44,17 @@ last_insert_rowid(dbh)
         RETVAL
 
 static int
-create_function(dbh, name, argc, func)
+create_function(dbh, name, argc, func, flags = 0)
     SV *dbh
     char *name
     int argc
     SV *func
+    int flags
     ALIAS:
         DBD::SQLite::db::sqlite_create_function = 1
     CODE:
     {
-        RETVAL = sqlite_db_create_function(aTHX_ dbh, name, argc, func );
+        RETVAL = sqlite_db_create_function(aTHX_ dbh, name, argc, func, flags );
     }
     OUTPUT:
         RETVAL
@@ -90,16 +91,17 @@ load_extension(dbh, file, proc = 0)
 #endif
 
 static int
-create_aggregate(dbh, name, argc, aggr)
+create_aggregate(dbh, name, argc, aggr, flags = 0)
     SV *dbh
     char *name
     int argc
     SV *aggr
+    int flags
     ALIAS:
         DBD::SQLite::db::sqlite_create_aggregate = 1
     CODE:
     {
-        RETVAL = sqlite_db_create_aggregate(aTHX_ dbh, name, argc, aggr );
+        RETVAL = sqlite_db_create_aggregate(aTHX_ dbh, name, argc, aggr, flags );
     }
     OUTPUT:
         RETVAL
