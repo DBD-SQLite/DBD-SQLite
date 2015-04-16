@@ -1374,7 +1374,8 @@ could create a separate transaction and write to the database after
 the C<BEGIN> on the current thread has executed, and eventually
 cause a "deadlock". To avoid this, DBD::SQLite internally issues
 a C<BEGIN IMMEDIATE> when you begin a transaction by
-C<begin_work> or under the C<AutoCommit> mode (since 1.38_01).
+C<begin_work> or execute a statement with C<AutoCommit> disabled
+(since 1.38_01).
 
 If you really need to turn off this feature for some reasons,
 set C<sqlite_use_immediate_transaction> database handle attribute
