@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.47_03 2015-04-16
+  - Added :all to EXPORT_TAGS in ::Constants
+
 1.47_02 2015-04-16
   - Updated to SQLite 3.8.9
   - Added DBD::SQLite::Constants, from which you can import any
