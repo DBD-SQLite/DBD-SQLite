@@ -1738,7 +1738,7 @@ Retrieve the current busy timeout.
 
 Set the current busy timeout. The timeout is in milliseconds.
 
-=head2 $dbh->sqlite_create_function( $name, $argc, $code_ref )
+=head2 $dbh->sqlite_create_function( $name, $argc, $code_ref, $flags )
 
 This method will register a new function which will be usable in an SQL
 query. The method's parameters are:
@@ -1758,6 +1758,10 @@ the function can take any number of arguments.
 =item $code_ref
 
 This should be a reference to the function's implementation.
+
+=item $flags
+
+You can optionally pass an extra flag bit to create_function, which then would be ORed with SQLITE_UTF8 (default). As of 1.47_02 (SQLite 3.8.9), only meaning bit is SQLITE_DETERMINISTIC (introduced at SQLite 3.8.3), which can make the function perform better. See C API documentation at L<http://sqlite.org/c3ref/create_function.html> for details.
 
 =back
 
@@ -1827,7 +1831,7 @@ so for most common cases it will be simpler to just
 add your collation sequences in the C<%DBD::SQLite::COLLATION>
 hash (see section L</"COLLATION FUNCTIONS"> below).
 
-=head2 $dbh->sqlite_create_aggregate( $name, $argc, $pkg )
+=head2 $dbh->sqlite_create_aggregate( $name, $argc, $pkg, $flags )
 
 This method will register a new aggregate function which can then be used
 from SQL. The method's parameters are:
@@ -1848,6 +1852,10 @@ of arguments.
 =item $pkg
 
 This is the package which implements the aggregator interface.
+
+=item $flags
+
+You can optionally pass an extra flag bit to create_aggregate, which then would be ORed with SQLITE_UTF8 (default). As of 1.47_02 (SQLite 3.8.9), only meaning bit is SQLITE_DETERMINISTIC (introduced at SQLite 3.8.3), which can make the function perform better. See C API documentation at L<http://sqlite.org/c3ref/create_function.html> for details.
 
 =back
 
