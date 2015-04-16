@@ -140,7 +140,9 @@ END
   for my $tag (sort keys %constants) {
     print $fh <<"END";
     # $tag
-    qw/@{[map {"SQLITE_$_"} @{$constants{$tag}}]}/,
+    qw/
+@{[join "\n", map {"      SQLITE_$_"} sort @{$constants{$tag}}]}
+    /,
 
 END
   }
@@ -162,7 +164,9 @@ END
 
   for my $tag (sort keys %constants) {
     print $fh <<"END";
-    $tag => [qw/@{[map {"SQLITE_$_"} @{$constants{$tag}}]}/],
+    $tag => [qw/
+@{[join "\n", map {"      SQLITE_$_"} sort @{$constants{$tag}}]}
+    /],
 
 END
   }
