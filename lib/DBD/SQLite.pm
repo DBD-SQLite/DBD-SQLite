@@ -1373,7 +1373,7 @@ operation, and thus it is possible that another thread or process
 could create a separate transaction and write to the database after
 the C<BEGIN> on the current thread has executed, and eventually
 cause a "deadlock". To avoid this, DBD::SQLite internally issues
-a C<BEGIN IMMEDIATE> if you begin a transaction by
+a C<BEGIN IMMEDIATE> if you begin a transaction by calling
 C<begin_work> or by turning off C<AutoCommit> (since 1.38_01).
 
 If you really need to turn off this feature for some reasons,
