@@ -5,6 +5,8 @@
 
 #include "SQLiteXS.h"
 
+START_MY_CXT;
+
 DBISTATE_DECLARE;
 
 #define SvPV_nolen_undef_ok(x) (SvOK(x) ? SvPV_nolen(x) : "undef")
@@ -22,12 +24,6 @@ DBISTATE_DECLARE;
   #define croak_if_db_is_null()
   #define croak_if_stmt_is_null()
 #endif
-
-
-/*-----------------------------------------------------*
- * Globals
- *-----------------------------------------------------*/
-static int last_dbh_is_unicode;   /* see _last_dbh_is_unicode() */
 
 
 /*-----------------------------------------------------*
@@ -195,14 +191,6 @@ int _sqlite_atoi64(const char *zNum, sqlite3_int64 *pNum) {
   }
 }
 
-int _last_dbh_is_unicode() {
-    /* some functions need to know if the unicode flag is on, but
-       don't have a dbh pointer ... so unfortunately the only way is
-       to use a global variable */
-    return last_dbh_is_unicode;
-}
-
-
 static void
 _sqlite_trace(pTHX_ char *file, int line, SV *h, imp_xxh_t *imp_xxh, const char *what)
 {
@@ -297,10 +285,12 @@ sqlite_type_from_odbc_type(int type)
     }
 }
 
-
-
-
-
+void
+init_cxt() {
+    dTHX;
+    MY_CXT_INIT;
+    MY_CXT.last_dbh_is_unicode = 0;
+}
 
 SV *
 stacked_sv_from_sqlite3_value(pTHX_ sqlite3_value *value, int is_unicode)
@@ -856,13 +846,14 @@ int
 sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
 {
     dTHX;
+    dMY_CXT;
     int rc = 0;
     const char *extra;
     char *statement;
     stmt_list_s * new_stmt;
     D_imp_dbh_from_sth;
 
-    last_dbh_is_unicode = imp_dbh->unicode;
+    MY_CXT.last_dbh_is_unicode = imp_dbh->unicode;
 
     if (!DBIc_ACTIVE(imp_dbh)) {
         sqlite_error(sth, -2, "attempt to prepare on inactive database handle");
@@ -2748,6 +2739,7 @@ static int perl_tokenizer_Open(
 ){
     dTHX;
     dSP;
+    dMY_CXT;
     U32 flags;
     SV *perl_string;
     int n_retval;
@@ -2764,7 +2756,7 @@ static int perl_tokenizer_Open(
     flags = SVs_TEMP; /* will call sv_2mortal */
 
     /* special handling if working with utf8 strings */
-    if (_last_dbh_is_unicode()) {
+    if (MY_CXT.last_dbh_is_unicode) {
 
         /* data to keep track of byte offsets */
         c->lastByteOffset = c->pInput = pInput;
@@ -3322,8 +3314,9 @@ static int perl_vt_Filter( sqlite3_vtab_cursor *pVtabCursor,
                            int argc, sqlite3_value **argv ){
     dTHX;
     dSP;
+    dMY_CXT;
     int i, count;
-    int is_unicode = _last_dbh_is_unicode();
+    int is_unicode = MY_CXT.last_dbh_is_unicode;
 
     ENTER;
     SAVETMPS;
@@ -3476,8 +3469,9 @@ static int perl_vt_Update( sqlite3_vtab *pVTab,
                            sqlite3_int64 *pRowid ){
     dTHX;
     dSP;
+    dMY_CXT;
     int count, i;
-    int is_unicode = _last_dbh_is_unicode();
+    int is_unicode = MY_CXT.last_dbh_is_unicode;
     int rc = SQLITE_ERROR;
     SV *rowidsv;
 
@@ -3545,6 +3539,7 @@ static int perl_vt_FindFunction(sqlite3_vtab *pVTab,
                        void **ppArg){
     dTHX;
     dSP;
+    dMY_CXT;
     int count;
     int is_overloaded = 0;
     char *func_name   = sqlite3_mprintf("%s\t%d", zName, nArg);
@@ -3592,7 +3587,7 @@ static int perl_vt_FindFunction(sqlite3_vtab *pVTab,
     /* return function information for sqlite3 within *pxFunc and *ppArg */
     is_overloaded = coderef && SvTRUE(coderef);
     if (is_overloaded) {
-        *pxFunc = _last_dbh_is_unicode()  ? sqlite_db_func_dispatcher_unicode
+        *pxFunc = MY_CXT.last_dbh_is_unicode ? sqlite_db_func_dispatcher_unicode
                                           : sqlite_db_func_dispatcher_no_unicode;
         *ppArg = coderef;
     }

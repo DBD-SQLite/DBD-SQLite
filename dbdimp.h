@@ -5,6 +5,12 @@
 #include "SQLiteXS.h"
 #include "sqlite3.h"
 
+#define MY_CXT_KEY "DBD::SQLite::_guts" XS_VERSION
+
+typedef struct {
+    int last_dbh_is_unicode;
+} my_cxt_t;
+
 #define PERL_UNICODE_DOES_NOT_WORK_WELL           \
     (PERL_REVISION <= 5) && ((PERL_VERSION < 8)   \
  || (PERL_VERSION == 8 && PERL_SUBVERSION < 5))

@@ -9,6 +9,7 @@ MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::db
 PROTOTYPES: DISABLE
 
 BOOT:
+    init_cxt();
     sv_setpv(get_sv("DBD::SQLite::sqlite_version",        TRUE|GV_ADDMULTI), SQLITE_VERSION);
     sv_setiv(get_sv("DBD::SQLite::sqlite_version_number", TRUE|GV_ADDMULTI), SQLITE_VERSION_NUMBER);
 
