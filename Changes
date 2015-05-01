@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.47_04 2015-05-02
+  - Used MY_CXT instead of a global variable
+
 1.47_03 2015-04-16
   - Added :all to EXPORT_TAGS in ::Constants
 
