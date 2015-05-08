@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.47_05 2015-05-08
+  - Updated to SQLite 3.8.10
+
 1.47_04 2015-05-02
   - Used MY_CXT instead of a global variable
 
