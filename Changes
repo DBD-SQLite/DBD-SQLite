@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.48 2015-06-12
+  - Switched to a production version. (ISHIGAKI)
+
 1.47_05 2015-05-08
   - Updated to SQLite 3.8.10
 
