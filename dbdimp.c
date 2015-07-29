@@ -895,10 +895,12 @@ sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
         }
         return FALSE; /* -> undef in lib/DBD/SQLite.pm */
     }
-    if (&extra) {
-        imp_sth->unprepared_statements = extra;
+    if (&extra && imp_dbh->allow_multiple_statements) {
+        imp_sth->unprepared_statements = savepv(extra);
     }
     else {
+        if (imp_dbh->allow_multiple_statements)
+            Safefree(imp_sth->unprepared_statements);
         imp_sth->unprepared_statements = NULL;
     }
     /* Add the statement to the front of the list to keep track of
@@ -1295,6 +1297,8 @@ sqlite_st_destroy(SV *sth, imp_sth_t *imp_sth)
             imp_sth->stmt = NULL;
         }
     }
+    if (imp_dbh->allow_multiple_statements)
+        Safefree(imp_sth->unprepared_statements);
     SvREFCNT_dec((SV*)imp_sth->params);
     SvREFCNT_dec((SV*)imp_sth->col_types);
     DBIc_IMPSET_off(imp_sth);
