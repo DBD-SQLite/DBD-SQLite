@@ -1426,15 +1426,15 @@ statements (a C<dump>) to a statement handle (via C<prepare> or C<do>),
 L<DBD::SQLite> only processes the first statement, and discards the
 rest.
 
-Since 1.30_01, you can retrieve those ignored (unprepared) statements
-via C<< $sth->{sqlite_unprepared_statements} >>. It usually contains
-nothing but white spaces, but if you really care, you can check this
-attribute to see if there's anything left undone. Also, if you set
+If you need to process multiple statements at a time, set 
 a C<sqlite_allow_multiple_statements> attribute of a database handle
-to true when you connect to a database, C<do> method automatically
-checks the C<sqlite_unprepared_statements> attribute, and if it finds
-anything undone (even if what's left is just a single white space),
-it repeats the process again, to the end.
+to true when you connect to a database, and C<do> method takes care
+of the rest (since 1.30_01, and without creating DBI's statement
+handles internally since 1.47_01). If you do need to use C<prepare>
+or C<prepare_cached> (which I don't recommend in this case, because
+typically there's no placeholder nor reusable part in a dump),
+you can look at << $sth->{sqlite_unprepared_statements} >> to retrieve
+what's left, though it usually contains nothing but white spaces.
 
 =head2 Performance
 
