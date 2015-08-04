@@ -208,11 +208,12 @@ sub do {
     my ($dbh, $statement, $attr, @bind_values) = @_;
 
     # shortcut
+    my $allow_multiple_statements = $dbh->FETCH('sqlite_allow_multiple_statements');
     if  (defined $statement && !defined $attr && !@bind_values) {
         # _do() (i.e. sqlite3_exec()) runs semicolon-separate SQL
         # statements, which is handy but insecure sometimes.
         # Use this only when it's safe or explicitly allowed.
-        if (index($statement, ';') == -1 or $dbh->FETCH('sqlite_allow_multiple_statements')) {
+        if (index($statement, ';') == -1 or $allow_multiple_statements) {
             return DBD::SQLite::db::_do($dbh, $statement);
         }
     }
@@ -225,7 +226,7 @@ sub do {
         $sth->execute(splice @copy, 0, $sth->{NUM_OF_PARAMS}) or return undef;
         $rows += $sth->rows;
         # XXX: not sure why but $dbh->{sqlite...} wouldn't work here
-        last unless $dbh->FETCH('sqlite_allow_multiple_statements');
+        last unless $allow_multiple_statements;
         $statement = $sth->{sqlite_unprepared_statements};
     }
 
