@@ -52,80 +52,23 @@ DBISTATE_DECLARE;
 bool
 _starts_with_begin(const char *sql) {
   return (
-    (sql[0] == 'B' || sql[0] == 'b') &&
-    (sql[1] == 'E' || sql[1] == 'e') &&
-    (sql[2] == 'G' || sql[2] == 'g') &&
-    (sql[3] == 'I' || sql[3] == 'i') &&
-    (sql[4] == 'N' || sql[4] == 'n')
+    ((sql[0] == 'B' || sql[0] == 'b') &&
+     (sql[1] == 'E' || sql[1] == 'e') &&
+     (sql[2] == 'G' || sql[2] == 'g') &&
+     (sql[3] == 'I' || sql[3] == 'i') &&
+     (sql[4] == 'N' || sql[4] == 'n')
+    ) || (
+     (sql[0] == 'S' || sql[0] == 's') &&
+     (sql[1] == 'A' || sql[1] == 'a') &&
+     (sql[2] == 'V' || sql[2] == 'v') &&
+     (sql[3] == 'E' || sql[3] == 'e') &&
+     (sql[4] == 'P' || sql[4] == 'p') &&
+     (sql[5] == 'O' || sql[5] == 'o') &&
+     (sql[6] == 'I' || sql[6] == 'i') &&
+     (sql[7] == 'N' || sql[7] == 'n') &&
+     (sql[8] == 'T' || sql[8] == 't')
+    )
   ) ? TRUE : FALSE;
-}
-
-bool
-_starts_with_commit(const char *sql) {
-  return (
-    ((sql[0] == 'C' || sql[0] == 'c') &&
-     (sql[1] == 'O' || sql[1] == 'o') &&
-     (sql[2] == 'M' || sql[2] == 'm') &&
-     (sql[3] == 'M' || sql[3] == 'm') &&
-     (sql[4] == 'I' || sql[4] == 'i') &&
-     (sql[5] == 'T' || sql[5] == 't')) ||
-    ((sql[0] == 'E' || sql[0] == 'e') &&
-     (sql[1] == 'N' || sql[1] == 'n') &&
-     (sql[2] == 'D' || sql[2] == 'd'))
-  ) ? TRUE : FALSE;
-}
-
-bool
-_starts_with_rollback(const char *sql) {
-  int i;
-  if (
-    (sql[0] == 'R' || sql[0] == 'r') &&
-    (sql[1] == 'O' || sql[1] == 'o') &&
-    (sql[2] == 'L' || sql[2] == 'l') &&
-    (sql[3] == 'L' || sql[3] == 'l') &&
-    (sql[4] == 'B' || sql[4] == 'b') &&
-    (sql[5] == 'A' || sql[5] == 'a') &&
-    (sql[6] == 'C' || sql[6] == 'c') &&
-    (sql[7] == 'K' || sql[7] == 'k')) {
-    int l = strlen(sql);
-    bool is_savepoint = FALSE;
-    for(i = 8; i < l; i++) {
-      if (_isspace(sql[i])) continue;
-      if (sql[i] == '-' && sql[i+1] == '-') {
-        while (sql[i] != 0 && sql[i] != '\n') i++;
-        continue;
-      }
-      if (sql[i] == 'T' || sql[i] == 't') {
-        if (
-          (sql[i+0]  == 'T' || sql[i+0]  == 't') &&
-          (sql[i+1]  == 'R' || sql[i+1]  == 'r') &&
-          (sql[i+2]  == 'A' || sql[i+2]  == 'a') &&
-          (sql[i+3]  == 'N' || sql[i+3]  == 'n') &&
-          (sql[i+4]  == 'S' || sql[i+4]  == 's') &&
-          (sql[i+5]  == 'A' || sql[i+5]  == 'a') &&
-          (sql[i+6]  == 'C' || sql[i+6]  == 'c') &&
-          (sql[i+7]  == 'T' || sql[i+7]  == 't') &&
-          (sql[i+8]  == 'I' || sql[i+8]  == 'i') &&
-          (sql[i+9]  == 'O' || sql[i+9]  == 'o') &&
-          (sql[i+10] == 'N' || sql[i+10] == 'n')) {
-          i += 10; continue;
-        }
-        else if (
-          (sql[i+0] == 'T' || sql[i+0] == 't') &&
-          (sql[i+1] == 'O' || sql[i+1] == 'o') &&
-          (sql[i+2] == ' ' || sql[i+2] == '\t')) {
-          /* rolling back to a savepoint should not
-             change AutoCommit status */
-          is_savepoint = TRUE;
-        }
-      }
-      break;
-    }
-    if (!is_savepoint) {
-      return TRUE;
-    }
-  }
-  return FALSE;
 }
 
 /* adopted from sqlite3.c */
@@ -567,23 +510,16 @@ sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement)
             }
         }
     }
-    else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
-        const char *sql = statement;
-        _skip_whitespaces(sql);
-        if (_starts_with_commit(sql)) {
-            DBIc_off(imp_dbh, DBIcf_BegunWork);
-            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
-        }
-        else if (_starts_with_rollback(sql)) {
-            DBIc_off(imp_dbh, DBIcf_BegunWork);
-            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
-        }
-    }
 
     rc = sqlite_exec(dbh, statement);
     if (rc != SQLITE_OK) {
         sqlite_error(dbh, rc, sqlite3_errmsg(imp_dbh->db));
         return -2;
+    }
+
+    if (DBIc_is(imp_dbh, DBIcf_BegunWork) && sqlite3_get_autocommit(imp_dbh->db)) {
+        DBIc_off(imp_dbh, DBIcf_BegunWork);
+        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
     }
 
     return sqlite3_changes(imp_dbh->db);
@@ -1051,19 +987,6 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
         }
     }
-    else if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
-        /* COMPAT: sqlite3_sql is only available for 3006000 or newer */
-        const char *sql = sqlite3_sql(imp_sth->stmt);
-        _skip_whitespaces(sql);
-        if (_starts_with_commit(sql)) {
-            DBIc_off(imp_dbh, DBIcf_BegunWork);
-            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
-        }
-        else if (_starts_with_rollback(sql)) {
-            DBIc_off(imp_dbh, DBIcf_BegunWork);
-            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
-        }
-    }
 
     imp_sth->nrow = 0;
 
@@ -1079,6 +1002,13 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             }
             return -5; /* -> undef in SQLite.xsi */
         }
+
+        /* transaction ended with commit/rollback/release */
+        if (DBIc_is(imp_dbh, DBIcf_BegunWork) && sqlite3_get_autocommit(imp_dbh->db)) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        }
+
         /* warn("Finalize\n"); */
         sqlite3_reset(imp_sth->stmt);
         imp_sth->nrow = sqlite3_changes(imp_dbh->db);
