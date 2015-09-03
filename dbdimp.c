@@ -185,8 +185,10 @@ _sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db, int flags, int ext
         rc = sqlite3_open(dbname, db);
     }
     if ( rc != SQLITE_OK ) {
+#if SQLITE_VERSION_NUMBER >= 3006005
         if (extended)
             rc = sqlite3_extended_errcode(*db);
+#endif
         sqlite_error(dbh, rc, sqlite3_errmsg(*db));
         if (*db) sqlite3_close(*db);
     }
