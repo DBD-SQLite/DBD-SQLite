@@ -226,15 +226,16 @@ sub download_url {
   join '', 
     "http://www.sqlite.org/",
     ($version->year ? $version->year."/" : ""),
-    "sqlite-".($version->archive_type)."-$version.tar.gz";
+    "sqlite-".($version->archive_type)."-$version".$version->extension;
 }
 
 sub mirror {
   my $version = shift;
-  my $file = "$SRCDIR/sqlite-$version.tar.gz";
+  my $name = "sqlite-$version".$version->extension;
+  my $file = "$SRCDIR/$name";
   unless (-f $file) {
     my $url = download_url($version);
-    print "Downloading $version...\n";
+    print "Downloading $version from $url...\n";
     my $res = HTTP::Tiny->new->mirror($url => $file);
     die "Can't mirror $file: ".$res->{reason} unless $res->{success};
   }
@@ -242,7 +243,11 @@ sub mirror {
   unless ($dir && -d $dir) {
     my $cwd = Cwd::cwd;
     chdir($SRCDIR);
-    system("tar xf sqlite-$version.tar.gz");
+    if ($version->is_snapshot) {
+      system("unzip -d sqlite-$version -o $name");
+    } else {
+      system("tar xf $name");
+    }
     chdir($cwd);
     $dir = srcdir($version) or die "Can't find srcdir";
   }
@@ -280,6 +285,9 @@ sub new {
   elsif ($version =~ m/^3(?:[0-9]{2}){2,3}$/) {
     @parts = $version =~ /^(3)([0-9]{2})([0-9]{2})([0-9]{2})?$/;
   }
+  elsif ($version =~ m/^(20\d\d)(\d\d)(\d\d)(\d\d)(\d\d)$/) {
+    @parts = ($1, $2, $3, $4, $5);
+  }
   else {
     die "improper <version> format for [$version]\n";
   }
@@ -288,6 +296,7 @@ sub new {
 
 sub as_num {
   my $self = shift;
+  return sprintf '%04u%02u%02u%02u%02u', map {$_ || 0} @$self[0..4] if $self->is_snapshot;
   sprintf '%u%02u%02u%02u', map {$_ || 0} @$self[0..3];
 }
 
@@ -298,6 +307,7 @@ sub dotted {
 
 sub year {
   my $self = shift;
+  return "snapshot" if $self->is_snapshot;
   my $version = $self->as_num;
   return 2015 if $version >= 3080800;
   return 2014 if $version >= 3080300;
@@ -306,7 +316,19 @@ sub year {
 }
 
 sub archive_type {
-  shift->as_num > 3070400 ? "autoconf" : "amalgamation";
+  my $self = shift;
+  return "amalgamation" if $self->is_snapshot;
+  $self->as_num > 3070400 ? "autoconf" : "amalgamation";
+}
+
+sub is_snapshot {
+  shift->[0] =~ /^20\d\d/;
+}
+
+sub extension {
+  my $self = shift;
+  return ".zip" if $self->is_snapshot;
+  return ".tar.gz";
 }
 
 1;
