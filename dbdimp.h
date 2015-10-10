@@ -52,6 +52,7 @@ struct imp_dbh_st {
     bool see_if_its_a_number;
     int extended_result_codes;
     stmt_list_s * stmt_list;
+    bool began_transaction;
 };
 
 /* Statement Handle */

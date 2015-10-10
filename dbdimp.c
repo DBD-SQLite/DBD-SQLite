@@ -436,6 +436,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     imp_dbh->see_if_its_a_number       = FALSE;
     imp_dbh->extended_result_codes     = extended;
     imp_dbh->stmt_list                 = NULL;
+    imp_dbh->began_transaction         = FALSE;
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
@@ -496,8 +497,11 @@ sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement)
         _skip_whitespaces(sql);
         if (_starts_with_begin(sql)) {
             if (DBIc_is(imp_dbh,  DBIcf_AutoCommit)) {
-                DBIc_on(imp_dbh,  DBIcf_BegunWork);
-                DBIc_off(imp_dbh, DBIcf_AutoCommit);
+                if (!DBIc_is(imp_dbh,  DBIcf_BegunWork)) {
+                    imp_dbh->began_transaction = TRUE;
+                    DBIc_on(imp_dbh,  DBIcf_BegunWork);
+                    DBIc_off(imp_dbh, DBIcf_AutoCommit);
+                }
             }
         }
         else if (!DBIc_is(imp_dbh, DBIcf_AutoCommit)) {
@@ -520,8 +524,10 @@ sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement)
     }
 
     if (DBIc_is(imp_dbh, DBIcf_BegunWork) && sqlite3_get_autocommit(imp_dbh->db)) {
-        DBIc_off(imp_dbh, DBIcf_BegunWork);
-        DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        if (imp_dbh->began_transaction) {
+            DBIc_off(imp_dbh, DBIcf_BegunWork);
+            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+        }
     }
 
     return sqlite3_changes(imp_dbh->db);
@@ -544,6 +550,9 @@ sqlite_db_commit(SV *dbh, imp_dbh_t *imp_dbh)
     }
 
     if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+/* XXX: for rt_52573
+        imp_dbh->began_transaction = FALSE;
+*/
         DBIc_off(imp_dbh, DBIcf_BegunWork);
         DBIc_on(imp_dbh,  DBIcf_AutoCommit);
     }
@@ -574,6 +583,9 @@ sqlite_db_rollback(SV *dbh, imp_dbh_t *imp_dbh)
     }
 
     if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+/* XXX: for rt_52573
+        imp_dbh->began_transaction = FALSE;
+*/
         DBIc_off(imp_dbh, DBIcf_BegunWork);
         DBIc_on(imp_dbh,  DBIcf_AutoCommit);
     }
@@ -973,6 +985,9 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         _skip_whitespaces(sql);
         if (_starts_with_begin(sql)) {
             if (DBIc_is(imp_dbh,  DBIcf_AutoCommit)) {
+                if (!DBIc_is(imp_dbh,  DBIcf_BegunWork)) {
+                    imp_dbh->began_transaction = TRUE;
+                }
                 DBIc_on(imp_dbh,  DBIcf_BegunWork);
                 DBIc_off(imp_dbh, DBIcf_AutoCommit);
             }
@@ -1007,8 +1022,10 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
 
         /* transaction ended with commit/rollback/release */
         if (DBIc_is(imp_dbh, DBIcf_BegunWork) && sqlite3_get_autocommit(imp_dbh->db)) {
-            DBIc_off(imp_dbh, DBIcf_BegunWork);
-            DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+            if (imp_dbh->began_transaction) {
+                DBIc_off(imp_dbh, DBIcf_BegunWork);
+                DBIc_on(imp_dbh,  DBIcf_AutoCommit);
+            }
         }
 
         /* warn("Finalize\n"); */
@@ -1026,6 +1043,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             DBIc_ACTIVE_on(imp_sth);
             sqlite_trace(sth, imp_sth, 5, form("exec ok - %d rows, %d cols", imp_sth->nrow, DBIc_NUM_FIELDS(imp_sth)));
             if (DBIc_is(imp_dbh, DBIcf_AutoCommit) && !sqlite3_get_autocommit(imp_dbh->db)) {
+/* XXX: for rt_52573
+                if (DBIc_is(imp_dbh, DBIcf_BegunWork)) {
+                    imp_dbh->began_transaction = TRUE;
+                }
+*/
                 DBIc_on(imp_dbh,  DBIcf_BegunWork);
                 DBIc_off(imp_dbh, DBIcf_AutoCommit);
             }
