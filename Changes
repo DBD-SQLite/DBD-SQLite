@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.49_02 2015-10-10
+    - Added a workaround to resolve #106950 Extra warnings
+      with savepoints (hopefully)
+    - Not to run tests for table_column_metadata unless
+      ENABLE_COLUMN_METADATA is set
+
 1.49_01 2015-08-04
     - Updated to SQLite 3.8.11.1
     - Resolved #106151 SAVEPOINT bug
