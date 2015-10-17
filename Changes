@@ -1,7 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
 1.49_03 to be released
-    - Updated to SQLite 3.9.0, with JSON support
+    - Updated to SQLite 3.9.1, with JSON support
 
 1.49_02 2015-10-10
     - Added a workaround to resolve #106950 Extra warnings
