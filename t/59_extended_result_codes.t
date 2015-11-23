@@ -12,7 +12,7 @@ use DBD::SQLite;
 
 BEGIN{
     plan skip_all => 'this test is for Win32 only' unless $^O eq 'MSWin32';
-    plan skip_all => 'this test requires SQLite 3.7.12 and above' unless $DBD::SQLite::sqlite_version_number > 3071100;
+    plan skip_all => 'this test requires SQLite 3.7.12 and above' unless $DBD::SQLite::sqlite_version_number > 3007011;
 }
 
 use Test::NoWarnings;
