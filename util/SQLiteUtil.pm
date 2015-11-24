@@ -238,6 +238,11 @@ sub mirror {
     print "Downloading $version from $url...\n";
     my $res = HTTP::Tiny->new->mirror($url => $file);
     die "Can't mirror $file: ".$res->{reason} unless $res->{success};
+    my $content_type = $res->{headers}{'content-type'};
+    if ($content_type !~ /x\-gzip/) {
+        unlink $file;
+        die "Not a gzipped tarball: ".$content_type;
+    }
   }
   my $dir = srcdir($version);
   unless ($dir && -d $dir) {
