@@ -318,7 +318,7 @@ sub year {
 sub archive_type {
   my $self = shift;
   return "amalgamation" if $self->is_snapshot;
-  $self->as_num > 3070400 ? "autoconf" : "amalgamation";
+  $self->as_num >= 3070400 ? "autoconf" : "amalgamation";
 }
 
 sub is_snapshot {
