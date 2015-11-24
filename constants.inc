@@ -561,6 +561,30 @@ _const_extended_result_codes_3008007_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3090000
+
+IV
+_const_extended_result_codes_3090000()
+    ALIAS:
+        SQLITE_IOERR_VNODE = SQLITE_IOERR_VNODE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_extended_result_codes_3090000_zero()
+    ALIAS:
+        SQLITE_IOERR_VNODE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 IV
 _const_flags_for_file_open_operations()
     ALIAS:
@@ -568,11 +592,34 @@ _const_flags_for_file_open_operations()
         SQLITE_OPEN_READWRITE = SQLITE_OPEN_READWRITE
         SQLITE_OPEN_CREATE = SQLITE_OPEN_CREATE
         SQLITE_OPEN_NOMUTEX = SQLITE_OPEN_NOMUTEX
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#if SQLITE_VERSION_NUMBER >= 3006002
+
+IV
+_const_flags_for_file_open_operations_3006002()
+    ALIAS:
         SQLITE_OPEN_FULLMUTEX = SQLITE_OPEN_FULLMUTEX
     CODE:
         RETVAL = ix;
     OUTPUT:
         RETVAL
+
+#else
+
+IV
+_const_flags_for_file_open_operations_3006002_zero()
+    ALIAS:
+        SQLITE_OPEN_FULLMUTEX = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
 
 #if SQLITE_VERSION_NUMBER >= 3006018
 
@@ -747,6 +794,30 @@ _const_result_codes_3007017_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3090000
+
+IV
+_const_virtual_table_scan_flags_3090000()
+    ALIAS:
+        SQLITE_INDEX_SCAN_UNIQUE = SQLITE_INDEX_SCAN_UNIQUE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_virtual_table_scan_flags_3090000_zero()
+    ALIAS:
+        SQLITE_INDEX_SCAN_UNIQUE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 # For backward compatibility
 
 MODULE = DBD::SQLite    PACKAGE = DBD::SQLite
@@ -859,11 +930,34 @@ _const__flags_for_file_open_operations()
         OPEN_READWRITE = SQLITE_OPEN_READWRITE
         OPEN_CREATE = SQLITE_OPEN_CREATE
         OPEN_NOMUTEX = SQLITE_OPEN_NOMUTEX
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#if SQLITE_VERSION_NUMBER >= 3006002
+
+IV
+_const__flags_for_file_open_operations_3006002()
+    ALIAS:
         OPEN_FULLMUTEX = SQLITE_OPEN_FULLMUTEX
     CODE:
         RETVAL = ix;
     OUTPUT:
         RETVAL
+
+#else
+
+IV
+_const__flags_for_file_open_operations_3006002_zero()
+    ALIAS:
+        OPEN_FULLMUTEX = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
 
 #if SQLITE_VERSION_NUMBER >= 3006018
 

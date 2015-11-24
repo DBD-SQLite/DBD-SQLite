@@ -97,6 +97,7 @@ our @EXPORT_OK = (
       SQLITE_IOERR_SHORT_READ
       SQLITE_IOERR_TRUNCATE
       SQLITE_IOERR_UNLOCK
+      SQLITE_IOERR_VNODE
       SQLITE_IOERR_WRITE
       SQLITE_LOCKED_SHAREDCACHE
       SQLITE_NOTICE_RECOVER_ROLLBACK
@@ -169,6 +170,11 @@ our @EXPORT_OK = (
       SQLITE_WARNING
     /,
 
+    # virtual_table_scan_flags
+    qw/
+      SQLITE_INDEX_SCAN_UNIQUE
+    /,
+
 );
 
 our %EXPORT_TAGS = (
@@ -233,6 +239,7 @@ our %EXPORT_TAGS = (
       SQLITE_FULL
       SQLITE_FUNCTION
       SQLITE_IGNORE
+      SQLITE_INDEX_SCAN_UNIQUE
       SQLITE_INSERT
       SQLITE_INTEGER
       SQLITE_INTERNAL
@@ -263,6 +270,7 @@ our %EXPORT_TAGS = (
       SQLITE_IOERR_SHORT_READ
       SQLITE_IOERR_TRUNCATE
       SQLITE_IOERR_UNLOCK
+      SQLITE_IOERR_VNODE
       SQLITE_IOERR_WRITE
       SQLITE_LOCKED
       SQLITE_LOCKED_SHAREDCACHE
@@ -396,6 +404,7 @@ our %EXPORT_TAGS = (
       SQLITE_IOERR_SHORT_READ
       SQLITE_IOERR_TRUNCATE
       SQLITE_IOERR_UNLOCK
+      SQLITE_IOERR_VNODE
       SQLITE_IOERR_WRITE
       SQLITE_LOCKED_SHAREDCACHE
       SQLITE_NOTICE_RECOVER_ROLLBACK
@@ -464,6 +473,10 @@ our %EXPORT_TAGS = (
       SQLITE_WARNING
     /],
 
+    virtual_table_scan_flags => [qw/
+      SQLITE_INDEX_SCAN_UNIQUE
+    /],
+
 );
 
 1;
@@ -482,7 +495,7 @@ DBD::SQLite::Constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<extended_result_codes>, C<flags_for_file_open_operations>, C<function_flags>, C<fundamental_datatypes>, C<result_codes>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<extended_result_codes>, C<flags_for_file_open_operations>, C<function_flags>, C<fundamental_datatypes>, C<result_codes>, C<virtual_table_scan_flags>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
