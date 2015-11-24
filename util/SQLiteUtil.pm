@@ -13,6 +13,7 @@ our @EXPORT = qw/
 
 our $ROOT = "$FindBin::Bin/..";
 our $SRCDIR = "$ROOT/tmp/src";
+our $VERBOSE = $ENV{SQLITE_UTIL_VERBOSE};
 
 my %since = (
   IOERR_LOCK => '3006002',
@@ -182,7 +183,7 @@ sub extract_constants {
         checkpoint_operation_parameters | checkpoint_mode | 
         conflict_resolution | text_encodings
       /x) {
-        print "$tag is ignored\n";
+        print "$tag is ignored\n" if $VERBOSE;
         $tag = '';
       }
       next;
@@ -278,7 +279,7 @@ sub check_api_history {
   require Array::Diff;
   my %current;
   for my $version (versions()) {
-    print "checking $version...\n";
+    print "checking $version...\n" if $VERBOSE;
     my $dir = srcdir($version);
     unless ($dir && -d $dir) {
       $dir = mirror($version) or next;
