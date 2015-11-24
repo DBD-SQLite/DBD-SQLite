@@ -286,15 +286,21 @@ sub check_api_history {
     }
     my %constants = extract_constants("$dir/sqlite3.h");
     if (%current) {
-      for (sort keys %current) {
-        print "$version: deleted $_\n" if !exists $constants{$_};
+      for my $key (sort keys %current) {
+        print "$version: deleted $key\n" if !exists $constants{$key};
       }
-      for (sort keys %constants) {
-        if (!exists $current{$_}) {
-          print "$version: added $_\n";
+      for my $key (sort keys %constants) {
+        next if $key =~ /^_/; # compat
+        if (!exists $current{$key}) {
+          if (my $has_unknown_changes = grep {!$since{$_}} @{$constants{$key} // []}) {
+            print "$version: added $key\n";
+            for (sort @{$constants{$key}}) {
+              print "  $_\n";
+            }
+          }
           next;
         }
-        my $diff = Array::Diff->diff($current{$_}, $constants{$_});
+        my $diff = Array::Diff->diff($current{$key}, $constants{$key});
         print "$version: added $_\n" for @{$diff->added || []};
         print "$version: deleted $_\n" for @{$diff->deleted || []};
       }
