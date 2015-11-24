@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.49_04 2015-11-24
+    - Updated ::Constants
+    - Fixed a sqlite version number in a test (GH-14; NANIS++)
+
 1.49_03 2015-11-05
     - Updated to SQLite 3.9.2, with JSON support
 
