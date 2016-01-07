@@ -266,8 +266,8 @@ sub _attached_database_list {
     my $dbh = shift;
     my @attached;
 
-    my $sth_databases = $dbh->prepare( 'PRAGMA database_list' );
-    $sth_databases->execute;
+    my $sth_databases = $dbh->prepare( 'PRAGMA database_list' ) or return;
+    $sth_databases->execute or return;
     while ( my $db_info = $sth_databases->fetchrow_hashref ) {
         push @attached, $db_info->{name} if $db_info->{seq} >= 2;
     }
@@ -411,15 +411,15 @@ sub primary_key_info {
             ($dbname eq 'temp') ? 'sqlite_temp_master' :
             $quoted_dbname.'.sqlite_master';
 
-        my $sth = $dbh->prepare("SELECT name, sql FROM $master_table WHERE type = ?");
-        $sth->execute("table");
+        my $sth = $dbh->prepare("SELECT name, sql FROM $master_table WHERE type = ?") or return;
+        $sth->execute("table") or return;
         while(my $row = $sth->fetchrow_hashref) {
             my $tbname = $row->{name};
             next if defined $table && $table ne '%' && $table ne $tbname;
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
-            my $t_sth = $dbh->prepare("PRAGMA $quoted_dbname.table_info($quoted_tbname)");
-            $t_sth->execute;
+            my $t_sth = $dbh->prepare("PRAGMA $quoted_dbname.table_info($quoted_tbname)") or return;
+            $t_sth->execute or return;
             my @pk;
             while(my $col = $t_sth->fetchrow_hashref) {
                 push @pk, $col->{name} if $col->{pk};
@@ -556,7 +556,7 @@ my @FOREIGN_KEY_INFO_SQL_CLI = qw(
 sub foreign_key_info {
     my ($dbh, $pk_catalog, $pk_schema, $pk_table, $fk_catalog, $fk_schema, $fk_table) = @_;
 
-    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}});
+    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}}) or return;
 
     my @fk_info;
     my %table_info;
@@ -570,14 +570,14 @@ sub foreign_key_info {
             ($dbname eq 'temp') ? 'sqlite_temp_master' :
             $quoted_dbname.'.sqlite_master';
 
-        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table");
+        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table") or return;
         for my $table (@$tables) {
             my $tbname = $table->[0];
             next if defined $fk_table && $fk_table ne '%' && $fk_table ne $tbname;
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
-            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.foreign_key_list($quoted_tbname)");
-            $sth->execute;
+            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.foreign_key_list($quoted_tbname)") or return;
+            $sth->execute or return;
             while(my $row = $sth->fetchrow_hashref) {
                 next if defined $pk_table && $pk_table ne '%' && $pk_table ne $row->{table};
 
@@ -585,8 +585,8 @@ sub foreign_key_info {
                     my $quoted_tb = $dbh->quote_identifier($row->{table});
                     for my $db (@$databases) {
                         my $quoted_db = $dbh->quote_identifier($db->{name});
-                        my $t_sth = $dbh->prepare("PRAGMA $quoted_db.table_info($quoted_tb)");
-                        $t_sth->execute;
+                        my $t_sth = $dbh->prepare("PRAGMA $quoted_db.table_info($quoted_tb)") or return;
+                        $t_sth->execute or return;
                         my $cols = {};
                         while(my $r = $t_sth->fetchrow_hashref) {
                             $cols->{$r->{name}} = $r->{pk};
@@ -656,7 +656,7 @@ my @STATISTICS_INFO_ODBC = (
 sub statistics_info {
     my ($dbh, $catalog, $schema, $table, $unique_only, $quick) = @_;
 
-    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}});
+    my $databases = $dbh->selectall_arrayref("PRAGMA database_list", {Slice => {}}) or return;
 
     my @statistics_info;
     for my $database (@$databases) {
@@ -669,22 +669,22 @@ sub statistics_info {
             ($dbname eq 'temp') ? 'sqlite_temp_master' :
             $quoted_dbname.'.sqlite_master';
 
-        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table");
+        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table") or return;
         for my $table_ref (@$tables) {
             my $tbname = $table_ref->[0];
             next if defined $table && $table ne '%' && $table ne $tbname;
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
-            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.index_list($quoted_tbname)");
-            $sth->execute;
+            my $sth = $dbh->prepare("PRAGMA $quoted_dbname.index_list($quoted_tbname)") or return;
+            $sth->execute or return;
             while(my $row = $sth->fetchrow_hashref) {
 
                 next if defined $unique_only && $unique_only && $row->{unique};
                 my $quoted_idx = $dbh->quote_identifier($row->{name});
                 for my $db (@$databases) {
                     my $quoted_db = $dbh->quote_identifier($db->{name});
-                    my $i_sth = $dbh->prepare("PRAGMA $quoted_db.index_info($quoted_idx)");
-                    $i_sth->execute;
+                    my $i_sth = $dbh->prepare("PRAGMA $quoted_db.index_info($quoted_idx)") or return;
+                    $i_sth->execute or return;
                     my $cols = {};
                     while(my $info = $i_sth->fetchrow_hashref) {
                         push @statistics_info, {
@@ -835,8 +835,8 @@ END_SQL
     # Taken from Fey::Loader::SQLite
     my @cols;
     while ( my ($schema, $table) = $sth_tables->fetchrow_array ) {
-        my $sth_columns = $dbh->prepare(qq{PRAGMA "$schema".table_info("$table")});
-        $sth_columns->execute;
+        my $sth_columns = $dbh->prepare(qq{PRAGMA "$schema".table_info("$table")}) or return;
+        $sth_columns->execute or return;
 
         for ( my $position = 1; my $col_info = $sth_columns->fetchrow_hashref; $position++ ) {
             if ( defined $col_val ) {
