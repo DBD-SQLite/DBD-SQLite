@@ -363,5 +363,23 @@ sqlite_status(reset = 0)
     OUTPUT:
         RETVAL
 
+#if SQLITE_VERSION_NUMBER >= 3010000
+
+int
+strglob(const char *zglob, const char *zstr)
+    CODE:
+        RETVAL = sqlite3_strglob(zglob, zstr);
+    OUTPUT:
+        RETVAL
+
+int
+strlike(const char *zglob, const char *zstr, unsigned int esc = 0)
+    CODE:
+        RETVAL = sqlite3_strlike(zglob, zstr, esc);
+    OUTPUT:
+        RETVAL
+
+#endif
+
 INCLUDE: constants.inc
 INCLUDE: SQLite.xsi

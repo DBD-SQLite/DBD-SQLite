@@ -3087,6 +3087,14 @@ _constraint_op_to_string(unsigned char op) {
         return "<=";
     case SQLITE_INDEX_CONSTRAINT_MATCH:
         return "MATCH";
+#if SQLITE_VERSION_NUMBER >= 3010000
+    case SQLITE_INDEX_CONSTRAINT_LIKE:
+        return "LIKE";
+    case SQLITE_INDEX_CONSTRAINT_GLOB:
+        return "GLOB";
+    case SQLITE_INDEX_CONSTRAINT_REGEXP:
+        return "REGEXP";
+#endif
     default:
         return "unknown";
     }

@@ -4,7 +4,8 @@ package DBD::SQLite::VirtualTable::PerlData;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
-
+use DBD::SQLite;
+use constant SQLITE_3010000 => $DBD::SQLite::sqlite_version_number >= 3010000 ? 1 : 0;
 
 # private data for translating comparison operators from Sqlite to Perl
 my $TXT = 0;
@@ -17,6 +18,11 @@ my %SQLOP2PERLOP = (
   '>'     => [ 'gt',   '>'  ],
   '>='    => [ 'ge',   '>=' ],
   'MATCH' => [ '=~',   '=~' ],
+  (SQLITE_3010000 ? (
+  'LIKE'  => [ 'DBD::SQLite::strlike', 'DBD::SQLite::strlike' ],
+  'GLOB'  => [ 'DBD::SQLite::strglob', 'DBD::SQLite::strglob' ],
+  'REGEXP'=> [ '=~',   '=~' ],
+  ) : ()),
 );
 
 #----------------------------------------------------------------------
@@ -95,12 +101,16 @@ sub BEST_INDEX {
       $optype  = $self->{optypes}[$col];
     }
     my $op = $SQLOP2PERLOP{$constraint->{op}}[$optype];
-    push @conditions,
-      "(defined($member) && defined(\$vals[$ix]) && $member $op \$vals[$ix])";
-      # Note : $vals[$ix] refers to an array of values passed to the
-      # FILTER method (see below); so the eval-ed perl code will be a
-      # closure on those values
-
+    if (SQLITE_3010000 && $op =~ /str/) {
+      push @conditions,
+        "(defined($member) && defined(\$vals[$ix]) && !$op(\$vals[$ix], $member))";
+    } else {
+      push @conditions,
+        "(defined($member) && defined(\$vals[$ix]) && $member $op \$vals[$ix])";
+    }
+    # Note : $vals[$ix] refers to an array of values passed to the
+    # FILTER method (see below); so the eval-ed perl code will be a
+    # closure on those values
     # info passed back to the SQLite core -- see vtab.html in sqlite doc
     $constraint->{argvIndex} = $ix++;
     $constraint->{omit}      = 1;
