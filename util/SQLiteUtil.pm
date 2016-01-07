@@ -126,8 +126,8 @@ my %since = (
   LIMIT_WORKER_THREADS => '3008007',
   CONFIG_PCACHE_HDRSZ => '3008008',
   CONFIG_PMASZ => '3008008',
-  IOERR_VNODE => '3090000',
-  INDEX_SCAN_UNIQUE => '3090000',
+  IOERR_VNODE => '3009000',
+  INDEX_SCAN_UNIQUE => '3009000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
