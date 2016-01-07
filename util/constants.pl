@@ -197,5 +197,27 @@ You can import necessary SQLite constants from this module. Available tags are @
 
 This module does not export anything by default.
 
+\=head1 CONSTANTS
+
 END
+
+  for my $tag (sort keys %constants) {
+    next if $tag eq 'all';
+    print $fh <<"END";
+\=head2 $tag
+
+\=over 4
+
+END
+    for my $const (@{$constants{$tag}}) {
+      print $fh <<"END";
+\=item SQLITE_$const
+
+END
+    }
+    print $fh <<"END";
+\=back
+
+END
+  }
 }
