@@ -360,7 +360,7 @@ sub as_num {
 
 sub dotted {
   my $self = shift;
-  join '.', map {$_ + 0} $self->[3] + 0 ? @$self : @$self[0..2];
+  join '.', map {$_ + 0} ($self->[3] && $self->[3] + 0) ? @$self : @$self[0..2];
 }
 
 sub year {
