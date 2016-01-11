@@ -2199,7 +2199,7 @@ Returns a hash reference that holds a set of status information of SQLite statem
 
 You may also pass 0 as an argument to reset the status.
 
-=head2 $sth->sqlite_create_module()
+=head2 $dbh->sqlite_create_module()
 
 Registers a name for a I<virtual table module>. Module names must be
 registered before creating a new virtual table using the module and
