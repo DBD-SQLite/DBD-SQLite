@@ -118,7 +118,7 @@ END
 sub write_pm {
   my %constants = @_;
 
-  for my $tag (keys %constants) {
+  for my $tag (sort keys %constants) {
     if ($tag =~ /^_/) {
       delete $constants{$tag};
       next;
