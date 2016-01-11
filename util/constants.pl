@@ -14,6 +14,7 @@ my %renamed_tags = (
 my %shorter_tags = (
   flags_for_file_open_operations => 'file_open',
   fundamental_datatypes => 'datatypes',
+  compile_time_library_version_numbers => 'version',
 );
 
 my %constants = extract_constants();

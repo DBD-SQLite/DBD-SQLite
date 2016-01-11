@@ -159,7 +159,7 @@ my %ignore = map {$_ => 1} qw/
 /;
 
 my $ignore_tag_re = join '|', qw/
-  testing_interface library_version_numbers configuration_options
+  testing_interface configuration_options
   device_characteristics file_locking vfs_method xshmlock_index
   mutex_types scan_status run_time_limit standard_file_control
   status_parameters synchronization_type virtual_table_constraint
