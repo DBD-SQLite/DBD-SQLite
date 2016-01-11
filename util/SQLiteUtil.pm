@@ -158,6 +158,16 @@ my %ignore = map {$_ => 1} qw/
   OPEN_SUBJOURNAL OPEN_MASTER_JOURNAL OPEN_WAL
 /;
 
+my $ignore_tag_re = join '|', qw/
+  testing_interface library_version_numbers configuration_options
+  device_characteristics file_locking vfs_method xshmlock_index
+  mutex_types scan_status run_time_limit standard_file_control
+  status_parameters synchronization_type virtual_table_constraint
+  virtual_table_indexing_information checkpoint_operation_parameters
+  checkpoint_mode conflict_resolution text_encodings
+  virtual_table_scan_flags
+/;
+
 my %compat = map {$_ => 1} qw/
   authorizer_action_codes
   authorizer_return_codes
@@ -176,18 +186,7 @@ sub extract_constants {
       $tag =~ s/[ \-]+/_/g;
       ($tag) = $tag =~ /^(\w+)/;
       $tag =~ s/_$//;
-      if ($tag =~ /
-        testing_interface |
-        library_version_numbers |
-        configuration_options | device_characteristics |
-        file_locking | vfs_method | xshmlock_index |
-        mutex_types | scan_status | run_time_limit |
-        standard_file_control | status_parameters |
-        synchronization_type | virtual_table_constraint |
-        virtual_table_indexing_information |
-        checkpoint_operation_parameters | checkpoint_mode | 
-        conflict_resolution | text_encodings
-      /x) {
+      if ($tag =~ /$ignore_tag_re/) {
         print "$tag is ignored\n" if $VERBOSE;
         $tag = '';
       }
