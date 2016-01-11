@@ -373,9 +373,13 @@ strglob(const char *zglob, const char *zstr)
         RETVAL
 
 int
-strlike(const char *zglob, const char *zstr, unsigned int esc = 0)
+strlike(const char *zglob, const char *zstr, const char *esc = NULL)
     CODE:
-        RETVAL = sqlite3_strlike(zglob, zstr, esc);
+        if (esc) {
+            RETVAL = sqlite3_strlike(zglob, zstr, (unsigned int)(*esc));
+        } else {
+            RETVAL = sqlite3_strlike(zglob, zstr, 0);
+        }
     OUTPUT:
         RETVAL
 
