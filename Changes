@@ -1,5 +1,23 @@
 Changes for Perl extension DBD-SQLite
 
+1.49_05 2016-01-11
+    *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
+    - Updated to SQLite 3.10.0.
+      Because of the addition of LIKE/GLOB/REGEXP support on
+      virtual tables, previous ::PerlData virtual table got broken.
+      This is hopefully fixed by adding strlike/strglob functions
+      to DBD::SQLite but if you use this virtual table, please
+      test it carefully.
+    - Now you can make a database connection read-only if you
+      turn on the ReadOnly attribute when you connect. (RT #110439)
+      If you set it after you connect to a database, DBD::SQLite
+      warns because the database doesn't actually become read-only.
+
+    - Improved ::Constants
+      - to load DBD::SQLite by itself
+      - to expose SQLITE_VERSION_NUMBER
+      - introduced a few new (shorter) tags
+
 1.49_04 2015-11-24
     - Updated ::Constants
     - Fixed a sqlite version number in a test (GH-14; NANIS++)

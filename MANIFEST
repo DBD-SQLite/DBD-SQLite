@@ -81,9 +81,12 @@ t/56_open_flags.t
 t/57_uri_filename.t
 t/58_see_if_its_a_number_and_explicit_binding.t
 t/59_extended_result_codes.t
+t/60_readonly.t
+t/61_strlike.t
 t/cookbook_variance.t
 t/lib/Test.pm
 t/rt_106151_outermost_savepoint.t
+t/rt_106950_extra_warnings_with_savepoints.t
 t/rt_15186_prepcached.t
 t/rt_21406_auto_finish.t
 t/rt_25371_asymmetric_unicode.t
