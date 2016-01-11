@@ -703,12 +703,14 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         DBIc_set(imp_dbh, DBIcf_AutoCommit, SvTRUE(valuesv));
         return TRUE;
     }
+#if SQLITE_VERSION_NUMBER >= 3007011
     if (strEQ(key, "ReadOnly")) {
         if (SvTRUE(valuesv) && !sqlite3_db_readonly(imp_dbh->db, "main")) {
             sqlite_error(dbh, 0, "ReadOnly is set but it's only advisory");
         }
         return FALSE;
     }
+#endif
     if (strEQ(key, "sqlite_allow_multiple_statements")) {
         imp_dbh->allow_multiple_statements = !(! SvTRUE(valuesv));
         return TRUE;
