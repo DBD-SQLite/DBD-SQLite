@@ -172,11 +172,6 @@ our @EXPORT_OK = (
       SQLITE_WARNING
     /,
 
-    # virtual_table_scan_flags
-    qw/
-      SQLITE_INDEX_SCAN_UNIQUE
-    /,
-
 );
 
 our %EXPORT_TAGS = (
@@ -241,7 +236,6 @@ our %EXPORT_TAGS = (
       SQLITE_FULL
       SQLITE_FUNCTION
       SQLITE_IGNORE
-      SQLITE_INDEX_SCAN_UNIQUE
       SQLITE_INSERT
       SQLITE_INTEGER
       SQLITE_INTERNAL
@@ -477,11 +471,9 @@ our %EXPORT_TAGS = (
       SQLITE_WARNING
     /],
 
-    virtual_table_scan_flags => [qw/
-      SQLITE_INDEX_SCAN_UNIQUE
-    /],
-
 );
+$EXPORT_TAGS{file_open} = $EXPORT_TAGS{flags_for_file_open_operations};
+$EXPORT_TAGS{datatypes} = $EXPORT_TAGS{fundamental_datatypes};
 
 1;
 
@@ -499,7 +491,7 @@ DBD::SQLite::Constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<extended_result_codes>, C<flags_for_file_open_operations>, C<function_flags>, C<fundamental_datatypes>, C<result_codes>, C<virtual_table_scan_flags>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -573,9 +565,9 @@ This module does not export anything by default.
 
 =item SQLITE_COPY
 
-=item SQLITE_RECURSIVE
-
 =item SQLITE_SAVEPOINT
+
+=item SQLITE_RECURSIVE
 
 =back
 
@@ -615,49 +607,13 @@ This module does not export anything by default.
 
 =item SQLITE_CANTOPEN_ISDIR
 
-=item SQLITE_IOERR_VNODE
+=item SQLITE_IOERR_MMAP
 
-=item SQLITE_IOERR_AUTH
+=item SQLITE_NOTICE_RECOVER_WAL
 
-=item SQLITE_IOERR_LOCK
-
-=item SQLITE_IOERR_DELETE_NOENT
-
-=item SQLITE_CANTOPEN_FULLPATH
-
-=item SQLITE_IOERR_CONVPATH
-
-=item SQLITE_CANTOPEN_CONVPATH
+=item SQLITE_NOTICE_RECOVER_ROLLBACK
 
 =item SQLITE_ABORT_ROLLBACK
-
-=item SQLITE_READONLY_DBMOVED
-
-=item SQLITE_AUTH_USER
-
-=item SQLITE_IOERR_SHMOPEN
-
-=item SQLITE_IOERR_SHMSIZE
-
-=item SQLITE_IOERR_SHMLOCK
-
-=item SQLITE_BUSY_RECOVERY
-
-=item SQLITE_CANTOPEN_NOTEMPDIR
-
-=item SQLITE_IOERR_CLOSE
-
-=item SQLITE_IOERR_DIR_CLOSE
-
-=item SQLITE_IOERR_SHMMAP
-
-=item SQLITE_IOERR_SEEK
-
-=item SQLITE_CORRUPT_VTAB
-
-=item SQLITE_READONLY_RECOVERY
-
-=item SQLITE_READONLY_CANTLOCK
 
 =item SQLITE_IOERR_READ
 
@@ -689,23 +645,59 @@ This module does not export anything by default.
 
 =item SQLITE_LOCKED_SHAREDCACHE
 
+=item SQLITE_AUTH_USER
+
+=item SQLITE_IOERR_CONVPATH
+
+=item SQLITE_CANTOPEN_CONVPATH
+
+=item SQLITE_IOERR_VNODE
+
+=item SQLITE_IOERR_LOCK
+
+=item SQLITE_IOERR_SHMMAP
+
+=item SQLITE_IOERR_SEEK
+
+=item SQLITE_CORRUPT_VTAB
+
+=item SQLITE_READONLY_RECOVERY
+
+=item SQLITE_READONLY_CANTLOCK
+
+=item SQLITE_IOERR_AUTH
+
 =item SQLITE_IOERR_GETTEMPPATH
 
 =item SQLITE_BUSY_SNAPSHOT
 
 =item SQLITE_WARNING_AUTOINDEX
 
+=item SQLITE_IOERR_CLOSE
+
+=item SQLITE_IOERR_DIR_CLOSE
+
+=item SQLITE_READONLY_DBMOVED
+
 =item SQLITE_CONSTRAINT_ROWID
 
-=item SQLITE_IOERR_MMAP
+=item SQLITE_IOERR_SHMOPEN
 
-=item SQLITE_NOTICE_RECOVER_WAL
+=item SQLITE_IOERR_SHMSIZE
 
-=item SQLITE_NOTICE_RECOVER_ROLLBACK
+=item SQLITE_IOERR_SHMLOCK
+
+=item SQLITE_BUSY_RECOVERY
+
+=item SQLITE_CANTOPEN_NOTEMPDIR
+
+=item SQLITE_IOERR_DELETE_NOENT
+
+=item SQLITE_CANTOPEN_FULLPATH
 
 =back
 
-=head2 flags_for_file_open_operations
+=head2 file_open (flags_for_file_open_operations)
 
 =over 4
 
@@ -717,15 +709,15 @@ This module does not export anything by default.
 
 =item SQLITE_OPEN_NOMUTEX
 
-=item SQLITE_OPEN_MEMORY
-
-=item SQLITE_OPEN_URI
-
 =item SQLITE_OPEN_SHAREDCACHE
 
 =item SQLITE_OPEN_PRIVATECACHE
 
+=item SQLITE_OPEN_MEMORY
+
 =item SQLITE_OPEN_FULLMUTEX
+
+=item SQLITE_OPEN_URI
 
 =back
 
@@ -737,7 +729,7 @@ This module does not export anything by default.
 
 =back
 
-=head2 fundamental_datatypes
+=head2 datatypes (fundamental_datatypes)
 
 =over 4
 
@@ -816,14 +808,6 @@ This module does not export anything by default.
 =item SQLITE_NOTICE
 
 =item SQLITE_WARNING
-
-=back
-
-=head2 virtual_table_scan_flags
-
-=over 4
-
-=item SQLITE_INDEX_SCAN_UNIQUE
 
 =back
 

@@ -818,30 +818,6 @@ _const_result_codes_3007017_zero()
 
 #endif
 
-#if SQLITE_VERSION_NUMBER >= 3009000
-
-IV
-_const_virtual_table_scan_flags_3009000()
-    ALIAS:
-        SQLITE_INDEX_SCAN_UNIQUE = SQLITE_INDEX_SCAN_UNIQUE
-    CODE:
-        RETVAL = ix;
-    OUTPUT:
-        RETVAL
-
-#else
-
-IV
-_const_virtual_table_scan_flags_3009000_zero()
-    ALIAS:
-        SQLITE_INDEX_SCAN_UNIQUE = 1
-    CODE:
-        RETVAL = 0;
-    OUTPUT:
-        RETVAL
-
-#endif
-
 # For backward compatibility
 
 MODULE = DBD::SQLite    PACKAGE = DBD::SQLite
