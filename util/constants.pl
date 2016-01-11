@@ -134,6 +134,7 @@ sub write_pm {
 use strict;
 use warnings;
 use base 'Exporter';
+use DBD::SQLite;
 our \@EXPORT_OK = (
 END
 

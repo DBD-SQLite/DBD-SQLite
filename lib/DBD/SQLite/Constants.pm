@@ -6,6 +6,7 @@ package DBD::SQLite::Constants;
 use strict;
 use warnings;
 use base 'Exporter';
+use DBD::SQLite;
 our @EXPORT_OK = (
     # authorizer_action_codes
     qw/
