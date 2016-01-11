@@ -2,12 +2,14 @@ package SQLiteUtil;
 
 use strict;
 use warnings;
+use FindBin;
+use Cwd;
 use base 'Exporter';
 use HTTP::Tiny;
 use File::Copy;
 
 our @EXPORT = qw/
-  extract_constants versions srcdir mirror copy_files
+  extract_constants versions srcdir mirror copy_files tweak_pod
   check_api_history
 /;
 
@@ -279,6 +281,18 @@ sub copy_files {
   copy("$dir/fts3_tokenizer.h", $ROOT);
 }
 
+sub tweak_pod {
+  my $version = shift;
+  my $dotted = $version->dotted;
+  my $pmfile = "$ROOT/lib/DBD/SQLite.pm";
+  my $body = do { open my $fh, '<', $pmfile or die $!; local $/; <$fh> };
+  $body =~ s/S<[\d\.]+>/S<$dotted>/g or die "Can't find a placeholder for SQLite version";
+  open my $out, '>', "$pmfile.tmp" or die $!;
+  print $out $body;
+  close $out;
+  rename "$pmfile.tmp" => $pmfile or die "Can't rename $pmfile.tmp to $pmfile: $!";
+}
+
 sub check_api_history {
   require Array::Diff;
   my %current;
@@ -346,7 +360,7 @@ sub as_num {
 
 sub dotted {
   my $self = shift;
-  join '.', $self->[3] ? @$self : @$self[0..2];
+  join '.', map {$_ + 0} $self->[3] + 0 ? @$self : @$self[0..2];
 }
 
 sub year {

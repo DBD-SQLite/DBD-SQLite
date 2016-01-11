@@ -974,6 +974,21 @@ on how to use DBI itself. The API works like every DBI module does.
 However, currently many statement attributes are not implemented or
 are limited by the typeless nature of the SQLite database.
 
+=head1 SQLITE VERSION
+
+DBD::SQLite is usually compiled with a bundled SQLite library
+(SQLite version S<3.10.0> as of this release) for consistency.
+However, a different version of SQLite may sometimes be used for
+some reasons like security, or some new experimental features.
+
+You can look at C<$DBD::SQLite::sqlite_version> (C<3.x.y> format) or
+C<$DBD::SQLite::sqlite_version_number> (C<3xxxyyy> format)
+to find which version of SQLite is actually used. You can also
+check C<DBD::SQLite::Constants::SQLITE_VERSION_NUMBER()>.
+
+You can also find how the library is compiled by calling
+C<DBD::SQLite::compile_options()> (see below).
+
 =head1 NOTABLE DIFFERENCES FROM OTHER DRIVERS
 
 =head2 Database Name Is A File Name
