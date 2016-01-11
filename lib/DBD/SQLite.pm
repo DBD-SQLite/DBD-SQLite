@@ -1011,17 +1011,25 @@ as well for finer control:
 
   my $dbh = DBI->connect("dbi:SQLite:uri=file:$path_to_dbfile?mode=rwc");
 
-Note that this is not for remote SQLite database connection. You only can
-connect to a local database.
+Note that this is not for remote SQLite database connection. You can
+only connect to a local database.
 
-You can also set sqlite_open_flags (only) when you connect to a database:
+=head2 Read-Only Database
 
-  use DBD::SQLite;
+You can set sqlite_open_flags (only) when you connect to a database:
+
+  use DBD::SQLite::Constants qw/:file_open/;
   my $dbh = DBI->connect("dbi:SQLite:$dbfile", undef, undef, {
-    sqlite_open_flags => DBD::SQLite::OPEN_READONLY,
+    sqlite_open_flags => SQLITE_OPEN_READONLY,
   });
 
 See L<http://www.sqlite.org/c3ref/open.html> for details.
+
+As of 1.49_05, you can also make a database read-only by setting
+C<ReadOnly> attribute to true (only) when you connect to a database.
+Actually you can set it after you connect, but in that case, it
+can't make the database read-only, and you'll see a warning (which
+you can hide by turning C<PrintWarn> off).
 
 =head2 DBD::SQLite And File::Temp
 
