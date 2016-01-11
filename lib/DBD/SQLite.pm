@@ -2170,22 +2170,6 @@ See also L<DBI::Profile> for better profiling options.
 
 is for internal use only.
 
-=head2 DBD::SQLite::compile_options()
-
-Returns an array of compile options (available since SQLite 3.6.23,
-bundled in DBD::SQLite 1.30_01), or an empty array if the bundled
-library is old or compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
-
-=head2 DBD::SQLite::sqlite_status()
-
-Returns a hash reference that holds a set of status information of SQLite runtime such as memory usage or page cache usage (see L<http://www.sqlite.org/c3ref/c_status_malloc_count.html> for details). Each of the entry contains the current value and the highwater value.
-
-  my $status = DBD::SQLite::sqlite_status();
-  my $cur  = $status->{memory_used}{current};
-  my $high = $status->{memory_used}{highwater};
-
-You may also pass 0 as an argument to reset the status.
-
 =head2 $dbh->sqlite_db_status()
 
 Returns a hash reference that holds a set of status information of database connection such as cache usage. See L<http://www.sqlite.org/c3ref/c_dbstatus_options.html> for details. You may also pass 0 as an argument to reset the status.
@@ -2205,6 +2189,32 @@ Registers a name for a I<virtual table module>. Module names must be
 registered before creating a new virtual table using the module and
 before using a preexisting virtual table for the module.
 Virtual tables are explained in L<DBD::SQLite::VirtualTable>.
+
+=head1 DRIVER FUNCTIONS
+
+=head2 DBD::SQLite::compile_options()
+
+Returns an array of compile options (available since SQLite 3.6.23,
+bundled in DBD::SQLite 1.30_01), or an empty array if the bundled
+library is old or compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
+
+=head2 DBD::SQLite::sqlite_status()
+
+Returns a hash reference that holds a set of status information of SQLite runtime such as memory usage or page cache usage (see L<http://www.sqlite.org/c3ref/c_status_malloc_count.html> for details). Each of the entry contains the current value and the highwater value.
+
+  my $status = DBD::SQLite::sqlite_status();
+  my $cur  = $status->{memory_used}{current};
+  my $high = $status->{memory_used}{highwater};
+
+You may also pass 0 as an argument to reset the status.
+
+=head2 DBD::SQLite::strlike($pattern, $string, $escape_char), DBD::SQLite::strglob($pattern, $string)
+
+As of 1.49_05 (SQLite 3.10.0), you can use these two functions to
+see if a string matches a pattern. These may be useful when you
+create a virtual table or a custom function.
+See L<http://sqlite.org/c3ref/strlike.html> and
+L<http://sqlite.org/c3ref/strglob.html> for details.
 
 =head1 DRIVER CONSTANTS
 
