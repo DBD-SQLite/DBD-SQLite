@@ -1228,16 +1228,13 @@ named) placeholders to avoid confusion.
 
 =head2 Foreign Keys
 
-B<BE PREPARED! WOLVES APPROACH!!>
-
 SQLite has started supporting foreign key constraints since 3.6.19
 (released on Oct 14, 2009; bundled in DBD::SQLite 1.26_05).
 To be exact, SQLite has long been able to parse a schema with foreign
 keys, but the constraints has not been enforced. Now you can issue
-a pragma actually to enable this feature and enforce the constraints.
-
-To do this, issue the following pragma (see below), preferably as
-soon as you connect to a database and you're not in a transaction:
+a C<foreign_keys> pragma to enable this feature and enforce the
+constraints, preferably as soon as you connect to a database and
+you're not in a transaction:
 
   $dbh->do("PRAGMA foreign_keys = ON");
 
@@ -1251,11 +1248,9 @@ SQLite team, and by us, to secure backward compatibility, as
 this feature may break your applications, and actually broke
 some for us. If you have used a schema with foreign key constraints
 but haven't cared them much and supposed they're always ignored for
-SQLite, be prepared, and B<please do extensive testing to ensure
+SQLite, be prepared, and please do extensive testing to ensure
 that your applications will continue to work when the foreign keys
-support is enabled by default>. It is very likely that the SQLite
-team will turn it default-on in the future, and we plan to do it
-NO LATER THAN they do so.
+support is enabled by default.
 
 See L<http://www.sqlite.org/foreignkeys.html> for details.
 
