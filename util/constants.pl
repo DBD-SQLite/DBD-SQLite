@@ -11,6 +11,11 @@ my %renamed_tags = (
   checkpoint_operation_parameters => 'checkpoint_mode_values',
 );
 
+my %shorter_tags = (
+  flags_for_file_open_operations => 'file_open',
+  fundamental_datatypes => 'datatypes',
+);
+
 my %constants = extract_constants();
 write_inc(%constants);
 write_pm(%constants);
@@ -177,6 +182,15 @@ END
 
   print $fh <<"END";
 );
+END
+
+  for my $tag (sort keys %shorter_tags) {
+    print $fh <<"END";
+\$EXPORT_TAGS{$shorter_tags{$tag}} = \$EXPORT_TAGS{$tag};
+END
+  }
+
+  print $fh <<"END";
 
 1;
 
@@ -194,7 +208,7 @@ DBD::SQLite::Constants
 
 \=head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are @{[join ', ', map {"C<$_>"} sort keys %constants]}. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are @{[join ', ', map {$shorter_tags{$_} ? "C<$shorter_tags{$_}> (C<$_>)" : "C<$_>"} sort keys %constants]}. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -205,7 +219,7 @@ END
   for my $tag (sort keys %constants) {
     next if $tag eq 'all';
     print $fh <<"END";
-\=head2 $tag
+\=head2 @{[$shorter_tags{$tag} ? "$shorter_tags{$tag} ($tag)" : $tag]}
 
 \=over 4
 
