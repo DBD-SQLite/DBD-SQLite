@@ -52,6 +52,11 @@ our @EXPORT_OK = (
       SQLITE_IGNORE
     /,
 
+    # compile_time_library_version_numbers
+    qw/
+      SQLITE_VERSION_NUMBER
+    /,
+
     # extended_result_codes
     qw/
       SQLITE_ABORT_ROLLBACK
@@ -310,6 +315,7 @@ our %EXPORT_TAGS = (
       SQLITE_TOOBIG
       SQLITE_TRANSACTION
       SQLITE_UPDATE
+      SQLITE_VERSION_NUMBER
       SQLITE_WARNING
       SQLITE_WARNING_AUTOINDEX
     /],
@@ -354,6 +360,10 @@ our %EXPORT_TAGS = (
     authorizer_return_codes => [qw/
       SQLITE_DENY
       SQLITE_IGNORE
+    /],
+
+    compile_time_library_version_numbers => [qw/
+      SQLITE_VERSION_NUMBER
     /],
 
     extended_result_codes => [qw/
@@ -472,6 +482,7 @@ our %EXPORT_TAGS = (
     /],
 
 );
+$EXPORT_TAGS{version} = $EXPORT_TAGS{compile_time_library_version_numbers};
 $EXPORT_TAGS{file_open} = $EXPORT_TAGS{flags_for_file_open_operations};
 $EXPORT_TAGS{datatypes} = $EXPORT_TAGS{fundamental_datatypes};
 
@@ -491,7 +502,7 @@ DBD::SQLite::Constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -581,39 +592,19 @@ This module does not export anything by default.
 
 =back
 
+=head2 version (compile_time_library_version_numbers)
+
+=over 4
+
+=item SQLITE_VERSION_NUMBER
+
+=back
+
 =head2 extended_result_codes
 
 =over 4
 
-=item SQLITE_READONLY_ROLLBACK
-
-=item SQLITE_CONSTRAINT_CHECK
-
-=item SQLITE_CONSTRAINT_COMMITHOOK
-
-=item SQLITE_CONSTRAINT_FOREIGNKEY
-
-=item SQLITE_CONSTRAINT_FUNCTION
-
-=item SQLITE_CONSTRAINT_NOTNULL
-
-=item SQLITE_CONSTRAINT_PRIMARYKEY
-
-=item SQLITE_CONSTRAINT_TRIGGER
-
-=item SQLITE_CONSTRAINT_UNIQUE
-
-=item SQLITE_CONSTRAINT_VTAB
-
-=item SQLITE_CANTOPEN_ISDIR
-
-=item SQLITE_IOERR_MMAP
-
-=item SQLITE_NOTICE_RECOVER_WAL
-
-=item SQLITE_NOTICE_RECOVER_ROLLBACK
-
-=item SQLITE_ABORT_ROLLBACK
+=item SQLITE_IOERR_LOCK
 
 =item SQLITE_IOERR_READ
 
@@ -643,43 +634,11 @@ This module does not export anything by default.
 
 =item SQLITE_IOERR_CHECKRESERVEDLOCK
 
-=item SQLITE_LOCKED_SHAREDCACHE
-
-=item SQLITE_AUTH_USER
-
-=item SQLITE_IOERR_CONVPATH
-
-=item SQLITE_CANTOPEN_CONVPATH
-
-=item SQLITE_IOERR_VNODE
-
-=item SQLITE_IOERR_LOCK
-
-=item SQLITE_IOERR_SHMMAP
-
-=item SQLITE_IOERR_SEEK
-
-=item SQLITE_CORRUPT_VTAB
-
-=item SQLITE_READONLY_RECOVERY
-
-=item SQLITE_READONLY_CANTLOCK
-
-=item SQLITE_IOERR_AUTH
-
-=item SQLITE_IOERR_GETTEMPPATH
-
-=item SQLITE_BUSY_SNAPSHOT
-
-=item SQLITE_WARNING_AUTOINDEX
-
 =item SQLITE_IOERR_CLOSE
 
 =item SQLITE_IOERR_DIR_CLOSE
 
-=item SQLITE_READONLY_DBMOVED
-
-=item SQLITE_CONSTRAINT_ROWID
+=item SQLITE_LOCKED_SHAREDCACHE
 
 =item SQLITE_IOERR_SHMOPEN
 
@@ -691,9 +650,69 @@ This module does not export anything by default.
 
 =item SQLITE_CANTOPEN_NOTEMPDIR
 
+=item SQLITE_IOERR_SHMMAP
+
+=item SQLITE_IOERR_SEEK
+
+=item SQLITE_CORRUPT_VTAB
+
+=item SQLITE_READONLY_RECOVERY
+
+=item SQLITE_READONLY_CANTLOCK
+
+=item SQLITE_ABORT_ROLLBACK
+
+=item SQLITE_CANTOPEN_ISDIR
+
 =item SQLITE_IOERR_DELETE_NOENT
 
 =item SQLITE_CANTOPEN_FULLPATH
+
+=item SQLITE_READONLY_ROLLBACK
+
+=item SQLITE_CONSTRAINT_CHECK
+
+=item SQLITE_CONSTRAINT_COMMITHOOK
+
+=item SQLITE_CONSTRAINT_FOREIGNKEY
+
+=item SQLITE_CONSTRAINT_FUNCTION
+
+=item SQLITE_CONSTRAINT_NOTNULL
+
+=item SQLITE_CONSTRAINT_PRIMARYKEY
+
+=item SQLITE_CONSTRAINT_TRIGGER
+
+=item SQLITE_CONSTRAINT_UNIQUE
+
+=item SQLITE_CONSTRAINT_VTAB
+
+=item SQLITE_IOERR_MMAP
+
+=item SQLITE_NOTICE_RECOVER_WAL
+
+=item SQLITE_NOTICE_RECOVER_ROLLBACK
+
+=item SQLITE_IOERR_GETTEMPPATH
+
+=item SQLITE_BUSY_SNAPSHOT
+
+=item SQLITE_WARNING_AUTOINDEX
+
+=item SQLITE_IOERR_CONVPATH
+
+=item SQLITE_CANTOPEN_CONVPATH
+
+=item SQLITE_CONSTRAINT_ROWID
+
+=item SQLITE_READONLY_DBMOVED
+
+=item SQLITE_AUTH_USER
+
+=item SQLITE_IOERR_VNODE
+
+=item SQLITE_IOERR_AUTH
 
 =back
 
@@ -709,15 +728,15 @@ This module does not export anything by default.
 
 =item SQLITE_OPEN_NOMUTEX
 
+=item SQLITE_OPEN_FULLMUTEX
+
 =item SQLITE_OPEN_SHAREDCACHE
 
 =item SQLITE_OPEN_PRIVATECACHE
 
-=item SQLITE_OPEN_MEMORY
-
-=item SQLITE_OPEN_FULLMUTEX
-
 =item SQLITE_OPEN_URI
+
+=item SQLITE_OPEN_MEMORY
 
 =back
 

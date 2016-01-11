@@ -103,6 +103,15 @@ _const_authorizer_return_codes()
     OUTPUT:
         RETVAL
 
+IV
+_const_compile_time_library_version_numbers()
+    ALIAS:
+        SQLITE_VERSION_NUMBER = SQLITE_VERSION_NUMBER
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV
