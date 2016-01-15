@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.49_06 2016-01-15
+    - Updated to SQLite 3.10.1, which fixed an old bug that could
+      generate incorrect results when a scalar subquery attempts
+      to use the block sorting optimization.
+
 1.49_05 2016-01-11
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Updated to SQLite 3.10.0.
