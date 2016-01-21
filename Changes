@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.49_07 2016-01-21
+    - Updated to SQLite 3.10.2, which fixed a case-folding bug
+      in the LIKE operator introduced in SQLite 3.10.0.
+
 1.49_06 2016-01-15
     - Updated to SQLite 3.10.1, which fixed an old bug that could
       generate incorrect results when a scalar subquery attempts

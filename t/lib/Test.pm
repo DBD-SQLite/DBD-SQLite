@@ -7,7 +7,7 @@ use Exporter   ();
 use File::Spec ();
 use Test::More ();
 
-our $VERSION = '1.49_06';
+our $VERSION = '1.49_07';
 our @ISA     = 'Exporter';
 our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS $sqlite_call has_sqlite requires_sqlite/;
 our @CALL_FUNCS;
