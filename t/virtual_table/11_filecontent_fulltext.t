@@ -31,13 +31,21 @@ my @tests = (
                           lib/DBD/SQLite/VirtualTable/FileContent.pm
                           lib/DBD/SQLite/VirtualTable/PerlData.pm
                           t/lib/Test.pm]],
+);
+
+# The last set of tests tries to use enhanced query syntax. But when
+# SQLite is compiled without it's support, the word 'AND' is taken
+# literally.
+if (grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options()) {
+  push @tests, (
   ['"use strict" AND "use warnings"' => qw[inc/Test/NoWarnings.pm
                                            lib/DBD/SQLite/Constants.pm
                                            lib/DBD/SQLite/VirtualTable.pm
                                            lib/DBD/SQLite/VirtualTable/FileContent.pm
                                            lib/DBD/SQLite/VirtualTable/PerlData.pm
                                            ]],
-);
+  );
+}
 
 plan tests => 3 + 3 * @tests;
 
