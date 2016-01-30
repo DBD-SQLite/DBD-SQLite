@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.49_08 2016-01-30
+    - no significant code changes
+    - Resolved RT#111558: Virtual table tests depend on enhanced
+      query syntax availability (vlmarek++)
+    - Ingore FTS tests if FTS is not available
+
 1.49_07 2016-01-21
     - Updated to SQLite 3.10.2, which fixed a case-folding bug
       in the LIKE operator introduced in SQLite 3.10.0.
