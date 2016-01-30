@@ -10,6 +10,7 @@ use t::lib::Test;
 use Test::More;
 
 BEGIN { requires_sqlite('3.7.7') }
+BEGIN { plan skip_all => 'FTS3 is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options() }
 
 plan tests => 3;
 use Test::NoWarnings;

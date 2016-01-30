@@ -10,10 +10,13 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.7.12') }
 
-use Test::NoWarnings;
 use FindBin;
 
-plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;
+BEGIN {
+  plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;
+  plan skip_all => 'FTS is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options();
+}
+use Test::NoWarnings;
 
 my $dbfile = "tmp.sqlite";
 
