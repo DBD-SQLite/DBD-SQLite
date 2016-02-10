@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.50 2016-02-11
+    - Switched to a production version.
+
 1.49_08 2016-01-30
     - no significant code changes
     - Resolved RT#111558: Virtual table tests depend on enhanced
