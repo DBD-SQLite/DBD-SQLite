@@ -612,7 +612,7 @@ An integer giving the estimated number of rows returned by that query.
 
 =head3 OPEN
 
-Called to instanciate a new cursor.
+Called to instantiate a new cursor.
 The default implementation appends C<"::Cursor"> to the current
 classname and calls C<NEW()> within that cursor class.
 
@@ -736,7 +736,7 @@ the current virtual table.
 
   my $cursor = $cursor_class->NEW($vtable, @args)
 
-Instanciates a new cursor. 
+Instantiates a new cursor. 
 The default implementation just returns a blessed hashref
 with keys C<vtable> and C<args>.
 
