@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.51_01 to be released
+    - Applied a doc patch by Salvatore Bonaccorso
+
 1.50 2016-02-11
     - Switched to a production version.
 
