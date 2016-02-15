@@ -494,7 +494,7 @@ __END__
 
 =head1 NAME
 
-DBD::SQLite::Constants
+DBD::SQLite::Constants - common SQLite constants
 
 =head1 SYNOPSIS
 
