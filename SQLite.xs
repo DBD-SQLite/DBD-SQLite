@@ -288,7 +288,11 @@ register_fts3_perl_tokenizer(dbh)
     ALIAS:
         DBD::SQLite::db::sqlite_register_fts3_perl_tokenizer = 1
     CODE:
+#if SQLITE_ENABLE_FTS3_TOKENIZER
         RETVAL = sqlite_db_register_fts3_perl_tokenizer(aTHX_ dbh);
+#else
+        RETVAL = 0;
+#endif
     OUTPUT:
         RETVAL
 
