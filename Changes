@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.51_03 2016-02-20
+    - No code change
+    - Resolved #112220: t/62_regexp_multibyte_char_class.t fails
+      for perl >= 5.22.0 and non-utf8 locale (SREZIC++)
+
 1.51_02 2016-02-20
     - No code change; fixed a newly added test that only passed
       under recent perls (>= 5.18)
