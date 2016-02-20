@@ -17,9 +17,9 @@ use Test::NoWarnings;
 
 # special case for multibyte (non-ASCII) character class,
 # which only works correctly under the unicode mode
-my @words = qw{ テスト テント };
-my $regex = 'テ[スン]ト';
+my @words = ("\x{e3}\x{83}\x{86}\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{88}", "\x{e3}\x{83}\x{86}\x{e3}\x{83}\x{b3}\x{e3}\x{83}\x{88}"); # テスト テント
 
+my $regex = "\x{e3}\x{83}\x{86}[\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{b3}]\x{e3}\x{83}\x{88}"; # テ[スン]ト
 
 plan tests => 2 * 2 * @CALL_FUNCS + 1;
 
