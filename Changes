@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.51_02 2016-02-20
+    - No code change; fixed a newly added test that only passed
+      under recent perls (>= 5.18)
+
 1.51_01 2016-02-20
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Updated to SQLite 3.11.0.
