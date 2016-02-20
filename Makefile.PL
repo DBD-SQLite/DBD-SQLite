@@ -146,6 +146,14 @@ if ( 0 ) {
 			undef $sqlite_inc;
 		}
 	}
+	if ( my $my_inc = (grep /SQLITE_INC=.*/, @ARGV)[0] ) {
+		$my_inc =~ /=(.*)/;
+		$sqlite_inc = $1;
+	}
+	if ( my $my_lib = (grep /SQLITE_LIB=.*/, @ARGV)[0] ) {
+		$my_lib =~ /=(.*)/;
+		$sqlite_lib = $1;
+	}
 
 	# Now check for a compatible sqlite3
 	unless ( $sqlite_local ) {
@@ -194,7 +202,7 @@ if ( 0 ) {
 	print "We're using the bundled sqlite library.\n" if $ENV{AUTOMATED_TESTING};
 }
 
-@ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE/, @ARGV );
+@ARGV = grep( ! /SQLITE_LOCATION|USE_LOCAL_SQLITE|SQLITE_LIB|SQLITE_INC/, @ARGV );
 
 
 
