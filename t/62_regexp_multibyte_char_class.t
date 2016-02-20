@@ -13,7 +13,7 @@ BEGIN {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
 }
-use Test::NoWarnings;
+#use Test::NoWarnings; # see RT#112220
 
 # special case for multibyte (non-ASCII) character class,
 # which only works correctly under the unicode mode
@@ -21,7 +21,7 @@ my @words = ("\x{e3}\x{83}\x{86}\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{88}", "\x{e3}\x
 
 my $regex = "\x{e3}\x{83}\x{86}[\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{b3}]\x{e3}\x{83}\x{88}"; # テ[スン]ト
 
-plan tests => 2 * 2 * @CALL_FUNCS + 1;
+plan tests => 2 * 2 * @CALL_FUNCS;
 
 foreach my $call_func (@CALL_FUNCS) {
 
