@@ -12,6 +12,9 @@ BEGIN {
 	if ($] < 5.008005) {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
+    if (!eval "require Encode; 1") {
+		plan skip_all => 'requires Encode for this test';
+    }
 }
 use Test::NoWarnings;
 
@@ -34,8 +37,8 @@ foreach my $call_func (@CALL_FUNCS) {
     my @vals = @words;
     my $re = $regex;
     if ($use_unicode) {
-      utf8::decode($_) foreach @vals;
-      utf8::decode($re);
+      @vals = map {Encode::decode_utf8($_)} @vals;
+      $re = Encode::decode_utf8($re);
     }
 
     $dbh->do( 'CREATE TEMP TABLE regexp_test ( txt )' );
