@@ -1,14 +1,17 @@
 Changes for Perl extension DBD-SQLite
 
-1.51_01 to be released
+1.51_01 2016-02-20
     *** CHANGES THAT MAY POSSIBLY BREAK YOUR OLD APPLICATIONS ***
     - Updated to SQLite 3.11.0.
       As upstream disabled two-arg fts3_tokenizer() for security concern,
       DBD::SQLite also stopped enabling it by default. If you do need
       perl tokenizer, compile/install with SQLITE_ENABLE_FTS3_TOKENIZER
-      environmental vairable.
+      environmental variable.
 
     - Applied a doc patch by Salvatore Bonaccorso
+    - Enabled (experimental) FTS5
+    - Fixed REGEXP function to work under sqlite_unicode correctly
+      (András Farkas++)
 
 1.50 2016-02-11
     - Switched to a production version.
