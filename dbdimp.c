@@ -405,6 +405,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     SV **val;
     int extended = 0;
     int flag = 0;
+    int unicode = 0;
 
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
@@ -427,6 +428,14 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
                 hv_stores(hv, "ReadOnly", newSViv(1));
             }
         }
+        /* sqlite_unicode should be detected earlier, to register default functions correctly */
+        if (hv_exists(hv, "sqlite_unicode", 14)) {
+            val = hv_fetch(hv, "sqlite_unicode", 14, 0);
+            unicode = (val && SvOK(*val)) ? SvIV(*val) : 0;
+        } else if (hv_exists(hv, "unicode", 7)) {
+            val = hv_fetch(hv, "unicode", 7, 0);
+            unicode = (val && SvOK(*val)) ? SvIV(*val) : 0;
+        }
     }
     rc = sqlite_open2(dbname, &(imp_dbh->db), flag, extended);
     if ( rc != SQLITE_OK ) {
@@ -434,7 +443,7 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     }
     DBIc_IMPSET_on(imp_dbh);
 
-    imp_dbh->unicode                   = FALSE;
+    imp_dbh->unicode                   = unicode;
     imp_dbh->functions                 = newAV();
     imp_dbh->aggregates                = newAV();
     imp_dbh->collation_needed_callback = newSVsv( &PL_sv_undef );
