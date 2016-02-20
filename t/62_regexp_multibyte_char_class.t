@@ -12,9 +12,6 @@ BEGIN {
 	if ($] < 5.008005) {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
-    if (!eval "require Encode; 1") {
-		plan skip_all => 'requires Encode for this test';
-    }
 }
 use Test::NoWarnings;
 
@@ -37,9 +34,10 @@ foreach my $call_func (@CALL_FUNCS) {
     my @vals = @words;
     my $re = $regex;
     if ($use_unicode) {
-      @vals = map {Encode::decode_utf8($_)} @vals;
-      $re = Encode::decode_utf8($re);
+      utf8::decode($_) foreach @vals;
+      utf8::decode($re);
     }
+    my @perl_match = grep {$_ =~ /$re/} @vals;
 
     $dbh->do( 'CREATE TEMP TABLE regexp_test ( txt )' );
     $dbh->do( "INSERT INTO regexp_test VALUES ( '$_' )" ) foreach @vals;
@@ -47,13 +45,9 @@ foreach my $call_func (@CALL_FUNCS) {
     my $sql = "SELECT txt from regexp_test WHERE txt REGEXP '$re' ";
     my $db_match = $dbh->selectcol_arrayref($sql);
 
-    if ($use_unicode) {
-      is @$db_match => 2;
-      note explain $db_match;
-    } else {
-      is @$db_match => 0;
-      note explain $db_match;
-    }
+    is_deeply \@perl_match => $db_match;
+    note explain \@perl_match;
+    note explain $db_match;
   }
 }
 
