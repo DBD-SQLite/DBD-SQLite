@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.51_04 2016-03-07
+    - Updated SQLite to 3.11.1, which fixed an FTS5 index
+      corruption issue
+
 1.51_03 2016-02-20
     - No code change
     - Resolved #112220: t/62_regexp_multibyte_char_class.t fails
