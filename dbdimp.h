@@ -131,6 +131,8 @@ int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh);
 HV* _sqlite_status(int reset);
 HV* _sqlite_st_status(pTHX_ SV *sth, int reset);
 int sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_class);
+int sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement);
+void init_cxt();
 
 
 #ifdef SvUTF8_on
