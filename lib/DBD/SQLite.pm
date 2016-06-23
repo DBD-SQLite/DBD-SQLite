@@ -855,7 +855,7 @@ END_SQL
             );
 
             my $type = $col_info->{type};
-            if ( $type =~ s/(\w+) ?\((\d+)(?:,(\d+))?\)/$1/ ) {
+            if ( $type =~ s/(\w+)\s*\(\s*(\d+)(?:\s*,\s*(\d+))?\s*\)/$1/ ) {
                 $col{COLUMN_SIZE}    = $2;
                 $col{DECIMAL_DIGITS} = $3;
             }
