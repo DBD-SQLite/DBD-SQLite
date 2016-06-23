@@ -90,6 +90,7 @@ t/cookbook_variance.t
 t/lib/Test.pm
 t/rt_106151_outermost_savepoint.t
 t/rt_106950_extra_warnings_with_savepoints.t
+t/rt_115465_column_info_with_spaces.t
 t/rt_15186_prepcached.t
 t/rt_21406_auto_finish.t
 t/rt_25371_asymmetric_unicode.t

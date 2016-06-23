@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.51_05 2016-06-23
+    - Updated SQLite to 3.13.0
+    - Resolved #115465: column_info doesn't parse sizes with spaces
+      (ilmari++)
+    - Added two missing function declarations (rurban++)
+
 1.51_04 2016-03-07
     - Updated SQLite to 3.11.1, which fixed an FTS5 index
       corruption issue
