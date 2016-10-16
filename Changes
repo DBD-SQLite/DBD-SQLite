@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.51_07 2016-10-16
+    - Downgraded SQLite to 3.13.0 (RT#118395)
+
 1.51_06 2016-10-15
     - Updated SQLite to 3.15.0
 
