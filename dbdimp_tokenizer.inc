@@ -276,6 +276,13 @@ int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh)
         return FALSE;
     }
 
+#if SQLITE_VERSION_NUMBER >= 3012000
+    rc = sqlite3_db_config(imp_dbh->db, SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER, 1, 0);
+    if( rc!=SQLITE_OK ){
+        return rc;
+    }
+#endif
+
     rc = sqlite3_prepare_v2(imp_dbh->db, zSql, -1, &pStmt, 0);
     if( rc!=SQLITE_OK ){
         return rc;

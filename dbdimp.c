@@ -2632,12 +2632,7 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
 #endif
 }
 
-#if SQLITE_VERSION_NUMBER < 3011000
-    #include "dbdimp_tokenizer.inc"
-#elif SQLITE_ENABLE_FTS3_TOKENIZER
-    #include "dbdimp_tokenizer.inc"
-#endif
-
+#include "dbdimp_tokenizer.inc"
 #include "dbdimp_virtual_table.inc"
 
 /* end */

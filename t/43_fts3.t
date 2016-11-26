@@ -33,7 +33,7 @@ BEGIN {
 	if (!grep /ENABLE_FTS3/, DBD::SQLite::compile_options()) {
 		plan skip_all => 'FTS3 is disabled for this DBD::SQLite';
 	}
-	if ($DBD::SQLite::sqlite_version_number >= 3011000 and !grep /ENABLE_FTS3_TOKENIZER/, DBD::SQLite::compile_options()) {
+	if ($DBD::SQLite::sqlite_version_number >= 3011000 and $DBD::SQLite::sqlite_version_number < 3012000 and !grep /ENABLE_FTS3_TOKENIZER/, DBD::SQLite::compile_options()) {
 		plan skip_all => 'FTS3 tokenizer is disabled for this DBD::SQLite';
 	}
 }
