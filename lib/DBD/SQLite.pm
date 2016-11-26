@@ -5,7 +5,7 @@ use strict;
 use DBI   1.57 ();
 use DynaLoader ();
 
-our $VERSION = '1.52';
+our $VERSION = '1.53_01';
 our @ISA     = 'DynaLoader';
 
 # sqlite_version cache (set in the XS bootstrap)
