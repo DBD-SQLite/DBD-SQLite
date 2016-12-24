@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.54 2016-12-24
+    - Switched to a production version.
+    - Resolved RT#119219: Trivial documentation bug in DBL::SQLite 1.52
+
 1.53_01 2016-11-26
     - Re-enabled perl tokenizer by calling sqlite_db_config
       if SQLite >= 3.12
