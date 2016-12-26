@@ -23,9 +23,8 @@ BEGIN {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
 }
-use Test::NoWarnings;
 
-plan tests => 2 * (3 + 2 * @regexes) * @CALL_FUNCS + 1;
+plan tests => 2 * (3 + 2 * @regexes) * @CALL_FUNCS;
 
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang
