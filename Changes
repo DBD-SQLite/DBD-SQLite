@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.55 2017-01-04
+    - Updated SQLite to 3.16.0
+
 1.54 2016-12-24
     - Switched to a production version.
     - Resolved RT#119219: Trivial documentation bug in DBL::SQLite 1.52
