@@ -46,7 +46,7 @@ CREATE TABLE remote.b (
 __EOSQL__
 
 
-plan tests => @sql_statements + 33;
+plan tests => @sql_statements + 48;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
@@ -78,6 +78,29 @@ for ($stats_data->{a_ln}->{1}) {
   is($_->{TABLE_SCHEM}, "main",           "table schema");
 }
 ok(not(exists $stats_data->{a_ln}->{2}), "only one index in a_ln index");
+for ($stats_data->{a_an}->{1}) {
+  is($_->{TABLE_NAME},  "a"  ,   "table name");
+  is($_->{COLUMN_NAME}, "fname",   "column name");
+  is($_->{TYPE},        "btree",           "type");
+  is($_->{ORDINAL_POSITION}, 1,           "ordinal position");
+  is($_->{NON_UNIQUE}, 0,           "non unique");
+  is($_->{INDEX_NAME}, "a_an",           "index name");
+  is($_->{TABLE_SCHEM}, "main",           "table schema");
+}
+for ($stats_data->{a_an}->{2}) {
+  is($_->{TABLE_NAME},  "a"  ,   "table name");
+  is($_->{COLUMN_NAME}, "lname",   "column name");
+  is($_->{TYPE},        "btree",           "type");
+  is($_->{ORDINAL_POSITION}, 2,           "ordinal position");
+  is($_->{NON_UNIQUE}, 0,           "non unique");
+  is($_->{INDEX_NAME}, "a_an",           "index name");
+  is($_->{TABLE_SCHEM}, "main",           "table schema");
+}
+ok(not(exists $stats_data->{a_ln}->{3}), "only two indexes in a_an index");
+
+$sth = $dbh->statistics_info(undef, undef, 'a', 'unique only', 0);
+$stats_data = $sth->fetchall_hashref([ 'INDEX_NAME', 'ORDINAL_POSITION' ]);
+
 for ($stats_data->{a_an}->{1}) {
   is($_->{TABLE_NAME},  "a"  ,   "table name");
   is($_->{COLUMN_NAME}, "fname",   "column name");
