@@ -337,7 +337,7 @@ use overload '""' => sub {
 sub new {
   my ($class, $version) = @_;
   my @parts;
-  if ($version =~ m/^3(?:\.[0-9]+){2,3}$/) {
+  if ($version =~ m/^3(?:\.[0-9]+){1,3}$/) {
     @parts = split /\./, $version;
   }
   elsif ($version =~ m/^3(?:[0-9]{2}){2,3}$/) {
