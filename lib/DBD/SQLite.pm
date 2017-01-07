@@ -679,7 +679,7 @@ sub statistics_info {
             $sth->execute or return;
             while(my $row = $sth->fetchrow_hashref) {
 
-                next if defined $unique_only && $unique_only && $row->{unique};
+                next if $unique_only && !$row->{unique};
                 my $quoted_idx = $dbh->quote_identifier($row->{name});
                 for my $db (@$databases) {
                     my $quoted_db = $dbh->quote_identifier($db->{name});
