@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.55_03 2017-02-14
+    - Updated SQLite to 3.17.0
+
 1.55_02 2017-01-08
     - Updated SQLite to 3.16.2
     - Fixed statistics_info when only unique indexes were requested (Dave
