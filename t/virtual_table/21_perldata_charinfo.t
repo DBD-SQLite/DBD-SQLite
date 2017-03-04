@@ -8,7 +8,7 @@ BEGIN {
 # test the example described in 
 # L<DBD::SQLite::VirtualTable::PerlData/"Hashref example : unicode characters">
 
-use t::lib::Test qw/connect_ok $sqlite_call/;
+use t::lib::SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
 
 BEGIN {

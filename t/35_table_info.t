@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test;
+use t::lib::SQLiteTest;
 use Test::More tests => 22;
 use Test::NoWarnings;
 

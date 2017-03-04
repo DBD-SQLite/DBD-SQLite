@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::SQLiteTest qw/connect_ok/;
 use Test::More;
 BEGIN {
 	if ( $] >= 5.008005 ) {

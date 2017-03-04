@@ -5,7 +5,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok $sqlite_call requires_sqlite/;
+use t::lib::SQLiteTest qw/connect_ok $sqlite_call requires_sqlite/;
 use Test::More;
 
 BEGIN { requires_sqlite('3.7.12') }
@@ -33,7 +33,7 @@ my @tests = (
                           lib/DBD/SQLite/VirtualTable.pm
                           lib/DBD/SQLite/VirtualTable/FileContent.pm
                           lib/DBD/SQLite/VirtualTable/PerlData.pm
-                          t/lib/Test.pm]],
+                          t/lib/SQLiteTest.pm]],
 );
 
 # The last set of tests tries to use enhanced query syntax. But when

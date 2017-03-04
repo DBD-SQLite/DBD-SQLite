@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Test::More;
-use t::lib::Test qw/connect_ok dbfile @CALL_FUNCS requires_sqlite/;
+use t::lib::SQLiteTest qw/connect_ok dbfile @CALL_FUNCS requires_sqlite/;
 
 BEGIN { requires_sqlite('3.6.11') }
 

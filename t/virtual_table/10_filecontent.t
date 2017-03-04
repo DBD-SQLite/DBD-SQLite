@@ -6,7 +6,7 @@ BEGIN {
 }
 
 
-use t::lib::Test qw/connect_ok $sqlite_call/;
+use t::lib::SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 use FindBin;

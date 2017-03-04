@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/requires_sqlite/;
+use t::lib::SQLiteTest qw/requires_sqlite/;
 use Test::More;
 use DBD::SQLite;
 

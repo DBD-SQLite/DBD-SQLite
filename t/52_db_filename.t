@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok @CALL_FUNCS requires_sqlite/;
+use t::lib::SQLiteTest qw/connect_ok @CALL_FUNCS requires_sqlite/;
 use Test::More;
 
 BEGIN { requires_sqlite('3.7.10') }

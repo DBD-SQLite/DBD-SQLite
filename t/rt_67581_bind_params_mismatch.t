@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok/;
+use t::lib::SQLiteTest qw/connect_ok/;
 use Test::More tests => 34;
 use DBI qw/:sql_types/;
 

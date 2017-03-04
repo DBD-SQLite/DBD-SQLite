@@ -7,7 +7,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::Test qw/connect_ok @CALL_FUNCS/;
+use t::lib::SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 use DBD::SQLite;

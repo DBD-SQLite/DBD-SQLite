@@ -1,4 +1,4 @@
-package t::lib::Test;
+package t::lib::SQLiteTest;
 
 # Support code for DBD::SQLite tests
 

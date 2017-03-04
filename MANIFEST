@@ -87,7 +87,7 @@ t/60_readonly.t
 t/61_strlike.t
 t/62_regexp_multibyte_char_class.t
 t/cookbook_variance.t
-t/lib/Test.pm
+t/lib/SQLiteTest.pm
 t/rt_106151_outermost_savepoint.t
 t/rt_106950_extra_warnings_with_savepoints.t
 t/rt_115465_column_info_with_spaces.t
