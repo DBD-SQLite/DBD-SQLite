@@ -10,7 +10,7 @@ BEGIN {
 }
 
 use t::lib::SQLiteTest;
-use Test::More tests => 10;
+use Test::More tests => 17;
 use Test::NoWarnings;
 use DBI ':sql_types';
 
@@ -42,7 +42,7 @@ $dbh->{sqlite_handle_binary_nulls} = 1;
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE one (
     id INTEGER NOT NULL,
-    name BLOB (128) NOT NULL
+    name BLOB (128)
 )
 END_SQL
 
@@ -58,20 +58,31 @@ for ( my $i = 0;  $i < 128; $i++ ) {
 
 # Insert a row into the test table
 SCOPE: {
-	my $sth = $dbh->prepare("INSERT INTO one VALUES ( 1, ? )");
+	my $sth = $dbh->prepare("INSERT INTO one VALUES ( ?, ? )");
 	isa_ok( $sth, 'DBI::st' );
-	ok( $sth->bind_param(1, $blob, SQL_BLOB), '->bind_param' );
+	ok( $sth->bind_param(1, 1), '->bind_param' );
+	ok( $sth->bind_param(2, $blob, SQL_BLOB), '->bind_param' );
+	ok( $sth->execute, '->execute' );
+
+	ok( $sth->bind_param(1, 2), '->bind_param' );
+	ok( $sth->bind_param(2, '', SQL_BLOB), '->bind_param' );
+	ok( $sth->execute, '->execute' );
+
+	ok( $sth->bind_param(1, 3), '->bind_param' );
+	ok( $sth->bind_param(2, undef, SQL_BLOB), '->bind_param' );
 	ok( $sth->execute, '->execute' );
 }
 
 # Now, try SELECT'ing the row out.
 SCOPE: {
-	my $sth = $dbh->prepare("SELECT * FROM one WHERE id = 1");
+	my $sth = $dbh->prepare("SELECT * FROM one ORDER BY id");
 	isa_ok( $sth, 'DBI::st' );
 	ok( $sth->execute, '->execute' );
-	ok(
-		$sth->fetchrow_arrayref->[1] eq $blob,
-		'Got the blob back ok',
-	);
+	my $rows = $sth->fetchall_arrayref;
+	is_deeply( $rows, [
+		[ 1, $blob ],
+		[ 2, '' ],
+		[ 3, undef ],
+	], 'Got the blob back ok' );
 	ok( $sth->finish, '->finish' );
 }
