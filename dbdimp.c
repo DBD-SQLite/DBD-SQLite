@@ -1176,7 +1176,8 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
             case SQLITE_BLOB:
                 sqlite_trace(sth, imp_sth, 5, form("fetch column %d as blob", i));
                 len = sqlite3_column_bytes(imp_sth->stmt, i);
-                sv_setpvn(AvARRAY(av)[i], sqlite3_column_blob(imp_sth->stmt, i), len);
+                val = (char*)sqlite3_column_blob(imp_sth->stmt, i);
+                sv_setpvn(AvARRAY(av)[i], len ? val : "", len);
                 SvUTF8_off(AvARRAY(av)[i]);
                 break;
             default:
