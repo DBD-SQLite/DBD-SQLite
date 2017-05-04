@@ -6,7 +6,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::SQLiteTest     qw/connect_ok dies @CALL_FUNCS/;
+use lib "t/lib";
+use SQLiteTest     qw/connect_ok dies @CALL_FUNCS/;
 use Test::More;
 BEGIN {
         my $COLLATION_TESTS = 10;

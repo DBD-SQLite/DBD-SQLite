@@ -6,7 +6,8 @@ BEGIN {
 	$|  = 1;
 	$^W = 1;
 }
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 use Test::More;
 
 use DBI;

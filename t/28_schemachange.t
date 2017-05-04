@@ -10,7 +10,8 @@ BEGIN {
 }
 
 use Test::More tests => 9;
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 
 my $create1 = 'CREATE TABLE table1 (id INTEGER NOT NULL, name CHAR (64) NOT NULL)';
 my $create2 = 'CREATE TABLE table2 (id INTEGER NOT NULL, name CHAR (64) NOT NULL)';

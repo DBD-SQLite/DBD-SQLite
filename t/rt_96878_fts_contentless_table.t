@@ -12,7 +12,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 use Test::More;
 
 BEGIN { requires_sqlite('3.7.9') }

@@ -3,7 +3,8 @@ use strict;
 use warnings;
 use DBI;
 use Test::More;
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 
 BEGIN { requires_sqlite('3.6.3') }
 
