@@ -15,7 +15,8 @@ BEGIN {
 	}
 }
 
-use t::lib::SQLiteTest qw/connect_ok @CALL_FUNCS/;
+use lib "t/lib";
+use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::NoWarnings;
 
 plan tests => 16 * @CALL_FUNCS + 1;

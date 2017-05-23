@@ -5,7 +5,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::SQLiteTest qw/connect_ok $sqlite_call/;
+use lib "t/lib";
+use SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 

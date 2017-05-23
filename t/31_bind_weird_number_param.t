@@ -10,7 +10,8 @@ my @to_be_tested;
 BEGIN { @to_be_tested = (1.23E4); }
 
 use Test::More tests => 2 + @to_be_tested;
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 
 my $dbh = connect_ok();
 

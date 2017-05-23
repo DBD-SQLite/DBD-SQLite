@@ -9,7 +9,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 use Test::More tests => 17;
 use Test::NoWarnings;
 use DBI ':sql_types';

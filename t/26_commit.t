@@ -8,7 +8,8 @@ BEGIN {
 	$^W = 1;
 }
 
-use t::lib::SQLiteTest;
+use lib "t/lib";
+use SQLiteTest;
 use Test::More tests => 28;
 # use Test::NoWarnings;
 

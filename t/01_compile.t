@@ -11,9 +11,11 @@ BEGIN {
 
 use Test::More tests => 3;
 
+use lib "t/lib";
+
 use_ok('DBI');
 use_ok('DBD::SQLite');
-use_ok('t::lib::SQLiteTest');
+use_ok('SQLiteTest');
 
 diag("\$DBI::VERSION=$DBI::VERSION");
 
