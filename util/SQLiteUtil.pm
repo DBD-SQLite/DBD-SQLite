@@ -158,6 +158,7 @@ my %ignore = map {$_ => 1} qw/
   OPEN_MAIN_DB OPEN_TEMP_DB OPEN_TRANSIENT_DB
   OPEN_MAIN_JOURNAL OPEN_TEMP_JOURNAL
   OPEN_SUBJOURNAL OPEN_MASTER_JOURNAL OPEN_WAL
+  OK_LOAD_PERMANENTLY PREPARE_PERSISTENT
 /;
 
 my $ignore_tag_re = join '|', qw/
@@ -168,6 +169,9 @@ my $ignore_tag_re = join '|', qw/
   virtual_table_indexing_information checkpoint_operation_parameters
   checkpoint_mode conflict_resolution text_encodings
   virtual_table_scan_flags
+  constants_passed_to_the_conflict_handler
+  constants_returned_by_the_conflict_handler
+  sql_trace_event_codes
 /;
 
 my %compat = map {$_ => 1} qw/
