@@ -244,7 +244,10 @@ sub mirror {
     my $url = download_url($version);
     print "Downloading $version from $url...\n";
     my $res = HTTP::Tiny->new->mirror($url => $file);
-    die "Can't mirror $file: ".$res->{reason} unless $res->{success};
+    if (!$res->{success}) {
+        warn "Can't mirror $url: ".$res->{reason};
+        return;
+    }
     my $content_type = $res->{headers}{'content-type'};
     if ($content_type !~ /x\-gzip/) {
         unlink $file;
