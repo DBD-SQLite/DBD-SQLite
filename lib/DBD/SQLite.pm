@@ -1364,7 +1364,7 @@ a C<BEGIN> statement (only when an actual transaction has not
 begun yet) but you're not allowed to call C<begin_work> method
 (if you don't issue a C<BEGIN>, it will be issued internally).
 You can commit or roll it back freely. Another transaction will
-automatically begins if you execute another statement.
+automatically begin if you execute another statement.
 
   $dbh->{AutoCommit} = 0;
   
