@@ -1,5 +1,15 @@
 Changes for Perl extension DBD-SQLite
 
+1.55_04 to be released
+    - Updated SQLite to 3.20.1
+    - Resolved #122581: statistics_info() doesn't work correctly
+      (John Deighan)
+    - Fixed typo (GH#26, ReneNyffenegger)
+    - Silenced some warnings (GH#25, Jacques Germishuys)
+    - Fixed no dot in @INC issue (GH#24, ribasushi)
+    - Fixed zero-length BLOB value is retrieved as undef
+      (GH#23, SATO Kentaro)
+
 1.55_03 2017-02-14
     - Updated SQLite to 3.17.0
 
