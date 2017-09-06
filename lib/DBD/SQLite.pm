@@ -672,7 +672,7 @@ sub statistics_info {
         my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table") or return;
         for my $table_ref (@$tables) {
             my $tbname = $table_ref->[0];
-            next if defined $table && $table ne '%' && $table ne $tbname;
+            next if defined $table && $table ne '%' && uc($table) ne uc($tbname);
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
             my $sth = $dbh->prepare("PRAGMA $quoted_dbname.index_list($quoted_tbname)") or return;
