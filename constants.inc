@@ -618,6 +618,34 @@ _const_extended_result_codes_3010000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3021000
+
+IV
+_const_extended_result_codes_3021000()
+    ALIAS:
+        SQLITE_IOERR_BEGIN_ATOMIC = SQLITE_IOERR_BEGIN_ATOMIC
+        SQLITE_IOERR_COMMIT_ATOMIC = SQLITE_IOERR_COMMIT_ATOMIC
+        SQLITE_IOERR_ROLLBACK_ATOMIC = SQLITE_IOERR_ROLLBACK_ATOMIC
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_extended_result_codes_3021000_zero()
+    ALIAS:
+        SQLITE_IOERR_BEGIN_ATOMIC = 1
+        SQLITE_IOERR_COMMIT_ATOMIC = 2
+        SQLITE_IOERR_ROLLBACK_ATOMIC = 3
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 IV
 _const_flags_for_file_open_operations()
     ALIAS:

@@ -131,6 +131,9 @@ my %since = (
   IOERR_VNODE => '3009000',
   INDEX_SCAN_UNIQUE => '3009000',
   IOERR_AUTH => '3010000',
+  IOERR_BEGIN_ATOMIC => '3021000',
+  IOERR_COMMIT_ATOMIC => '3021000',
+  IOERR_ROLLBACK_ATOMIC => '3021000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
