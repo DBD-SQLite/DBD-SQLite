@@ -115,7 +115,7 @@ sub BEST_INDEX {
           "($op($member))";
       } else {
         push @conditions,
-          "($op($member) && $op(\$vals[$ix]))";
+          "($op($member) && !defined(\$vals[$ix]))";
       }
     } elsif (SQLITE_3010000 && $op =~ /str/) {
       push @conditions,
