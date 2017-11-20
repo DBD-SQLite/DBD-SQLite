@@ -195,6 +195,18 @@ _constraint_op_to_string(unsigned char op) {
     case SQLITE_INDEX_CONSTRAINT_REGEXP:
         return "REGEXP";
 #endif
+#if SQLITE_VERSION_NUMBER >= 3021000
+    case SQLITE_INDEX_CONSTRAINT_NE:
+        return "NE";
+    case SQLITE_INDEX_CONSTRAINT_ISNOT:
+        return "ISNOT";
+    case SQLITE_INDEX_CONSTRAINT_ISNOTNULL:
+        return "ISNOTNULL";
+    case SQLITE_INDEX_CONSTRAINT_ISNULL:
+        return "ISNULL";
+    case SQLITE_INDEX_CONSTRAINT_IS:
+        return "IS";
+#endif
     default:
         return "unknown";
     }

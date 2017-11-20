@@ -6,6 +6,7 @@ use warnings;
 use base 'DBD::SQLite::VirtualTable';
 use DBD::SQLite;
 use constant SQLITE_3010000 => $DBD::SQLite::sqlite_version_number >= 3010000 ? 1 : 0;
+use constant SQLITE_3021000 => $DBD::SQLite::sqlite_version_number >= 3021000 ? 1 : 0;
 
 # private data for translating comparison operators from Sqlite to Perl
 my $TXT = 0;
@@ -22,6 +23,13 @@ my %SQLOP2PERLOP = (
   'LIKE'  => [ 'DBD::SQLite::strlike', 'DBD::SQLite::strlike' ],
   'GLOB'  => [ 'DBD::SQLite::strglob', 'DBD::SQLite::strglob' ],
   'REGEXP'=> [ '=~',   '=~' ],
+  ) : ()),
+  (SQLITE_3021000 ? (
+  'NE'    => [ 'ne',   '!=' ],
+  'ISNOT' => [ 'defined',   'defined' ],
+  'ISNOTNULL' => [ 'defined',   'defined' ],
+  'ISNULL'    => [ '!defined',  '!defined' ],
+  'IS'    => [ '!defined',   '!defined' ],
   ) : ()),
 );
 
@@ -101,7 +109,15 @@ sub BEST_INDEX {
       $optype  = $self->{optypes}[$col];
     }
     my $op = $SQLOP2PERLOP{$constraint->{op}}[$optype];
-    if (SQLITE_3010000 && $op =~ /str/) {
+    if (SQLITE_3021000 && $op =~ /defined/) {
+      if ($constraint->{op} =~ /NULL/) {
+        push @conditions,
+          "($op($member))";
+      } else {
+        push @conditions,
+          "($op($member) && $op(\$vals[$ix]))";
+      }
+    } elsif (SQLITE_3010000 && $op =~ /str/) {
       push @conditions,
         "(defined($member) && defined(\$vals[$ix]) && !$op(\$vals[$ix], $member))";
     } else {
