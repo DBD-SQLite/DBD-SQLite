@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.55_04 to be released
+1.55_04 2017-11-22
     - Updated SQLite to 3.21.0
     - Resolved #122581: statistics_info() doesn't work correctly
       (John Deighan)
@@ -11,6 +11,7 @@ Changes for Perl extension DBD-SQLite
       (GH#23, SATO Kentaro)
     - Fixed VirtualTable::PerlData to use new ops added in SQLite 3.21.0
       (GH#28, fschlich)
+    - noted on sqlite_extended_result_codes handle attribute
 
 1.55_03 2017-02-14
     - Updated SQLite to 3.17.0
