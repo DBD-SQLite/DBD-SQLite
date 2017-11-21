@@ -1553,6 +1553,11 @@ If you set this to true, DBD::SQLite tries to see if the bind values
 are number or not, and does not quote if they are numbers. See above
 for details.
 
+=item sqlite_extended_result_codes
+
+If set to true, DBD::SQLite uses extended result codes where appropriate
+(see L<http://www.sqlite.org/rescode.html>).
+
 =back
 
 =head2 Statement Handle Attributes
