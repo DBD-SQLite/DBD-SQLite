@@ -86,6 +86,7 @@ t/59_extended_result_codes.t
 t/60_readonly.t
 t/61_strlike.t
 t/62_regexp_multibyte_char_class.t
+t/63_param_values.t
 t/cookbook_variance.t
 t/lib/SQLiteTest.pm
 t/rt_106151_outermost_savepoint.t
