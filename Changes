@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.55_05 2017-12-16
+    - Implemented ParamValues statement handle attribute (RT-123886)
+
 1.55_04 2017-11-22
     - Updated SQLite to 3.21.0
     - Resolved #122581: statistics_info() doesn't work correctly
