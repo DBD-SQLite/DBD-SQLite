@@ -1396,6 +1396,20 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     else if (strEQ(key, "NUM_OF_PARAMS")) {
         retsv = sv_2mortal(newSViv(sqlite3_bind_parameter_count(imp_sth->stmt)));
     }
+    else if (strEQ(key, "ParamValues")) {
+        HV *hv = newHV();
+        int num_params = DBIc_NUM_PARAMS(imp_sth);
+        if (num_params) {
+            for (n = 0; n < num_params; n++) {
+                SV **pvalue = av_fetch(imp_sth->params, 2 * n, 0);
+                SV *value   = pvalue ? *pvalue : &PL_sv_undef;
+                const char *pname = sqlite3_bind_parameter_name(imp_sth->stmt, n + 1);
+                SV *sv_name = pname ? newSVpv(pname, 0) : newSViv(n + 1);
+                hv_store_ent(hv, sv_name, newSVsv(value), 0);
+            }
+        }
+        retsv = sv_2mortal(newRV_noinc((SV*)hv));
+    }
 
     return retsv;
 }
