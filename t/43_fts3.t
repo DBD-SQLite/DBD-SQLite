@@ -38,13 +38,14 @@ BEGIN {
 		plan skip_all => 'FTS3 tokenizer is disabled for this DBD::SQLite';
 	}
 }
-use Test::NoWarnings;
+
+# Perl may spit a warning on locale
+# use Test::NoWarnings;
 
 my $num = has_sqlite('3.7.4') ? 4 : 2;
 
 plan tests => $num * @tests # each test with unicode y/n and with fts3/fts4
-            + 2           # connect_ok with unicode y/n
-            + 1;          # Test::NoWarnings
+            + 2;           # connect_ok with unicode y/n
 
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang
