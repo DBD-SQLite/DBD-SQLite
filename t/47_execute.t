@@ -62,7 +62,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	};
 	ok($@);
 	if ($@) {
-	    print "# expected execute failure : $@";
+	    print "# expected execute failure : $@\n";
 	    $sth->finish;
 	    $dbh->rollback;
 	}

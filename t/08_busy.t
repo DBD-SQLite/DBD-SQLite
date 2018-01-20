@@ -50,7 +50,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	};
 	ok($@);
 	if ($@) {
-	    print "# expected insert failure : $@";
+	    print "# expected insert failure : $@\n";
 	    $dbh2->rollback;
 	}
 
@@ -114,7 +114,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	    eval { $dbh->do("INSERT INTO Blah VALUES (4, 'Test4' )") };
 	    ok !$@;
 	    if ($@) {
-	        print STDERR "# Your testing environment might be too slow to pass this test: $@";
+	        print STDERR "# Your testing environment might be too slow to pass this test: $@\n";
 	        $dbh->rollback;
 	    }
 	    else {
