@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.55_07 2018-01-27
+    - This is a developer release to help testing DBIx::Class
+    - Upgraded SQLite to 3.22.0
+    - Disabled two STAT compile time options (tentatively),
+      which fixes RT-124227 anyway
+
 1.55_06 2018-01-27
     - This is a developer release to help testing DBIx::Class
     - Downgraded SQLite to 3.19.3 because of a SQLite regression
