@@ -1,5 +1,14 @@
 Changes for Perl extension DBD-SQLite
 
+1.55_06 2018-01-27
+    - This is a developer release to help testing DBIx::Class
+    - Downgraded SQLite to 3.19.3 because of a SQLite regression
+      (RT-124227, ribasushi++)
+    - Fixed some tests to adapt to a change in error format
+      introduced by the latest DBI
+    - Remove no warnings test from t/43_fts.t which failed under
+      some environments
+
 1.55_05 2017-12-16
     - Implemented ParamValues statement handle attribute (RT-123886)
 
