@@ -34,6 +34,7 @@ WHERE 2 > (
       rownum__emulation.cdid > me.cdid
     )
 )
+ORDER BY cdid
 EOS
 
 { # With an index
