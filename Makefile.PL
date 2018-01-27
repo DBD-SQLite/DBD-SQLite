@@ -232,8 +232,8 @@ my @CC_DEFINE = (
 	'-DSQLITE_ENABLE_FTS3_PARENTHESIS', # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_RTREE',            # for sqlite >= 3.6.10
 	'-DSQLITE_ENABLE_COLUMN_METADATA',
-	'-DSQLITE_ENABLE_STAT3',            # for sqlite >= 3.7.9
-	'-DSQLITE_ENABLE_STAT4',            # for sqlite >= 3.8.3.1
+#	'-DSQLITE_ENABLE_STAT3',            # for sqlite >= 3.7.9
+#	'-DSQLITE_ENABLE_STAT4',            # for sqlite >= 3.8.3.1
 	'-DSQLITE_ENABLE_JSON1',            # for sqlite >= 3.9.0
 	'-DSQLITE_ENABLE_FTS5',             # for sqlite >= 3.9.0
 	'-DNDEBUG=1',
