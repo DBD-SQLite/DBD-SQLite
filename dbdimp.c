@@ -1312,6 +1312,11 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
     croak_if_db_is_null();
     croak_if_stmt_is_null();
 
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(sth, -2, "attempt to fetch on inactive database handle");
+        return FALSE;
+    }
+
     if (strEQ(key, "sqlite_unprepared_statements")) {
         return sv_2mortal(newSVpv(imp_sth->unprepared_statements, 0));
     }

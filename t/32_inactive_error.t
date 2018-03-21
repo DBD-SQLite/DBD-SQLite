@@ -6,7 +6,7 @@ BEGIN {
 	$^W = 1;
 }
 
-use Test::More tests => 4;
+use Test::More tests => 7;
 use lib "t/lib";
 use SQLiteTest;
 
@@ -31,5 +31,20 @@ is( scalar(@warning), 1, 'Got 1 warning' );
 like(
 	$warning[0],
 	qr/attempt to execute on inactive database handle/,
+	'Got the expected warning',
+);
+
+@warning = ();
+SCOPE: {
+	local $SIG{__WARN__} = sub { push @warning, @_; return };
+	my $ret = eval { $sth->{NUM_OF_PARAMS}; };
+	# we need PrintError => 1, or warn $@ if $@;
+	ok !$ret;
+}
+
+is( scalar(@warning), 1, 'Got 1 warning' );
+like(
+	$warning[0],
+	qr/attempt to fetch on inactive database handle/,
 	'Got the expected warning',
 );
