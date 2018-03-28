@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.58 2018-03-28
+    - Switched to a production version.
+
 1.57_01 2018-03-21
     - Made it an error to fetch attributes from a statement 
       handle whose database handle is inactive (ribasushi++)
