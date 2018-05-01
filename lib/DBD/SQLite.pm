@@ -245,19 +245,11 @@ sub ping {
     return $dbh->FETCH('Active') ? 1 : 0;
 }
 
-sub _get_version {
-    return ( DBD::SQLite::db::FETCH($_[0], 'sqlite_version') );
-}
-
-my %info = (
-    17 => 'SQLite',       # SQL_DBMS_NAME
-    18 => \&_get_version, # SQL_DBMS_VER
-    29 => '"',            # SQL_IDENTIFIER_QUOTE_CHAR
-);
-
 sub get_info {
-    my($dbh, $info_type) = @_;
-    my $v = $info{int($info_type)};
+    my ($dbh, $info_type) = @_;
+
+    require DBD::SQLite::GetInfo;
+    my $v = $DBD::SQLite::GetInfo::info{int($info_type)};
     $v = $v->($dbh) if ref $v eq 'CODE';
     return $v;
 }
