@@ -1716,10 +1716,12 @@ B<DELETE_RULE>:
 The referential action for the DELETE rule.
 The codes are the same as for UPDATE_RULE.
 
-Unfortunately, the B<DEFERRABILITY> field is always C<undef>;
-as a matter of fact, deferrability clauses are supported by SQLite,
-but they can't be reported because the C<PRAGMA foreign_key_list>
-tells nothing about them.
+B<DEFERRABILITY>:
+The following codes are defined:
+
+  INITIALLY DEFERRED   5
+  INITIALLY IMMEDIATE  6
+  NOT DEFERRABLE       7
 
 B<UNIQUE_OR_PRIMARY>:
 Whether the column is primary or unique.
