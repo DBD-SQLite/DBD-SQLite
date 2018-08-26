@@ -545,6 +545,15 @@ my @FOREIGN_KEY_INFO_SQL_CLI = qw(
   UNIQUE_OR_PRIMARY
  );
 
+my $DEFERRABLE_RE = qr/
+    (?:(?:
+        on \s+ (?:delete|update) \s+ (?:set \s+ null|set \s+ default|cascade|restrict|no \s+ action)
+    |
+        match \s* (?:\S+|".+?(?<!")")
+    ) \s*)*
+    ((?:not)? \s* deferrable)?
+/sxi;
+
 sub foreign_key_info {
     my ($dbh, $pk_catalog, $pk_schema, $pk_table, $fk_catalog, $fk_schema, $fk_table) = @_;
 
@@ -562,9 +571,11 @@ sub foreign_key_info {
             ($dbname eq 'temp') ? 'sqlite_temp_master' :
             $quoted_dbname.'.sqlite_master';
 
-        my $tables = $dbh->selectall_arrayref("SELECT name FROM $master_table WHERE type = ?", undef, "table") or return;
+        my $tables = $dbh->selectall_arrayref("SELECT name, sql FROM $master_table WHERE type = ?", undef, "table") or return;
         for my $table (@$tables) {
             my $tbname = $table->[0];
+            my $ddl = $table->[1];
+            my (@rels, %relid2rels);
             next if defined $fk_table && $fk_table ne '%' && $fk_table ne $tbname;
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
@@ -595,7 +606,17 @@ sub foreign_key_info {
 
                 next if defined $pk_schema && $pk_schema ne '%' && $pk_schema ne $table_info{$row->{table}}{schema};
 
-                push @fk_info, {
+                # cribbed from DBIx::Class::Schema::Loader::DBI::SQLite
+                my $rel = $rels[ $row->{id} ] ||= {
+                    local_columns => [],
+                    remote_columns => undef,
+                    remote_table => $row->{table},
+                };
+                push @{ $rel->{local_columns} }, $row->{from};
+                push @{ $rel->{remote_columns} }, $row->{to}
+                    if defined $row->{to};
+
+                my $fk_row = {
                     PKTABLE_CAT   => undef,
                     PKTABLE_SCHEM => $table_info{$row->{table}}{schema},
                     PKTABLE_NAME  => $row->{table},
@@ -612,6 +633,49 @@ sub foreign_key_info {
                     DEFERRABILITY => undef,
                     UNIQUE_OR_PRIMARY => $table_info{$row->{table}}{columns}{$row->{to}} ? 'PRIMARY' : 'UNIQUE',
                 };
+                push @fk_info, $fk_row;
+                push @{ $relid2rels{$row->{id}} }, $fk_row; # keep so can fixup
+            }
+
+            # cribbed from DBIx::Class::Schema::Loader::DBI::SQLite
+            REL: for my $relid (keys %relid2rels) {
+                my $rel = $rels[$relid];
+                my $deferrable;
+                my $local_cols  = '"?' . (join '"? \s* , \s* "?', map quotemeta, @{ $rel->{local_columns} })        . '"?';
+                my $remote_cols = '"?' . (join '"? \s* , \s* "?', map quotemeta, @{ $rel->{remote_columns} || [] }) . '"?';
+                my ($deferrable_clause) = $ddl =~ /
+                        foreign \s+ key \s* \( \s* $local_cols \s* \) \s* references \s* (?:\S+|".+?(?<!")") \s*
+                        (?:\( \s* $remote_cols \s* \) \s*)?
+                        $DEFERRABLE_RE
+                /sxi;
+                if ($deferrable_clause) {
+                    $deferrable = $deferrable_clause =~ /not/i
+                        ? $DBI_code_for_rule{'NOT DEFERRABLE'}
+                        : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
+                } else {
+                    # check for inline constraint if 1 local column
+                    if (@{ $rel->{local_columns} } == 1) {
+                        my ($local_col)  = @{ $rel->{local_columns} };
+                        my ($remote_col) = @{ $rel->{remote_columns} || [] };
+                        $remote_col ||= '';
+                        my ($deferrable_clause) = $ddl =~ /
+                            "?\Q$local_col\E"? \s* (?:\w+\s*)* (?: \( \s* \d\+ (?:\s*,\s*\d+)* \s* \) )? \s*
+                            references \s+ (?:\S+|".+?(?<!")") (?:\s* \( \s* "?\Q$remote_col\E"? \s* \))? \s*
+                            $DEFERRABLE_RE
+                        /sxi;
+                        if ($deferrable_clause) {
+                            $deferrable = $deferrable_clause =~ /not/i
+                                ? $DBI_code_for_rule{'NOT DEFERRABLE'}
+                                : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
+                        } else {
+                            $deferrable = $DBI_code_for_rule{'NOT DEFERRABLE'};
+                        }
+                    } else {
+                        $deferrable = $DBI_code_for_rule{'NOT DEFERRABLE'};
+                    }
+                }
+                next REL if !defined $deferrable;
+                $_->{DEFERRABILITY} = $deferrable for @{ $relid2rels{$relid} };
             }
         }
     }

@@ -42,7 +42,7 @@ ATTACH DATABASE ':memory:' AS remote;
 CREATE TABLE remote.album (
   albumartist INTEGER NOT NULL REFERENCES artist(artistid)
                                  ON DELETE RESTRICT
-                                 ON UPDATE CASCADE,
+                                 ON UPDATE CASCADE DEFERRABLE,
   albumname TEXT,
   albumcover BINARY,
   albumeditor INTEGER NOT NULL REFERENCES editor(editorid),
@@ -59,7 +59,7 @@ CREATE TABLE song(
 __EOSQL__
 
 
-plan tests => @sql_statements + 20;
+plan tests => @sql_statements + 22;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
@@ -78,6 +78,7 @@ for ($fk_data->{albumartist}) {
   is($_->{KEY_SEQ},        1,           "FK albumartist, key seq");
   is($_->{DELETE_RULE}, $R->{RESTRICT}, "FK albumartist, delete rule");
   is($_->{UPDATE_RULE}, $R->{CASCADE},  "FK albumartist, update rule");
+  is($_->{DEFERRABILITY}, $R->{'INITIALLY IMMEDIATE'}, "FK albumartist, deferrability");
   is($_->{UNIQUE_OR_PRIMARY}, 'UNIQUE', "FK albumartist, unique");
 }
 for ($fk_data->{albumeditor}) {
@@ -87,6 +88,7 @@ for ($fk_data->{albumeditor}) {
   # rules are 'NO ACTION' by default
   is($_->{DELETE_RULE}, $R->{'NO ACTION'}, "FK albumeditor, delete rule");
   is($_->{UPDATE_RULE}, $R->{'NO ACTION'}, "FK albumeditor, update rule");
+  is($_->{DEFERRABILITY}, $R->{'NOT DEFERRABLE'}, "FK albumeditor, deferrability");
   is($_->{UNIQUE_OR_PRIMARY}, 'PRIMARY', "FK albumeditor, primary");
 }
 
