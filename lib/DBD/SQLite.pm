@@ -640,7 +640,7 @@ sub foreign_key_info {
             # cribbed from DBIx::Class::Schema::Loader::DBI::SQLite
             REL: for my $relid (keys %relid2rels) {
                 my $rel = $rels[$relid];
-                my $deferrable;
+                my $deferrable = $DBI_code_for_rule{'NOT DEFERRABLE'};
                 my $local_cols  = '"?' . (join '"? \s* , \s* "?', map quotemeta, @{ $rel->{local_columns} })        . '"?';
                 my $remote_cols = '"?' . (join '"? \s* , \s* "?', map quotemeta, @{ $rel->{remote_columns} || [] }) . '"?';
                 my ($deferrable_clause) = $ddl =~ /
@@ -648,33 +648,24 @@ sub foreign_key_info {
                         (?:\( \s* $remote_cols \s* \) \s*)?
                         $DEFERRABLE_RE
                 /sxi;
-                if ($deferrable_clause) {
-                    $deferrable = $deferrable_clause =~ /not/i
-                        ? $DBI_code_for_rule{'NOT DEFERRABLE'}
-                        : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
-                } else {
+                if (!$deferrable_clause) {
                     # check for inline constraint if 1 local column
                     if (@{ $rel->{local_columns} } == 1) {
                         my ($local_col)  = @{ $rel->{local_columns} };
                         my ($remote_col) = @{ $rel->{remote_columns} || [] };
                         $remote_col ||= '';
-                        my ($deferrable_clause) = $ddl =~ /
+                        ($deferrable_clause) = $ddl =~ /
                             "?\Q$local_col\E"? \s* (?:\w+\s*)* (?: \( \s* \d\+ (?:\s*,\s*\d+)* \s* \) )? \s*
                             references \s+ (?:\S+|".+?(?<!")") (?:\s* \( \s* "?\Q$remote_col\E"? \s* \))? \s*
                             $DEFERRABLE_RE
                         /sxi;
-                        if ($deferrable_clause) {
-                            $deferrable = $deferrable_clause =~ /not/i
-                                ? $DBI_code_for_rule{'NOT DEFERRABLE'}
-                                : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
-                        } else {
-                            $deferrable = $DBI_code_for_rule{'NOT DEFERRABLE'};
-                        }
-                    } else {
-                        $deferrable = $DBI_code_for_rule{'NOT DEFERRABLE'};
                     }
                 }
-                next REL if !defined $deferrable;
+                if ($deferrable_clause) {
+                    $deferrable = $deferrable_clause =~ /not/i
+                        ? $DBI_code_for_rule{'NOT DEFERRABLE'}
+                        : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
+                }
                 $_->{DEFERRABILITY} = $deferrable for @{ $relid2rels{$relid} };
             }
         }
