@@ -551,7 +551,7 @@ my $DEFERRABLE_RE = qr/
     |
         match \s* (?:\S+|".+?(?<!")")
     ) \s*)*
-    ((?:not)? \s* deferrable)?
+    ((?:not)? \s* deferrable (?: \s* initially \s* (?: immediate | deferred))?)?
 /sxi;
 
 sub foreign_key_info {
@@ -638,6 +638,7 @@ sub foreign_key_info {
             }
 
             # cribbed from DBIx::Class::Schema::Loader::DBI::SQLite
+            # but with additional parsing of which kind of deferrable
             REL: for my $relid (keys %relid2rels) {
                 my $rel = $rels[$relid];
                 my $deferrable = $DBI_code_for_rule{'NOT DEFERRABLE'};
@@ -662,9 +663,12 @@ sub foreign_key_info {
                     }
                 }
                 if ($deferrable_clause) {
-                    $deferrable = $deferrable_clause =~ /not/i
-                        ? $DBI_code_for_rule{'NOT DEFERRABLE'}
-                        : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
+                    # default is already NOT
+                    if ($deferrable_clause !~ /not/i) {
+                        $deferrable = $deferrable_clause =~ /deferred/i
+                            ? $DBI_code_for_rule{'INITIALLY DEFERRED'}
+                            : $DBI_code_for_rule{'INITIALLY IMMEDIATE'};
+                    }
                 }
                 $_->{DEFERRABILITY} = $deferrable for @{ $relid2rels{$relid} };
             }
