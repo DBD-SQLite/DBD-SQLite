@@ -1,7 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
-1.59_01 
+1.59_01 2018-09-17
+    - Upgraded SQLite to 3.25.0, with ALTER TABLE ... RENAME COLUMN
+      and UPSERT among others
     - Added ::GetInfo (GH#32, Brendan Byrd)
+    - Fix to use a PV value as a virtual table column value
+      where appropriate (RT-124941)
 
 1.58 2018-03-28
     - Switched to a production version.
