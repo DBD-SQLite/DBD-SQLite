@@ -12,6 +12,7 @@ lib/DBD/SQLite.pm
 lib/DBD/SQLite/Constants.pm
 lib/DBD/SQLite/Cookbook.pod
 lib/DBD/SQLite/Fulltext_search.pod
+lib/DBD/SQLite/GetInfo.pm
 lib/DBD/SQLite/VirtualTable.pm
 lib/DBD/SQLite/VirtualTable/FileContent.pm
 lib/DBD/SQLite/VirtualTable/PerlData.pm
@@ -36,6 +37,7 @@ t/07_error.t
 t/08_busy.t
 t/09_create_function.t
 t/10_create_aggregate.t
+t/11_get_info.t
 t/12_unicode.t
 t/13_create_collation.t
 t/14_progress_handler.t
@@ -133,6 +135,7 @@ t/virtual_table/10_filecontent.t
 t/virtual_table/11_filecontent_fulltext.t
 t/virtual_table/20_perldata.t
 t/virtual_table/21_perldata_charinfo.t
+t/virtual_table/rt_124941.t
 t/virtual_table/rt_99748.t
 typemap
 xt/cpp_comments.t
