@@ -47,6 +47,44 @@ static int _call_perl_vtab_method(sqlite3_vtab *pVTab,
 }
 
 
+/* RT-124941: it seems better to prefer PV where appropriate */
+static void
+sqlite_set_result_for_vtable(pTHX_ sqlite3_context *context, SV *result, int is_error)
+{
+    STRLEN len;
+    char *s;
+    sqlite3_int64 iv;
+
+    if ( is_error ) {
+        s = SvPV(result, len);
+        sqlite3_result_error( context, s, len );
+        return;
+    }
+
+    /* warn("result: %s\n", SvPV_nolen(result)); */
+    if ( !SvOK(result) ) {
+        sqlite3_result_null( context );
+    } else if ( SvPOK(result) ) {
+        s = SvPV(result, len);
+        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+    } else if( SvIOK_UV(result) ) {
+        if ((UV)(sqlite3_int64)UV_MAX == UV_MAX)
+            sqlite3_result_int64( context, (sqlite3_int64)SvUV(result));
+        else {
+            s = SvPV(result, len);
+            sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+        }
+    } else if ( !_sqlite_atoi64(SvPV(result, len), &iv) ) {
+        sqlite3_result_int64( context, iv );
+    } else if ( SvNOK(result) && ( sizeof(NV) == sizeof(double) || SvNVX(result) == (double) SvNVX(result) ) ) {
+        sqlite3_result_double( context, SvNV(result));
+    } else {
+        s = SvPV(result, len);
+        sqlite3_result_text( context, s, len, SQLITE_TRANSIENT );
+    }
+}
+
+
 
 static int perl_vt_New(const char *method,
                        sqlite3 *db, void *pAux,
@@ -499,7 +537,7 @@ static int perl_vt_Column(sqlite3_vtab_cursor *pVtabCursor,
     }
     else {
         SV *result = POPs;
-        sqlite_set_result(aTHX_ context, result, 0 );
+        sqlite_set_result_for_vtable(aTHX_ context, result, 0 );
         rc = SQLITE_OK;
     }
 
