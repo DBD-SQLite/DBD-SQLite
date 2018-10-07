@@ -2604,6 +2604,25 @@ the SQLite C API (L<http://www.sqlite.org/rtree.html>), so one could
 potentially use a callback that narrowed the result set down based
 on a specific need, such as querying for overlapping circles.
 
+=head1 KNOWN BUGS AND LIMITATIONS
+
+=over
+
+=item *
+
+The C<type_info_all> method is unimplemented and returns an empty
+result.
+
+=item *
+
+The statement handle C<TYPE> attribute ought to return a reference
+to an array with integer codes indicating the type for each column,
+but instead returns types as unnormalized text strings. This is
+unlikely to be addressed for reasons of backward compatibility with
+existing uses of this module.
+
+=back
+
 =head1 SUPPORT
 
 Bugs should be reported via the CPAN bug tracker at
