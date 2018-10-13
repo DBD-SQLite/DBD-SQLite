@@ -12,7 +12,7 @@ use Test::NoWarnings;
 
 my $dbh = connect_ok(sqlite_trace => 2);
 # register the module and declare the virtual table
-$dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
+$dbh->func(perl => "DBD::SQLite::VirtualTable::PerlData", 'create_module');
 
 # create a table, reference_values,  with 2 columns
 # ref_value - a text column which will have strings and numeric data (as text)
