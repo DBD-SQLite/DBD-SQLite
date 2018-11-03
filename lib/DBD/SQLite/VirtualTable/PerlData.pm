@@ -389,7 +389,7 @@ time.  Here is a way to do it with a virtual table :
   my @files = ... ; # list of files to inspect
 
   # apply the L<stat> function to each file
-  our $file_stats = [ map {($_, stat $_)} @files];
+  our $file_stats = [ map { [ $_, stat $_ ] } @files];
 
   # create a temporary virtual table
   $dbh->do(<<"");
