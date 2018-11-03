@@ -7,7 +7,7 @@ BEGIN {
 
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use Test::NoWarnings;
 use DBI qw(:sql_types);
 
@@ -61,6 +61,12 @@ is( scalar(@$ar), 2, 'Got 2 results' );
 	);
 	is( scalar(@$ar), 2, 'Got 2 results' );
 }
+
+# known workaround 4
+$ar = $dbh->selectall_arrayref(
+	'SELECT bar FROM foo GROUP BY bar HAVING count(*) > cast(? as integer)',
+    undef, 1);
+is( scalar(@$ar), 2, 'Got 2 results' );
 
 # and this is what should be tested
 #TODO: {

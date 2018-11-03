@@ -8,7 +8,7 @@ BEGIN {
 
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 19;
+use Test::More tests => 21;
 use Test::NoWarnings;
 use DBI qw(:sql_types);
 
@@ -87,3 +87,10 @@ is( $sth->fetchrow_arrayref->[0], 1, "result of: $tweaked_statement : [2]" );
 	ok( $sth->execute(2), "execute: $statement : [2]" );
 	is( $sth->fetchrow_arrayref->[0], 1, "result of: $statement : [2]" );
 }
+
+# known workarounds 4: cast()
+
+($tweaked_statement = $statement) =~ s/\?/cast(\? as integer)/;
+$sth = $dbh->prepare($tweaked_statement);
+ok( $sth->execute(2), "execute: $tweaked_statement : [2]" );
+is( $sth->fetchrow_arrayref->[0], 1, "result of: $tweaked_statement : [2]" );

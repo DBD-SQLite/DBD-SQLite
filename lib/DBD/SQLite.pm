@@ -1233,6 +1233,15 @@ This is somewhat weird, but works anyway.
   });
   $sth->execute(5);
 
+=item Use SQL cast() function
+
+This is more explicit way to do the above.
+
+  my $sth = $dbh->prepare(q{
+    SELECT bar FROM foo GROUP BY bar HAVING count(*) > cast(? as integer);
+  });
+  $sth->execute(5);
+
 =item Set C<sqlite_see_if_its_a_number> database handle attribute
 
 As of version 1.32_02, you can use C<sqlite_see_if_its_a_number>
