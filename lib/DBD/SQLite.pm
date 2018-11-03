@@ -1514,6 +1514,15 @@ typically there's no placeholder nor reusable part in a dump),
 you can look at << $sth->{sqlite_unprepared_statements} >> to retrieve
 what's left, though it usually contains nothing but white spaces.
 
+=head2 TYPE statement attribute
+
+Because of historical reasons, DBD::SQLite's C<TYPE> statement
+handle attribute returns an array ref of string values, contrary to
+the DBI specification. This value is also less useful for SQLite
+users because SQLite uses dynamic type system (that means,
+the datatype of a value is associated with the value itself, not
+with its container).
+
 =head2 Performance
 
 SQLite is fast, very fast. Matt processed his 72MB log file with it,
