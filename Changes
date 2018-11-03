@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.59_03 2018-11-03
+    - Added a note on the long standing bug on TYPE statement
+      handle attribute
+    - Applied a doc patch on Virtual::PerlData by Björn Höhrmann
+      (GH-31)
+
 1.59_02 2018-09-30
     - Upgraded SQLite to 3.25.2
 
@@ -9,6 +15,7 @@ Changes for Perl extension DBD-SQLite
     - Added ::GetInfo (GH#32, Brendan Byrd)
     - Fix to use a PV value as a virtual table column value
       where appropriate (RT-124941)
+    - Add deferrability to foreign_key_info (mohawk2)
 
 1.58 2018-03-28
     - Switched to a production version.
