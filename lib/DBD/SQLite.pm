@@ -1208,7 +1208,7 @@ like this while executing:
 
   SELECT bar FROM foo GROUP BY bar HAVING count(*) > "5";
 
-There are three workarounds for this.
+There are four workarounds for this.
 
 =over 4
 
