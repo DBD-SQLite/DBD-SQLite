@@ -1,5 +1,13 @@
 Changes for Perl extension DBD-SQLite
 
+1.61_02 2018-12-01
+    - Added sqlite_backup_from_dbh/sqlite_backup_to_dbh methods
+    - Introduced sqlite_prefer_numeric_type database handle attribute
+      that changes the value of TYPE statement handle attribute
+      from an array of string to an array of integer, as an experimental
+      feature. Setting this may break your applications.
+    - Changed preferred bugtracker
+
 1.61_01 2018-12-01
     - Added ability to configure SQLITE_MAX_LENGT with environmental
       variable (Roy Storey)
