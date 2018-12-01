@@ -12,6 +12,7 @@ CVS/.*
 \.xsi$
 \.bs$
 \.el$
+\.pl$
 ^.#
 ^mess/
 ^sqlite/
