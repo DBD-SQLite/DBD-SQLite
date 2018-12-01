@@ -175,7 +175,7 @@ my %ignore = map {$_ => 1} qw/
 my $ignore_tag_re = join '|', qw/
   testing_interface configuration_options deserialize serialize
   device_characteristics file_locking vfs_method xshmlock_index
-  mutex_types scan_status run_time_limit standard_file_control
+  mutex_types scan_status standard_file_control
   status_parameters synchronization_type virtual_table_constraint
   virtual_table_indexing_information checkpoint_operation_parameters
   checkpoint_mode conflict_resolution text_encodings
