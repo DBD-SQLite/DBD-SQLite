@@ -53,6 +53,7 @@ struct imp_dbh_st {
     int extended_result_codes;
     stmt_list_s * stmt_list;
     bool began_transaction;
+    bool prefer_numeric_type;
 };
 
 /* Statement Handle */

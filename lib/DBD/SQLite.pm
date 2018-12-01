@@ -191,6 +191,8 @@ sub regexp {
 package # hide from PAUSE
     DBD::SQLite::db;
 
+use DBI qw/:sql_types/;
+
 sub prepare {
     my $dbh = shift;
     my $sql = shift;
@@ -773,45 +775,68 @@ sub statistics_info {
     return $sponge_sth;
 }
 
+my @TypeInfoKeys = qw/
+    TYPE_NAME
+    DATA_TYPE
+    COLUMN_SIZE
+    LITERAL_PREFIX
+    LITERAL_SUFFIX
+    CREATE_PARAMS
+    NULLABLE
+    CASE_SENSITIVE
+    SEARCHABLE
+    UNSIGNED_ATTRIBUTE
+    FIXED_PREC_SCALE
+    AUTO_UNIQUE_VALUE
+    LOCAL_TYPE_NAME
+    MINIMUM_SCALE
+    MAXIMUM_SCALE
+    SQL_DATA_TYPE
+    SQL_DATETIME_SUB
+    NUM_PREC_RADIX
+    INTERVAL_PRECISION
+/;
+
+my %TypeInfo = (
+    SQL_INTEGER ,=> {
+        TYPE_NAME => 'INTEGER',
+        DATA_TYPE => SQL_INTEGER,
+        NULLABLE => 2, # no for integer primary key, otherwise yes
+        SEARCHABLE => 3,
+    },
+    SQL_DOUBLE ,=> {
+        TYPE_NAME => 'REAL',
+        DATA_TYPE => SQL_DOUBLE,
+        NULLABLE => 1,
+        SEARCHABLE => 3,
+    },
+    SQL_VARCHAR ,=> {
+        TYPE_NAME => 'TEXT',
+        DATA_TYPE => SQL_VARCHAR,
+        LITERAL_PREFIX => "'",
+        LITERAL_SUFFIX => "'",
+        NULLABLE => 1,
+        SEARCHABLE => 3,
+    },
+    SQL_BLOB ,=> {
+        TYPE_NAME => 'BLOB',
+        DATA_TYPE => SQL_BLOB,
+        NULLABLE => 1,
+        SEARCHABLE => 3,
+    },
+    SQL_UNKNOWN_TYPE ,=> {
+        DATA_TYPE => SQL_UNKNOWN_TYPE,
+    },
+);
+
 sub type_info_all {
-    return; # XXX code just copied from DBD::Oracle, not yet thought about
-#    return [
-#        {
-#            TYPE_NAME          =>  0,
-#            DATA_TYPE          =>  1,
-#            COLUMN_SIZE        =>  2,
-#            LITERAL_PREFIX     =>  3,
-#            LITERAL_SUFFIX     =>  4,
-#            CREATE_PARAMS      =>  5,
-#            NULLABLE           =>  6,
-#            CASE_SENSITIVE     =>  7,
-#            SEARCHABLE         =>  8,
-#            UNSIGNED_ATTRIBUTE =>  9,
-#            FIXED_PREC_SCALE   => 10,
-#            AUTO_UNIQUE_VALUE  => 11,
-#            LOCAL_TYPE_NAME    => 12,
-#            MINIMUM_SCALE      => 13,
-#            MAXIMUM_SCALE      => 14,
-#            SQL_DATA_TYPE      => 15,
-#            SQL_DATETIME_SUB   => 16,
-#            NUM_PREC_RADIX     => 17,
-#        },
-#        [ 'CHAR', 1, 255, '\'', '\'', 'max length', 1, 1, 3,
-#            undef, '0', '0', undef, undef, undef, 1, undef, undef
-#        ],
-#        [ 'NUMBER', 3, 38, undef, undef, 'precision,scale', 1, '0', 3,
-#            '0', '0', '0', undef, '0', 38, 3, undef, 10
-#        ],
-#        [ 'DOUBLE', 8, 15, undef, undef, undef, 1, '0', 3,
-#            '0', '0', '0', undef, undef, undef, 8, undef, 10
-#        ],
-#        [ 'DATE', 9, 19, '\'', '\'', undef, 1, '0', 3,
-#            undef, '0', '0', undef, '0', '0', 11, undef, undef
-#        ],
-#        [ 'VARCHAR', 12, 1024*1024, '\'', '\'', 'max length', 1, 1, 3,
-#            undef, '0', '0', undef, undef, undef, 12, undef, undef
-#        ]
-#    ];
+    my $idx = 0;
+
+    my @info = ({map {$_ => $idx++} @TypeInfoKeys});
+    for my $id (sort {$a <=> $b} keys %TypeInfo) {
+        push @info, [map {$TypeInfo{$id}{$_}} @TypeInfoKeys];
+    }
+    return \@info;
 }
 
 my @COLUMN_INFO = qw(
@@ -1523,6 +1548,10 @@ the DBI specification. This value is also less useful for SQLite
 users because SQLite uses dynamic type system (that means,
 the datatype of a value is associated with the value itself, not
 with its container).
+
+As of version 1.61_02, if you set C<sqlite_prefer_numeric_type>
+database handle attribute to true, C<TYPE> statement handle
+attribute returns an array of integer, as an experiment.
 
 =head2 Performance
 
