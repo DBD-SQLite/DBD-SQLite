@@ -1549,6 +1549,10 @@ users because SQLite uses dynamic type system (that means,
 the datatype of a value is associated with the value itself, not
 with its container).
 
+As of version 1.61_02, if you set C<sqlite_prefer_numeric_type>
+database handle attribute to true, C<TYPE> statement handle
+attribute returns an array of integer, as an experiment.
+
 =head2 Performance
 
 SQLite is fast, very fast. Matt processed his 72MB log file with it,
