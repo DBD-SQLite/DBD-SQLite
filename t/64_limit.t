@@ -11,7 +11,7 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use DBD::SQLite::Constants qw/SQLITE_LIMIT_VARIABLE_NUMBER/;
 
-plan tests => 14;
+plan tests => 7 * @CALL_FUNCS;
 
 for my $func (@CALL_FUNCS) {
 	my $dbh = connect_ok(PrintError => 0, RaiseError => 1);
