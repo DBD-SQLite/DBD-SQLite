@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use Scalar::Util    qw/weaken/;
 
-our $VERSION = '1.60';
+our $VERSION = '1.61_01';
 our @ISA;
 
 

@@ -1,5 +1,12 @@
 Changes for Perl extension DBD-SQLite
 
+1.61_01 2018-12-01
+    - Added ability to configure SQLITE_MAX_LENGT with environmental
+      variable (Roy Storey)
+    - Added sqlite_limit database handle method to change run-time limits
+    - Upgraded SQLite to 3.25.3
+    - Updated constants
+
 1.60 2018-12-01
     - Switched to a production version
 
