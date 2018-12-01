@@ -381,7 +381,7 @@ WriteMakefile(
 			},
 			resources => {
 				license     => 'http://dev.perl.org/licenses/',
-				bugtracker  => 'http://rt.cpan.org/Public/Dist/Display.html?Name=DBD-SQLite',
+				bugtracker  => 'https://github.com/DBD-SQLite/DBD-SQLite/issues',
 				repository  => 'https://github.com/DBD-SQLite/DBD-SQLite',
 				MailingList => 'http://lists.scsys.co.uk/cgi-bin/mailman/listinfo/dbd-sqlite',
 			},

@@ -2676,7 +2676,11 @@ on a specific need, such as querying for overlapping circles.
 
 =head1 SUPPORT
 
-Bugs should be reported via the CPAN bug tracker at
+Bugs should be reported to GitHub issues:
+
+L<https://github.com/DBD-SQLite/DBD-SQLite/issues>
+
+or via RT if you prefer:
 
 L<http://rt.cpan.org/NoAuth/ReportBug.html?Queue=DBD-SQLite>
 
