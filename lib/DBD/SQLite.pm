@@ -57,6 +57,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_db_status', { O => 0x0004 });
         DBD::SQLite::st->install_method('sqlite_st_status', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_create_module');
+        DBD::SQLite::db->install_method('sqlite_limit');
 
         $methods_are_installed++;
     }
@@ -2265,6 +2266,13 @@ Registers a name for a I<virtual table module>. Module names must be
 registered before creating a new virtual table using the module and
 before using a preexisting virtual table for the module.
 Virtual tables are explained in L<DBD::SQLite::VirtualTable>.
+
+=head2 $dbh->sqlite_limit( $category_id, $new_value )
+
+Sets a new run-time limit for the category, and returns the current limit.
+If the new value is a negative number (or omitted), the limit is unchanged
+and just returns the current limit. Category ids (SQLITE_LIMIT_LENGTH,
+SQLITE_LIMIT_VARIABLE_NUMBER, etc) can be imported from DBD::SQLite::Constants. 
 
 =head1 DRIVER FUNCTIONS
 

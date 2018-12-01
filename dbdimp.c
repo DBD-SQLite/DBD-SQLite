@@ -2652,6 +2652,13 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
 #endif
 }
 
+int
+sqlite_db_limit(pTHX_ SV *dbh, int id, int new_value)
+{
+    D_imp_dbh(dbh);
+    return sqlite3_limit(imp_dbh->db, id, new_value);
+}
+
 #include "dbdimp_tokenizer.inc"
 #include "dbdimp_virtual_table.inc"
 

@@ -318,6 +318,19 @@ create_module(dbh, name, perl_class)
     OUTPUT:
         RETVAL
 
+static int
+limit(dbh, id, new_value = -1)
+    SV *dbh
+    int id
+    int new_value
+    ALIAS:
+        DBD::SQLite::db::sqlite_limit = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_limit(aTHX_ dbh, id, new_value);
+    }
+    OUTPUT:
+        RETVAL
 
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
