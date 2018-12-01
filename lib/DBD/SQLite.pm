@@ -1800,7 +1800,7 @@ returns true if the database file exists (or the database is in-memory), and the
 The following methods can be called via the func() method with a little
 tweak, but the use of func() method is now discouraged by the L<DBI> author
 for various reasons (see DBI's document
-L<http://search.cpan.org/dist/DBI/lib/DBI/DBD.pm#Using_install_method()_to_expose_driver-private_methods>
+L<https://metacpan.org/pod/DBI::DBD#Using-install_method()-to-expose-driver-private-methods>
 for details). So, if you're using L<DBI> >= 1.608, use these C<sqlite_>
 methods. If you need to use an older L<DBI>, you can call these like this:
 
