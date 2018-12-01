@@ -2615,6 +2615,49 @@ sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename)
 #endif
 }
 
+int
+sqlite_db_backup_from_dbh(pTHX_ SV *dbh, SV *from)
+{
+    D_imp_dbh(dbh);
+
+#if SQLITE_VERSION_NUMBER >= 3006011
+    int rc;
+    sqlite3_backup *pBackup;
+
+    imp_dbh_t *imp_dbh_from = (imp_dbh_t *)DBIh_COM(from);
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to backup from file on inactive database handle");
+        return FALSE;
+    }
+
+    if (!DBIc_ACTIVE(imp_dbh_from)) {
+        sqlite_error(dbh, -2, "attempt to backup from inactive database handle");
+        return FALSE;
+    }
+
+    croak_if_db_is_null();
+
+    /* COMPAT: sqlite3_backup_* are only available for 3006011 or newer */
+    pBackup = sqlite3_backup_init(imp_dbh->db, "main", imp_dbh_from->db, "main");
+    if (pBackup) {
+        (void)sqlite3_backup_step(pBackup, -1);
+        (void)sqlite3_backup_finish(pBackup);
+    }
+    rc = sqlite3_errcode(imp_dbh->db);
+
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, form("sqlite_backup_from_file failed with error %s", sqlite3_errmsg(imp_dbh->db)));
+        return FALSE;
+    }
+
+    return TRUE;
+#else
+    sqlite_error(dbh, SQLITE_ERROR, form("backup feature requires SQLite 3.6.11 and newer"));
+    return FALSE;
+#endif
+}
+
 /* Accesses the SQLite Online Backup API, and copies the currently loaded
  * database into the passed filename.
  * Usual usage of this would be when you're operating on the :memory:
@@ -2650,6 +2693,49 @@ sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename)
     }
     rc = sqlite3_errcode(pTo);
     (void)sqlite3_close(pTo);
+
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db)));
+        return FALSE;
+    }
+
+    return TRUE;
+#else
+    sqlite_error(dbh, SQLITE_ERROR, form("backup feature requires SQLite 3.6.11 and newer"));
+    return FALSE;
+#endif
+}
+
+int
+sqlite_db_backup_to_dbh(pTHX_ SV *dbh, SV *to)
+{
+    D_imp_dbh(dbh);
+
+#if SQLITE_VERSION_NUMBER >= 3006011
+    int rc;
+    sqlite3_backup *pBackup;
+
+    imp_dbh_t *imp_dbh_to = (imp_dbh_t *)DBIh_COM(to);
+
+    if (!DBIc_ACTIVE(imp_dbh)) {
+        sqlite_error(dbh, -2, "attempt to backup to file on inactive database handle");
+        return FALSE;
+    }
+
+    if (!DBIc_ACTIVE(imp_dbh_to)) {
+        sqlite_error(dbh, -2, "attempt to backup to inactive database handle");
+        return FALSE;
+    }
+
+    croak_if_db_is_null();
+
+    /* COMPAT: sqlite3_backup_* are only available for 3006011 or newer */
+    pBackup = sqlite3_backup_init(imp_dbh_to->db, "main", imp_dbh->db, "main");
+    if (pBackup) {
+        (void)sqlite3_backup_step(pBackup, -1);
+        (void)sqlite3_backup_finish(pBackup);
+    }
+    rc = sqlite3_errcode(imp_dbh_to->db);
 
     if ( rc != SQLITE_OK ) {
         sqlite_error(dbh, rc, form("sqlite_backup_to_file failed with error %s", sqlite3_errmsg(imp_dbh->db)));

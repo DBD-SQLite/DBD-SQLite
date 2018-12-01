@@ -12,7 +12,7 @@ BEGIN { requires_sqlite('3.6.11') }
 use Test::NoWarnings;
 use DBI;
 
-plan tests => 6 * @CALL_FUNCS + 1;
+plan tests => 11 * @CALL_FUNCS + 1;
 
 foreach my $call_func (@CALL_FUNCS) {
 	# Connect to the test db and add some stuff:
@@ -68,4 +68,46 @@ foreach my $call_func (@CALL_FUNCS) {
 	$dbh->disconnect;
 
 	unlink $dbfile;
+}
+
+foreach my $call_func (@CALL_FUNCS) {
+	# Connect to the test db and add some stuff:
+	my $foo = connect_ok( dbfile => ':memory:', RaiseError => 1 );
+	$foo->do(
+	    'CREATE TABLE online_backup_test( id INTEGER PRIMARY KEY, foo INTEGER )'
+	);
+	$foo->do("INSERT INTO online_backup_test (foo) VALUES ($$)");
+
+	my $dbh = DBI->connect(
+	    'dbi:SQLite:dbname=:memory:',
+	    undef, undef,
+	    { RaiseError => 1 }
+	);
+
+	ok($dbh->$call_func($foo, 'backup_from_dbh'));
+
+	{
+	    my ($count) = $dbh->selectrow_array(
+	        "SELECT count(foo) FROM online_backup_test WHERE foo=$$"
+	    );
+	    is($count, 1, "Found our process ID in backed-up table");
+	}
+
+	# Add more data then attempt to copy it back to file:
+	$dbh->do(
+	    'CREATE TABLE online_backup_test2 ( id INTEGER PRIMARY KEY, foo INTEGER )'
+	);
+	$dbh->do("INSERT INTO online_backup_test2 (foo) VALUES ($$)");
+
+	# backup to dbh (foo):
+	ok($dbh->$call_func($foo, 'backup_to_dbh'));
+
+	$dbh->disconnect;
+
+	my ($count) = $foo->selectrow_array(
+	    "SELECT count(foo) FROM online_backup_test2 WHERE foo=$$"
+	);
+	is($count, 1, "Found our process ID in table back on disk");
+
+	$foo->disconnect;
 }

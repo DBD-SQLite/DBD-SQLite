@@ -117,6 +117,8 @@ int sqlite_bind_col( SV *sth, imp_sth_t *imp_sth, SV *col, SV *ref, IV sql_type,
 int sqlite_db_busy_timeout (pTHX_ SV *dbh, SV *timeout );
 int sqlite_db_backup_from_file(pTHX_ SV *dbh, char *filename);
 int sqlite_db_backup_to_file(pTHX_ SV *dbh, char *filename);
+int sqlite_db_backup_from_dbh(pTHX_ SV *dbh, SV *from);
+int sqlite_db_backup_to_dbh(pTHX_ SV *dbh, SV *to);
 void sqlite_db_collation_needed(pTHX_ SV *dbh, SV *callback );
 SV* sqlite_db_commit_hook( pTHX_ SV *dbh, SV *hook );
 SV* sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook );

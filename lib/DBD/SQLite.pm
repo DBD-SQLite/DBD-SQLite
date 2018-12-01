@@ -47,6 +47,8 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_set_authorizer');
         DBD::SQLite::db->install_method('sqlite_backup_from_file');
         DBD::SQLite::db->install_method('sqlite_backup_to_file');
+        DBD::SQLite::db->install_method('sqlite_backup_from_dbh');
+        DBD::SQLite::db->install_method('sqlite_backup_to_dbh');
         DBD::SQLite::db->install_method('sqlite_enable_load_extension');
         DBD::SQLite::db->install_method('sqlite_load_extension');
         DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
@@ -2205,6 +2207,19 @@ special :memory: database, and you wish to populate it from an existing DB.
 
 This method accesses the SQLite Online Backup API, and will take a backup of
 the currently connected database, and write it out to the named file.
+
+=head2 $dbh->sqlite_backup_from_dbh( $another_dbh )
+
+This method accesses the SQLite Online Backup API, and will take a backup of
+the database for the passed handle, copying it to, and overwriting, your current database
+connection. This can be particularly handy if your current connection is to the
+special :memory: database, and you wish to populate it from an existing DB.
+You can use this to backup from an in-memory database to another in-memory database.
+
+=head2 $dbh->sqlite_backup_to_dbh( $another_dbh )
+
+This method accesses the SQLite Online Backup API, and will take a backup of
+the currently connected database, and write it out to the passed database handle.
 
 =head2 $dbh->sqlite_enable_load_extension( $bool )
 

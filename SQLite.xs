@@ -259,6 +259,28 @@ backup_to_file(dbh, filename)
     OUTPUT:
         RETVAL
 
+static int
+backup_from_dbh(dbh, from)
+    SV *dbh
+    SV *from
+    ALIAS:
+        DBD::SQLite::db::sqlite_backup_from_dbh = 1
+    CODE:
+        RETVAL = sqlite_db_backup_from_dbh(aTHX_ dbh, from);
+    OUTPUT:
+        RETVAL
+
+static int
+backup_to_dbh(dbh, to)
+    SV *dbh
+    SV *to
+    ALIAS:
+        DBD::SQLite::db::sqlite_backup_to_dbh = 1
+    CODE:
+        RETVAL = sqlite_db_backup_to_dbh(aTHX_ dbh, to);
+    OUTPUT:
+        RETVAL
+
 HV*
 table_column_metadata(dbh, dbname, tablename, columnname)
     SV* dbh
