@@ -173,16 +173,16 @@ my %ignore = map {$_ => 1} qw/
 /;
 
 my $ignore_tag_re = join '|', qw/
-  testing_interface configuration_options
+  testing_interface configuration_options deserialize serialize
   device_characteristics file_locking vfs_method xshmlock_index
   mutex_types scan_status run_time_limit standard_file_control
   status_parameters synchronization_type virtual_table_constraint
   virtual_table_indexing_information checkpoint_operation_parameters
   checkpoint_mode conflict_resolution text_encodings
-  virtual_table_scan_flags
+  virtual_table_scan_flags changeset_apply_v2
   constants_passed_to_the_conflict_handler
   constants_returned_by_the_conflict_handler
-  sql_trace_event_codes
+  sql_trace_event_codes win32_directory_types
 /;
 
 my %compat = map {$_ => 1} qw/
