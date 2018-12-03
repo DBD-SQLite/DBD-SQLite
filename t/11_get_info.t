@@ -26,7 +26,7 @@ my %info = (
     SQL_DATA_SOURCE_READ_ONLY  => 'N',
     SQL_DATABASE_NAME          => 'main',
     SQL_DBMS_NAME              => 'SQLite',
-    SQL_DBMS_VER               => qr/^[1-9]+\.\d+\.\d+$/,
+    SQL_DBMS_VER               => qr/^[1-9]+\.\d+\.\d+(\.\d+)?$/,
 
     SQL_IDENTIFIER_QUOTE_CHAR  => '"',
 
