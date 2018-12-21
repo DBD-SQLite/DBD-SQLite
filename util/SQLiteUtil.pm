@@ -258,7 +258,7 @@ sub extract_constants {
   %constants;
 }
 
-my %bad_dist = map {$_ => 1} qw/3061601/;
+my %bad_dist = map {$_ => 1} qw/3061601 3120000 3090300 3120100 3180100/;
 sub versions {
   my $res = HTTP::Tiny->new->get("http://sqlite.org/changes.html");
   reverse grep {$_->as_num >= 3060100 && !$bad_dist{$_->as_num}} map {s/_/./g; SQLiteUtil::Version->new($_)} $res->{content} =~ /name="version_(3_[\d_]+)"/g;
