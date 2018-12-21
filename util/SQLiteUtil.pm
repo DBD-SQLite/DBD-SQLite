@@ -229,7 +229,7 @@ sub extract_constants {
       $tag =~ s/[ \-]+/_/g;
       ($tag) = $tag =~ /^(\w+)/;
       $tag =~ s/_$//;
-      if ($tag =~ /$ignore_tag_re/) {
+      if ($tag =~ /^($ignore_tag_re)/) {
         print "$tag is ignored\n" if $VERBOSE;
         $tag = '';
       }
