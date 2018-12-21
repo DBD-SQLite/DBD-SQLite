@@ -954,7 +954,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
         else if (sql_type == SQLITE_BLOB) {
             STRLEN len;
             char * data = SvPVbyte(value, len);
-            rc = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+            rc = sqlite3_bind_blob(imp_sth->stmt, i+1, data, len, SQLITE_STATIC);
         }
         else {
             STRLEN len;
@@ -1003,7 +1003,7 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
                             (sql_type == SQLITE_INTEGER ? "integer" : "float")
                         );
                 }
-                rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_TRANSIENT);
+                rc = sqlite3_bind_text(imp_sth->stmt, i+1, data, len, SQLITE_STATIC);
             }
         }
 
