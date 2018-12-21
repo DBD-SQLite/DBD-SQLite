@@ -184,7 +184,7 @@ sub install_collation {
 
 # default implementation for sqlite 'REGEXP' infix operator.
 # Note : args are reversed, i.e. "a REGEXP b" calls REGEXP(b, a)
-# (see http://www.sqlite.org/vtab.html#xfindfunction)
+# (see https://www.sqlite.org/vtab.html#xfindfunction)
 sub regexp {
     use locale;
     return if !defined $_[0] || !defined $_[1];
@@ -751,7 +751,7 @@ sub statistics_info {
                             NON_UNIQUE    => $row->{unique} ? 0 : 1, 
                             INDEX_QUALIFIER => undef,
                             INDEX_NAME      => $row->{name},
-                            TYPE            => 'btree', # see http://www.sqlite.org/version3.html esp. "Traditional B-trees are still used for indices"
+                            TYPE            => 'btree', # see https://www.sqlite.org/version3.html esp. "Traditional B-trees are still used for indices"
                             ORDINAL_POSITION => $info->{seqno} + 1,
                             COLUMN_NAME      => $info->{name},
                             ASC_OR_DESC      => undef,
@@ -1016,7 +1016,7 @@ DBD::SQLite - Self-contained RDBMS in a DBI Driver
 =head1 DESCRIPTION
 
 SQLite is a public domain file-based relational database engine that
-you can find at L<http://www.sqlite.org/>.
+you can find at L<https://www.sqlite.org/>.
 
 B<DBD::SQLite> is a Perl DBI driver for SQLite, that includes
 the entire thing in the distribution.
@@ -1030,7 +1030,7 @@ SQLite supports the following features:
 
 =item Implements a large subset of SQL92
 
-See L<http://www.sqlite.org/lang.html> for details.
+See L<https://www.sqlite.org/lang.html> for details.
 
 =item A complete DB in a single disk file
 
@@ -1101,7 +1101,7 @@ If the filename C<$dbfile> is an empty string, then a private,
 temporary on-disk database will be created. This private database will
 be automatically deleted as soon as the database connection is closed.
 
-As of 1.41_01, you can pass URI filename (see L<http://www.sqlite.org/uri.html>)
+As of 1.41_01, you can pass URI filename (see L<https://www.sqlite.org/uri.html>)
 as well for finer control:
 
   my $dbh = DBI->connect("dbi:SQLite:uri=file:$path_to_dbfile?mode=rwc");
@@ -1118,7 +1118,7 @@ You can set sqlite_open_flags (only) when you connect to a database:
     sqlite_open_flags => SQLITE_OPEN_READONLY,
   });
 
-See L<http://www.sqlite.org/c3ref/open.html> for details.
+See L<https://www.sqlite.org/c3ref/open.html> for details.
 
 As of 1.49_05, you can also make a database read-only by setting
 C<ReadOnly> attribute to true (only) when you connect to a database.
@@ -1319,7 +1319,7 @@ SQLite supports several placeholder expressions, including C<?>
 and C<:AAAA>. Consult the L<DBI> and SQLite documentation for
 details. 
 
-L<http://www.sqlite.org/lang_expr.html#varparam>
+L<https://www.sqlite.org/lang_expr.html#varparam>
 
 Note that a question mark actually means a next unused (numbered)
 placeholder. You're advised not to use it with other (numbered or
@@ -1389,7 +1389,7 @@ in the worst case. See also L</"Performance"> section below.
 
 =back
 
-See L<http://www.sqlite.org/pragma.html> for more details.
+See L<https://www.sqlite.org/pragma.html> for more details.
 
 =head2 Foreign Keys
 
@@ -1417,7 +1417,7 @@ SQLite, be prepared, and please do extensive testing to ensure
 that your applications will continue to work when the foreign keys
 support is enabled by default.
 
-See L<http://www.sqlite.org/foreignkeys.html> for details.
+See L<https://www.sqlite.org/foreignkeys.html> for details.
 
 =head2 Transactions
 
@@ -1614,7 +1614,7 @@ for perl < 5.8.5). For more details on the UTF-8 flag see
 L<perlunicode>. The default is for the UTF-8 flag to be turned off.
 
 Also note that due to some bizarreness in SQLite's type system (see
-L<http://www.sqlite.org/datatype3.html>), if you want to retain
+L<https://www.sqlite.org/datatype3.html>), if you want to retain
 blob-style behavior for B<some> columns under C<< $dbh->{sqlite_unicode} = 1
 >> (say, to store images in the database), you have to state so
 explicitly using the 3-argument form of L<DBI/bind_param> when doing
@@ -1658,7 +1658,7 @@ for details.
 =item sqlite_extended_result_codes
 
 If set to true, DBD::SQLite uses extended result codes where appropriate
-(see L<http://www.sqlite.org/rescode.html>).
+(see L<https://www.sqlite.org/rescode.html>).
 
 =back
 
@@ -2294,11 +2294,11 @@ is for internal use only.
 
 =head2 $dbh->sqlite_db_status()
 
-Returns a hash reference that holds a set of status information of database connection such as cache usage. See L<http://www.sqlite.org/c3ref/c_dbstatus_options.html> for details. You may also pass 0 as an argument to reset the status.
+Returns a hash reference that holds a set of status information of database connection such as cache usage. See L<https://www.sqlite.org/c3ref/c_dbstatus_options.html> for details. You may also pass 0 as an argument to reset the status.
 
 =head2 $sth->sqlite_st_status()
 
-Returns a hash reference that holds a set of status information of SQLite statement handle such as full table scan count. See L<http://www.sqlite.org/c3ref/c_stmtstatus_counter.html> for details. Statement status only holds the current value.
+Returns a hash reference that holds a set of status information of SQLite statement handle such as full table scan count. See L<https://www.sqlite.org/c3ref/c_stmtstatus_counter.html> for details. Statement status only holds the current value.
 
   my $status = $sth->sqlite_st_status();
   my $cur = $status->{fullscan_step};
@@ -2343,7 +2343,7 @@ library is old or compiled with SQLITE_OMIT_COMPILEOPTION_DIAGS.
 
 =head2 DBD::SQLite::sqlite_status()
 
-Returns a hash reference that holds a set of status information of SQLite runtime such as memory usage or page cache usage (see L<http://www.sqlite.org/c3ref/c_status_malloc_count.html> for details). Each of the entry contains the current value and the highwater value.
+Returns a hash reference that holds a set of status information of SQLite runtime such as memory usage or page cache usage (see L<https://www.sqlite.org/c3ref/c_status_malloc_count.html> for details). Each of the entry contains the current value and the highwater value.
 
   my $status = DBD::SQLite::sqlite_status();
   my $cur  = $status->{memory_used}{current};
@@ -2377,7 +2377,7 @@ DELETE operation would be written as follows :
 
 The list of constants implemented in C<DBD::SQLite> is given
 below; more information can be found ad
-at L<http://www.sqlite.org/c3ref/constlist.html>.
+at L<https://www.sqlite.org/c3ref/constlist.html>.
 
 =head2 Authorizer Return Codes
 
@@ -2437,7 +2437,7 @@ associated strings.
 SQLite v3 provides the ability for users to supply arbitrary
 comparison functions, known as user-defined "collation sequences" or
 "collating functions", to be used for comparing two text values.
-L<http://www.sqlite.org/datatype3.html#collation>
+L<https://www.sqlite.org/datatype3.html#collation>
 explains how collations are used in various SQL expressions.
 
 =head2 Builtin collation sequences
@@ -2601,7 +2601,7 @@ then query which buildings overlap or are contained within a specified region:
                         $minLong, $maxLong, $minLat, $maxLat);  
 
 For more detail, please see the SQLite R-Tree page
-(L<http://www.sqlite.org/rtree.html>). Note that custom R-Tree
+(L<https://www.sqlite.org/rtree.html>). Note that custom R-Tree
 queries using callbacks, as mentioned in the prior link, have not been
 implemented yet.
 
@@ -2685,7 +2685,7 @@ Reading/writing into blobs using C<sqlite2_blob_open> / C<sqlite2_blob_close>.
 =head2 Support for custom callbacks for R-Tree queries
 
 Custom queries of a R-Tree index using a callback are possible with
-the SQLite C API (L<http://www.sqlite.org/rtree.html>), so one could
+the SQLite C API (L<https://www.sqlite.org/rtree.html>), so one could
 potentially use a callback that narrowed the result set down based
 on a specific need, such as querying for overlapping circles.
 
