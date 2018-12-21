@@ -1604,7 +1604,7 @@ Your sweet spot probably lies somewhere in between.
 =item sqlite_version
 
 Returns the version of the SQLite library which B<DBD::SQLite> is using,
-e.g., "2.8.0". Can only be read.
+e.g., "3.26.0". Can only be read.
 
 =item sqlite_unicode
 
