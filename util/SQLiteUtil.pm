@@ -172,18 +172,44 @@ my %ignore = map {$_ => 1} qw/
   OK_LOAD_PERMANENTLY PREPARE_PERSISTENT
 /;
 
-my $ignore_tag_re = join '|', qw/
-  testing_interface configuration_options deserialize serialize
-  device_characteristics file_locking vfs_method xshmlock_index
-  mutex_types scan_status standard_file_control
-  status_parameters synchronization_type virtual_table_constraint
-  virtual_table_indexing_information checkpoint_operation_parameters
-  checkpoint_mode conflict_resolution text_encodings
-  virtual_table_scan_flags changeset_apply_v2
-  constants_passed_to_the_conflict_handler
-  constants_returned_by_the_conflict_handler
-  sql_trace_event_codes win32_directory_types
-/;
+my $ignore_tag_re = join '|', (
+  'configuration_options', # for sqlite3_config
+  'device_characteristics', # for sqlite3_io_methods
+  'standard_file_control_opcodes', # for sqlite3_io_methods/sqlite3_file_control
+  'flags_for_sqlite3_deserialize', # for sqlite3_deserialize (SQLITE_ENABLE_DESERIALIZE)
+  'flags_for_sqlite3_serialize', # for sqlite3_serialize (SQLITE_ENABLE_DESERIALIZE)
+  'sql_trace_event_codes', # for sqlite3_trace_v2
+  'prepared_statement_scan_status_opcodes', # for sqlite3_stmt_scanstatus (SQLITE_ENABLE_STMT_SCANSTATUS)
+  'checkpoint_mode_values', # for sqlite3_wal_checkpoint_v2
+  'virtual_table_configuration_options', # for sqlite3_vtab_config
+  'prepare_flags', # for sqlite3_prepare_v3
+
+  # status flags (status methods are read-only at the moment)
+  'status_parameters',
+  'status_parameters_for_database_connections',
+  'status_parameters_for_prepared_statements',
+
+  # internal tags
+  'mutex_types',
+  'constants_returned_by_the_conflict_handler',
+  'constants_passed_to_the_conflict_handler',
+  'checkpoint_operation_parameters',
+  'conflict_resolution_modes',
+  'flags_for_the_xshmlock_vfs_method',
+  'maximum_xshmlock_index',
+  'win32_directory_types',
+  'testing_interface',
+  'flags_for_sqlite3changeset_apply_v2',
+  'flags_for_sqlite3changeset_start_v2',
+  'flags_for_the_xaccess_vfs_method',
+  'synchronization_type_flags',
+  'file_locking_levels',
+  'values_for_sqlite3session_config',
+  'virtual_table_scan_flags',
+  'text_encodings',
+  'virtual_table_constraint_operator_codes',
+  'virtual_table_indexing_information',
+);
 
 my %compat = map {$_ => 1} qw/
   authorizer_action_codes
