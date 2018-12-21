@@ -217,6 +217,8 @@ my %compat = map {$_ => 1} qw/
   flags_for_file_open_operations
 /;
 
+my %known_versions;
+
 sub extract_constants {
   my $file = shift;
   $file ||= "$FindBin::Bin/../sqlite3.h";
@@ -235,10 +237,14 @@ sub extract_constants {
       }
       next;
     }
-    if ($tag && /^#define SQLITE_(\S+)\s+(?:\d|\(SQLITE)/) {
-      my $name = $1;
+    if ($tag && /^#define SQLITE_(\S+)\s+(\d+|\(SQLITE)/) {
+      my ($name, $value) = ($1, $2);
+      if ($name eq 'VERSION_NUMBER' and $value =~ /^\d+$/) {
+          $known_versions{$value} = 1;
+      }
       next if $ignore{$name};
       if (my $version = $since{$name} || $since{$tag}) {
+        $known_versions{$version} //= 0;
         push @{$constants{"${tag}_${version}"} ||= []}, $name;
         push @{$constants{"_${tag}_${version}"} ||= []}, $name if $compat{$tag};
       } else {
@@ -368,6 +374,9 @@ sub check_api_history {
       }
     }
     %current = %constants;
+  }
+  if (my @wrong_versions = grep {!$known_versions{$_}} keys %known_versions) {
+    warn "WRONG VERSIONS: ".join(",", sort @wrong_versions);
   }
 }
 
