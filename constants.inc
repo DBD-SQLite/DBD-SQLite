@@ -890,10 +890,10 @@ _const_extended_result_codes_3021000_zero()
 
 #endif
 
-#if SQLITE_VERSION_NUMBER >= 3220000
+#if SQLITE_VERSION_NUMBER >= 3022000
 
 IV
-_const_extended_result_codes_3220000()
+_const_extended_result_codes_3022000()
     ALIAS:
         SQLITE_ERROR_MISSING_COLLSEQ = SQLITE_ERROR_MISSING_COLLSEQ
         SQLITE_ERROR_RETRY = SQLITE_ERROR_RETRY
@@ -907,7 +907,7 @@ _const_extended_result_codes_3220000()
 #else
 
 IV
-_const_extended_result_codes_3220000_zero()
+_const_extended_result_codes_3022000_zero()
     ALIAS:
         SQLITE_ERROR_MISSING_COLLSEQ = 1
         SQLITE_ERROR_RETRY = 2
@@ -920,10 +920,10 @@ _const_extended_result_codes_3220000_zero()
 
 #endif
 
-#if SQLITE_VERSION_NUMBER >= 3240000
+#if SQLITE_VERSION_NUMBER >= 3024000
 
 IV
-_const_extended_result_codes_3240000()
+_const_extended_result_codes_3024000()
     ALIAS:
         SQLITE_LOCKED_VTAB = SQLITE_LOCKED_VTAB
         SQLITE_CORRUPT_SEQUENCE = SQLITE_CORRUPT_SEQUENCE
@@ -935,7 +935,7 @@ _const_extended_result_codes_3240000()
 #else
 
 IV
-_const_extended_result_codes_3240000_zero()
+_const_extended_result_codes_3024000_zero()
     ALIAS:
         SQLITE_LOCKED_VTAB = 1
         SQLITE_CORRUPT_SEQUENCE = 2
@@ -946,10 +946,10 @@ _const_extended_result_codes_3240000_zero()
 
 #endif
 
-#if SQLITE_VERSION_NUMBER >= 3250000
+#if SQLITE_VERSION_NUMBER >= 3025000
 
 IV
-_const_extended_result_codes_3250000()
+_const_extended_result_codes_3025000()
     ALIAS:
         SQLITE_ERROR_SNAPSHOT = SQLITE_ERROR_SNAPSHOT
         SQLITE_CANTOPEN_DIRTYWAL = SQLITE_CANTOPEN_DIRTYWAL
@@ -961,7 +961,7 @@ _const_extended_result_codes_3250000()
 #else
 
 IV
-_const_extended_result_codes_3250000_zero()
+_const_extended_result_codes_3025000_zero()
     ALIAS:
         SQLITE_ERROR_SNAPSHOT = 1
         SQLITE_CANTOPEN_DIRTYWAL = 2
