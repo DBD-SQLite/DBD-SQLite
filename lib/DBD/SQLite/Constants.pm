@@ -57,6 +57,22 @@ our @EXPORT_OK = (
       SQLITE_VERSION_NUMBER
     /,
 
+    # database_connection_configuration_options
+    qw/
+      SQLITE_DBCONFIG_DEFENSIVE
+      SQLITE_DBCONFIG_ENABLE_FKEY
+      SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
+      SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+      SQLITE_DBCONFIG_ENABLE_QPSG
+      SQLITE_DBCONFIG_ENABLE_TRIGGER
+      SQLITE_DBCONFIG_LOOKASIDE
+      SQLITE_DBCONFIG_MAINDBNAME
+      SQLITE_DBCONFIG_MAX
+      SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE
+      SQLITE_DBCONFIG_RESET_DATABASE
+      SQLITE_DBCONFIG_TRIGGER_EQP
+    /,
+
     # extended_result_codes
     qw/
       SQLITE_ABORT_ROLLBACK
@@ -249,6 +265,18 @@ our %EXPORT_TAGS = (
       SQLITE_CREATE_TRIGGER
       SQLITE_CREATE_VIEW
       SQLITE_CREATE_VTABLE
+      SQLITE_DBCONFIG_DEFENSIVE
+      SQLITE_DBCONFIG_ENABLE_FKEY
+      SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
+      SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+      SQLITE_DBCONFIG_ENABLE_QPSG
+      SQLITE_DBCONFIG_ENABLE_TRIGGER
+      SQLITE_DBCONFIG_LOOKASIDE
+      SQLITE_DBCONFIG_MAINDBNAME
+      SQLITE_DBCONFIG_MAX
+      SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE
+      SQLITE_DBCONFIG_RESET_DATABASE
+      SQLITE_DBCONFIG_TRIGGER_EQP
       SQLITE_DELETE
       SQLITE_DENY
       SQLITE_DETACH
@@ -416,6 +444,21 @@ our %EXPORT_TAGS = (
       SQLITE_VERSION_NUMBER
     /],
 
+    database_connection_configuration_options => [qw/
+      SQLITE_DBCONFIG_DEFENSIVE
+      SQLITE_DBCONFIG_ENABLE_FKEY
+      SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
+      SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+      SQLITE_DBCONFIG_ENABLE_QPSG
+      SQLITE_DBCONFIG_ENABLE_TRIGGER
+      SQLITE_DBCONFIG_LOOKASIDE
+      SQLITE_DBCONFIG_MAINDBNAME
+      SQLITE_DBCONFIG_MAX
+      SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE
+      SQLITE_DBCONFIG_RESET_DATABASE
+      SQLITE_DBCONFIG_TRIGGER_EQP
+    /],
+
     extended_result_codes => [qw/
       SQLITE_ABORT_ROLLBACK
       SQLITE_AUTH_USER
@@ -578,7 +621,7 @@ DBD::SQLite::Constants - common SQLite constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -673,6 +716,36 @@ This module does not export anything by default.
 =over 4
 
 =item SQLITE_VERSION_NUMBER
+
+=back
+
+=head2 database_connection_configuration_options
+
+=over 4
+
+=item SQLITE_DBCONFIG_LOOKASIDE
+
+=item SQLITE_DBCONFIG_ENABLE_FKEY
+
+=item SQLITE_DBCONFIG_ENABLE_TRIGGER
+
+=item SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
+
+=item SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+
+=item SQLITE_DBCONFIG_MAINDBNAME
+
+=item SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE
+
+=item SQLITE_DBCONFIG_ENABLE_QPSG
+
+=item SQLITE_DBCONFIG_TRIGGER_EQP
+
+=item SQLITE_DBCONFIG_MAX
+
+=item SQLITE_DBCONFIG_RESET_DATABASE
+
+=item SQLITE_DBCONFIG_DEFENSIVE
 
 =back
 

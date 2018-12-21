@@ -112,6 +112,250 @@ _const_compile_time_library_version_numbers()
     OUTPUT:
         RETVAL
 
+#if SQLITE_VERSION_NUMBER >= 3007000
+
+IV
+_const_database_connection_configuration_options_3007000()
+    ALIAS:
+        SQLITE_DBCONFIG_LOOKASIDE = SQLITE_DBCONFIG_LOOKASIDE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3007000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_LOOKASIDE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3007006
+
+IV
+_const_database_connection_configuration_options_3007006()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_FKEY = SQLITE_DBCONFIG_ENABLE_FKEY
+        SQLITE_DBCONFIG_ENABLE_TRIGGER = SQLITE_DBCONFIG_ENABLE_TRIGGER
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3007006_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_FKEY = 1
+        SQLITE_DBCONFIG_ENABLE_TRIGGER = 2
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3012002
+
+IV
+_const_database_connection_configuration_options_3012002()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER = SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3012002_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3013000
+
+IV
+_const_database_connection_configuration_options_3013000()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION = SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3013000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3015000
+
+IV
+_const_database_connection_configuration_options_3015000()
+    ALIAS:
+        SQLITE_DBCONFIG_MAINDBNAME = SQLITE_DBCONFIG_MAINDBNAME
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3015000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_MAINDBNAME = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3016000
+
+IV
+_const_database_connection_configuration_options_3016000()
+    ALIAS:
+        SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE = SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3016000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3020000
+
+IV
+_const_database_connection_configuration_options_3020000()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_QPSG = SQLITE_DBCONFIG_ENABLE_QPSG
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3020000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_QPSG = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3022000
+
+IV
+_const_database_connection_configuration_options_3022000()
+    ALIAS:
+        SQLITE_DBCONFIG_TRIGGER_EQP = SQLITE_DBCONFIG_TRIGGER_EQP
+        SQLITE_DBCONFIG_MAX = SQLITE_DBCONFIG_MAX
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3022000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_TRIGGER_EQP = 1
+        SQLITE_DBCONFIG_MAX = 2
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3024000
+
+IV
+_const_database_connection_configuration_options_3024000()
+    ALIAS:
+        SQLITE_DBCONFIG_RESET_DATABASE = SQLITE_DBCONFIG_RESET_DATABASE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3024000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_RESET_DATABASE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3026000
+
+IV
+_const_database_connection_configuration_options_3026000()
+    ALIAS:
+        SQLITE_DBCONFIG_DEFENSIVE = SQLITE_DBCONFIG_DEFENSIVE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3026000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_DEFENSIVE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV
