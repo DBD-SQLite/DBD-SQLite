@@ -1471,7 +1471,7 @@ automatically begin if you execute another statement.
 
 This C<AutoCommit> mode is independent from the autocommit mode
 of the internal SQLite library, which always begins by a C<BEGIN>
-statement, and ends by a C<COMMIT> or a <ROLLBACK>.
+statement, and ends by a C<COMMIT> or a C<ROLLBACK>.
 
 =head2 Transaction and Database Locking
 
@@ -1540,7 +1540,7 @@ of the rest (since 1.30_01, and without creating DBI's statement
 handles internally since 1.47_01). If you do need to use C<prepare>
 or C<prepare_cached> (which I don't recommend in this case, because
 typically there's no placeholder nor reusable part in a dump),
-you can look at << $sth->{sqlite_unprepared_statements} >> to retrieve
+you can look at C<< $sth->{sqlite_unprepared_statements} >> to retrieve
 what's left, though it usually contains nothing but white spaces.
 
 =head2 TYPE statement attribute
