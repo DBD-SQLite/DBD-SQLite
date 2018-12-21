@@ -363,8 +363,8 @@ sub check_api_history {
           next;
         }
         my $diff = Array::Diff->diff($current{$key}, $constants{$key});
-        print "$version: added $_\n" for @{$diff->added || []};
-        print "$version: deleted $_\n" for @{$diff->deleted || []};
+        print "$version: added $_ ($key)\n" for @{$diff->added || []};
+        print "$version: deleted $_ ($key)\n" for @{$diff->deleted || []};
       }
     }
     %current = %constants;
