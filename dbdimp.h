@@ -135,6 +135,7 @@ HV* _sqlite_status(int reset);
 HV* _sqlite_st_status(pTHX_ SV *sth, int reset);
 int sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_class);
 int sqlite_db_limit(pTHX_ SV *dbh, int id, int new_value);
+int sqlite_db_config(pTHX_ SV *dbh, int id, int new_value);
 int sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement);
 void init_cxt();
 

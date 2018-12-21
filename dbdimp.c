@@ -2756,6 +2756,41 @@ sqlite_db_limit(pTHX_ SV *dbh, int id, int new_value)
     return sqlite3_limit(imp_dbh->db, id, new_value);
 }
 
+int
+sqlite_db_config(pTHX_ SV *dbh, int id, int new_value)
+{
+    D_imp_dbh(dbh);
+    int ret;
+    int rc = -1;
+    switch (id) {
+        case SQLITE_DBCONFIG_LOOKASIDE:
+            sqlite_error(dbh, rc, "SQLITE_DBCONFIG_LOOKASIDE is not supported");
+            return FALSE;
+        case SQLITE_DBCONFIG_MAINDBNAME:
+            sqlite_error(dbh, rc, "SQLITE_DBCONFIG_MAINDBNAME is not supported");
+            return FALSE;
+        case SQLITE_DBCONFIG_ENABLE_FKEY:
+        case SQLITE_DBCONFIG_ENABLE_TRIGGER:
+        case SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER:
+        case SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION:
+        case SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE:
+        case SQLITE_DBCONFIG_ENABLE_QPSG:
+        case SQLITE_DBCONFIG_TRIGGER_EQP:
+        case SQLITE_DBCONFIG_RESET_DATABASE:
+        case SQLITE_DBCONFIG_DEFENSIVE:
+            rc = sqlite3_db_config(imp_dbh->db, id, new_value, &ret);
+            break;
+        default:
+            sqlite_error(dbh, rc, form("Unknown config id: %d", id));
+            return FALSE;
+    }
+    if ( rc != SQLITE_OK ) {
+        sqlite_error(dbh, rc, form("sqlite_config failed with error %s", sqlite3_errmsg(imp_dbh->db)));
+        return FALSE;
+    }
+    return ret;
+}
+
 #include "dbdimp_tokenizer.inc"
 #include "dbdimp_virtual_table.inc"
 

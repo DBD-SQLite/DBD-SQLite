@@ -60,6 +60,7 @@ sub driver {
         DBD::SQLite::st->install_method('sqlite_st_status', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_create_module');
         DBD::SQLite::db->install_method('sqlite_limit');
+        DBD::SQLite::db->install_method('sqlite_db_config');
 
         $methods_are_installed++;
     }
@@ -2303,6 +2304,20 @@ Returns a hash reference that holds a set of status information of SQLite statem
   my $cur = $status->{fullscan_step};
 
 You may also pass 0 as an argument to reset the status.
+
+=head2 $dbh->sqlite_db_config( $id, $new_integer_value )
+
+You can change how the connected database should behave like this:
+
+  use DBD::SQLite::Constants qw/:database_connection_configuration_options/;
+  
+  my $dbh = DBI->connect('dbi:SQLite::memory:');
+
+  # This disables language features that allow ordinary SQL
+  # to deliberately corrupt the database file
+  $dbh->sqlite_db_config( SQLITE_DBCONFIG_DEFENSIVE, 1 );
+
+As of this writing, C<sqlite_db_config> only supports options that set an integer value. C<SQLITE_DBCONFIG_LOOKASIDE> and C<SQLITE_DBCONFIG_MAINDBNAME> are not supported. See also C<https://www.sqlite.org/capi3ref.html#sqlite3_db_config> for details.
 
 =head2 $dbh->sqlite_create_module()
 

@@ -354,6 +354,20 @@ limit(dbh, id, new_value = -1)
     OUTPUT:
         RETVAL
 
+static int
+db_config(dbh, id, new_value = -1)
+    SV *dbh
+    int id
+    int new_value
+    ALIAS:
+        DBD::SQLite::db::sqlite_db_config = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_config(aTHX_ dbh, id, new_value);
+    }
+    OUTPUT:
+        RETVAL
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE
