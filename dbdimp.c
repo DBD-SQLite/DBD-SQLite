@@ -2794,7 +2794,7 @@ sqlite_db_config(pTHX_ SV *dbh, int id, int new_value)
             return FALSE;
     }
     if ( rc != SQLITE_OK ) {
-        sqlite_error(dbh, rc, form("sqlite_config failed with error %s", sqlite3_errmsg(imp_dbh->db)));
+        sqlite_error(dbh, rc, form("sqlite_db_config failed with error %s", sqlite3_errmsg(imp_dbh->db)));
         return FALSE;
     }
     return ret;
