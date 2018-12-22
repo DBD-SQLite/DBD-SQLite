@@ -2321,6 +2321,13 @@ You can change how the connected database should behave like this:
   # This disables language features that allow ordinary SQL
   # to deliberately corrupt the database file
   $dbh->sqlite_db_config( SQLITE_DBCONFIG_DEFENSIVE, 1 );
+  
+  # This disables two-arg version of fts3_tokenizer.
+  $dbh->sqlite_db_config( SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER, 0 );
+
+C<sqlite_db_config> returns the new value after the call. If you just want to know the current value without changing anything, pass a negative integer value.
+
+  my $current_value = $dbh->sqlite_db_config( SQLITE_DBCONFIG_DEFENSIVE, -1 );
 
 As of this writing, C<sqlite_db_config> only supports options that set an integer value. C<SQLITE_DBCONFIG_LOOKASIDE> and C<SQLITE_DBCONFIG_MAINDBNAME> are not supported. See also C<https://www.sqlite.org/capi3ref.html#sqlite3_db_config> for details.
 
