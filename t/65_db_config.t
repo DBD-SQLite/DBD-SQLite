@@ -11,7 +11,7 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use DBD::SQLite::Constants qw/:database_connection_configuration_options/;
 
-#plan tests => 7 * @CALL_FUNCS;
+plan tests => 38 * @CALL_FUNCS + 3;
 
 # LOOKASIDE
 for my $func (@CALL_FUNCS) {
@@ -182,4 +182,15 @@ for my $func (@CALL_FUNCS) {
     }
 }
 
-done_testing;
+# DEFENSIVE at connection
+SKIP: {
+    skip 'DEFENSIVE is not supported', 8 if !SQLITE_DBCONFIG_DEFENSIVE;
+    my $dbh = connect_ok(RaiseError => 1, PrintError => 0, sqlite_defensive => 1);
+
+    my $sql = 'CREATE TABLE foo (id, text)';
+    $dbh->do($sql);
+    $dbh->do('PRAGMA writable_schema=ON');
+    eval { $dbh->do('UPDATE sqlite_master SET name = ? WHERE name = ?', undef, 'bar', 'foo'); };
+    ok $@, "updating sqlite_master is prohibited";
+    like $@ => qr/table sqlite_master may not be modified/;
+}

@@ -1660,6 +1660,11 @@ for details.
 If set to true, DBD::SQLite uses extended result codes where appropriate
 (see L<https://www.sqlite.org/rescode.html>).
 
+=item sqlite_defensive
+
+If set to true, language features that allow ordinary SQL to deliberately
+corrupt the database file are prohibited.
+
 =back
 
 =head2 Statement Handle Attributes

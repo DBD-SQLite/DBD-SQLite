@@ -459,6 +459,15 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
+    if (hv) {
+        if (hv_exists(hv, "sqlite_defensive", 16)) {
+            val = hv_fetch(hv, "sqlite_defensive", 16, 0);
+            if (val && SvIOK(*val)) {
+                sqlite3_db_config(imp_dbh->db, SQLITE_DBCONFIG_DEFENSIVE, SvIV(*val), 0);
+            }
+        }
+    }
+
 #if 0
     /*
     ** As of 1.26_06 foreign keys support was enabled by default,
