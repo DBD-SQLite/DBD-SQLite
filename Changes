@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.62 2018-12-29
+    - Switched to a production version
+
 1.61_04 2018-12-22
     - Added sqlite_db_config method and new constants for it
     - Added sqlite_defensive option to disallow dangerous SQLite features
