@@ -335,7 +335,7 @@ WriteMakefile(
 		'Tie::Hash'     => 0,
 		'File::Spec'    => (WINLIKE ? '3.27' : '0.82'),
 		'DBI'           => $DBI_required,
-		'Test::More'    => '0.47', # Test::NoWarnings
+		'Test::More'    => '0.82', # Test::NoWarnings
 		'Test::Builder' => '0.86', # Test::NoWarnings
 		( WINLIKE ? (
 			'Win32' => '0.30',
@@ -367,7 +367,7 @@ WriteMakefile(
 			},
 			build_requires => {
 				'File::Spec'          => (WINLIKE ? '3.27' : '0.82'),
-				'Test::More'          => '0.42',
+				'Test::More'          => '0.82',
 				# Bundled in /inc
 				# 'Test::NoWarnings'  => '0.081',
 			},
