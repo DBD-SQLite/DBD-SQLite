@@ -1,11 +1,7 @@
 # Tests simple table creation
 
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More tests => 7;

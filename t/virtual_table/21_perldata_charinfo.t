@@ -1,9 +1,5 @@
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 # test the example described in 
 # L<DBD::SQLite::VirtualTable::PerlData/"Hashref example : unicode characters">
 

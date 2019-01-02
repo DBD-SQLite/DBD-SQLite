@@ -3,11 +3,7 @@
 # sqlite_unicode => 1). Only bind values are properly converted.
 
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;

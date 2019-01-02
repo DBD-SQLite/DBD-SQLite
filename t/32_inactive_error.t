@@ -1,9 +1,5 @@
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 use Test::More tests => 7;
 use lib "t/lib";
 use SQLiteTest;

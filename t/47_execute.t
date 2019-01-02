@@ -1,11 +1,7 @@
 # Trigger locking error and test prepared statement is still valid afterwards
 
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok dbfile @CALL_FUNCS/;
 use Test::More;

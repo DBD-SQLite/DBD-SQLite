@@ -1,9 +1,5 @@
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 my @to_be_tested;
 BEGIN { @to_be_tested = (1.23E4); }
 

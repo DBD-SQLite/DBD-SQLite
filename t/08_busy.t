@@ -1,11 +1,7 @@
 # Test that two processes can write at once, assuming we commit timely.
 
 use strict;
-BEGIN {
-	$|  = 1;
-	$^W = 1;
-}
-
+use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok dbfile @CALL_FUNCS/;
 use Test::More;
