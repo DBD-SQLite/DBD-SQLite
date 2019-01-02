@@ -1,4 +1,3 @@
-#!/usr/bin/perl
 # According to the sqlite doc, the SQL argument to sqlite3_prepare_v2
 # should be in utf8, but DBD::SQLite does not ensure this (even with
 # sqlite_unicode => 1). Only bind values are properly converted.

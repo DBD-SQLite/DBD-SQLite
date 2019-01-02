@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This tests, whether the number of rows can be retrieved.
 
 use strict;

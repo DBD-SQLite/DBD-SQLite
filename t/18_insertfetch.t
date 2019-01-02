@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a simple insert/fetch test.
 
 use strict;

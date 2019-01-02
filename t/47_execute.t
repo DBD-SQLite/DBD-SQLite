@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Trigger locking error and test prepared statement is still valid afterwards
 
 use strict;

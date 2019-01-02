@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a skeleton test. For writing new tests, take this file
 # and modify/extend it.
 

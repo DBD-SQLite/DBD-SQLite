@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Check data type assignment in bind_param is sticky
 
 use strict;

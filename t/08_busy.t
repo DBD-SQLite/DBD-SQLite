@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Test that two processes can write at once, assuming we commit timely.
 
 use strict;

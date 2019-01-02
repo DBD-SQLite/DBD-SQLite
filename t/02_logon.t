@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Tests basic login and pragma setting
 
 use strict;

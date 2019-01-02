@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Tests path containing non-latine-1 characters
 # currently fails on Windows
 

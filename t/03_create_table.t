@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Tests simple table creation
 
 use strict;

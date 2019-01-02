@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # I've disabled warnings, so theoretically warnings shouldn't be printed
 
 use strict;

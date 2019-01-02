@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Test that everything compiles, so the rest of the test suite can
 # load modules without having to check if it worked.
 

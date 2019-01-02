@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Check whether 'ChopBlanks' works.
 
 use strict;

@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This test works, but as far as I can tell this doesn't actually test
 # the thing that the test was originally meant to test.
 

@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # In a contentless FTS table, the columns are hidden from the schema,
 # and therefore SQLite has no information to infer column types, so
 # these are typed as SQLITE_NULL ... and this type conflicts with the

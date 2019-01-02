@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a test for statement attributes being present appropriately.
 
 use strict;

@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a test for correctly handling NULL values.
 
 use strict;

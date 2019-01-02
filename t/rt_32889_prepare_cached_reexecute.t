@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # Tests that executing the same prepare_cached twice without a
 # finish in between does not prevent it being automatically cleaned
 # up and that it does not generate a warning.

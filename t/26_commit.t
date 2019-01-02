@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is testing the transaction support.
 
 use strict;

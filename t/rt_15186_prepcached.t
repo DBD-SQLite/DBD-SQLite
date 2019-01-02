@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a regression test for bug #15186:
 # http://rt.cpan.org/Public/Bug/Display.html?id=15186
 # About re-using statements with prepare_cached().

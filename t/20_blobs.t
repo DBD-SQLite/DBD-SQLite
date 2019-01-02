@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a test for correct handling of BLOBS; namely $dbh->quote
 # is expected to work correctly.
 

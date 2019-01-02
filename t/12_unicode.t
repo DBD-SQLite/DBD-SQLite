@@ -1,5 +1,3 @@
-#!/usr/bin/perl
-
 # This is a test for correct handling of the "unicode" database
 # handle parameter.
 
