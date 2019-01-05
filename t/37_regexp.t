@@ -34,8 +34,6 @@ use locale;
 
 use DBD::SQLite;
 
-
-
 foreach my $call_func (@CALL_FUNCS) {
 
   for my $use_unicode (0, 1) {
@@ -85,4 +83,3 @@ foreach my $call_func (@CALL_FUNCS) {
     }
   }
 }
-

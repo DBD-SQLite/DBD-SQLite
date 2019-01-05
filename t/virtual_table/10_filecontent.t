@@ -22,12 +22,10 @@ $dbh->do(<<"");
 $dbh->do(<<"");
   INSERT INTO base VALUES(2, 'foo2', '10_filecontent.t', 'bar2')
 
-
 # start tests
 
 ok $dbh->$sqlite_call(create_module => fs => "DBD::SQLite::VirtualTable::FileContent"),
    "create_module";
-
 
 ok $dbh->do(<<""), "create vtable";
   CREATE VIRTUAL TABLE vfs USING fs(source = base,
@@ -51,9 +49,7 @@ is_deeply([sort keys %{$rows->[0]}], [qw/bar content foo path/], "col list OK");
 is $rows->[0]{bar},   'bar1', 'got bar1';
 is $rows->[1]{bar},   'bar2', 'got bar2';
 
-
 # expensive  request (reads content from  all files in table) !
 $sql  = "SELECT * FROM vfs WHERE content LIKE '%filesys%'";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 1, "got 1 row";
-

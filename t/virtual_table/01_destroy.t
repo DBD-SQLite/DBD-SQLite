@@ -52,7 +52,6 @@ my $sth = $dbh->prepare("SELECT * FROM barfoo");
 ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT,    "no vtab created";
 is $DBD::SQLite::VirtualTable::T::CONNECT_COUNT, 1, "1 vtab connected";
 
-
 package DBD::SQLite::VirtualTable::T;
 use base 'DBD::SQLite::VirtualTable';
 
@@ -71,4 +70,3 @@ sub DESTROY         {$DESTROY_COUNT++}
 sub DESTROY_MODULE  {$DESTROY_MODULE_COUNT++}
 
 1;
-

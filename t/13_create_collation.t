@@ -47,16 +47,12 @@ sub by_num_desc ($$) {
 	$_[1] <=> $_[0];
 }
 
-
 # collation 'no_accents' will be automatically loaded on demand
 $DBD::SQLite::COLLATION{no_accents} = \&no_accents;
-
 
 $" = ", "; # to embed arrays into message strings
 
 my $sql = "SELECT txt from collate_test ORDER BY txt";
-
-
 
 # test interaction with the global COLLATION hash ("WriteOnce")
 
@@ -78,8 +74,6 @@ my $tied = tied %DBD::SQLite::COLLATION;
 delete $tied->{foo};
 $DBD::SQLite::COLLATION{foo} = \&by_num_desc; # override, no longer dies
 is($DBD::SQLite::COLLATION{foo}, \&by_num_desc, "overridden collation");
-
-
 
 # now really test the collation functions
 
@@ -126,7 +120,6 @@ foreach my $call_func (@CALL_FUNCS) {
     is_deeply(\@sorted, $db_sorted, 
               "collate no_accents (@sorted // @$db_sorted)");
 
-
     # manual addition of a collation for this dbh
     $dbh->$call_func(by_length => \&by_length, "create_collation");
     @sorted    = sort by_length @words;
@@ -135,7 +128,3 @@ foreach my $call_func (@CALL_FUNCS) {
               "collate by_length (@sorted // @$db_sorted)");
   }
 }
-
-
-
-

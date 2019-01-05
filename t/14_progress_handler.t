@@ -38,7 +38,6 @@ foreach my $call_func (@CALL_FUNCS) {
 	# now the progress handler should have been called a number of times
 	ok($n_callback);
 
-
 	# unregister the progress handler, set counter back to zero, do more work
 	ok($dbh->$call_func( $N_OPCODES, undef, "progress_handler" ));
 	$n_callback = 0;

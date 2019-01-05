@@ -24,7 +24,6 @@ my $dbh = connect_ok(RaiseError => 1, AutoCommit => 1);
 my $sql = q{CREATE VIRTUAL TABLE foo USING fts4 (content="", a, b)};
 ok( $dbh->do($sql), 'CREATE TABLE' );
 
-
 ok($dbh->do("INSERT INTO foo(docid, a, b) VALUES(1, 'a', 'b')"),
    "insert without bind");
 
@@ -48,4 +47,3 @@ ok($sth->execute(),
 ok( $dbh->do("CREATE VIRTUAL TABLE foo_aux USING fts4aux(foo)"), 'FTS4AUX');
 my $data = $dbh->selectcol_arrayref("select term from foo_aux where col='*'");
 is_deeply ([sort @$data], [qw/a aa aaa b bb bbb/], "terms properly indexed");
-

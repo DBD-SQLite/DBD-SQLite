@@ -39,13 +39,11 @@ is scalar(@$res), 3, "got 3 rows";
 is $res->[0]{a}, 1, 'got 1 in a';
 is $res->[0]{b}, 2, 'got 2 in b';
 
-
 $sql  = "SELECT * FROM vtb WHERE b < 8 ORDER BY a DESC";
 $res = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$res), 2, "got 2 rows";
 is $res->[0]{a}, 4, 'got 4 in first a';
 is $res->[1]{a}, 1, 'got 1 in second a';
-
 
 $sql = "SELECT rowid FROM vtb WHERE c = 'six'";
 $res = $dbh->selectall_arrayref($sql, {Slice => {}});
@@ -56,13 +54,11 @@ $sql = "SELECT c FROM vtb WHERE c MATCH 'i' ORDER BY c";
 $res = $dbh->selectcol_arrayref($sql);
 is_deeply $res, [qw/nine six/], $sql;
 
-
 $dbh->do("INSERT INTO vtb(a, b, c) VALUES (11, 22, 33)");
 my $row_id = $dbh->last_insert_id('', '', '', '');
 is $row_id, 3,                            'new rowid is 3';
 is scalar(@$perl_rows), 4,                'perl_rows expanded';
 is_deeply $perl_rows->[-1], [11, 22, 33], 'new row is correct';
-
 
 #======================================================================
 # test the hashref implementation
@@ -78,7 +74,6 @@ $res = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$res), 2, "got 2 rows";
 is $res->[0]{a}, 4, 'got 4 in first a';
 is $res->[1]{a}, 1, 'got 1 in second a';
-
 
 #======================================================================
 # test the colref implementation
@@ -103,7 +98,6 @@ $integers = [ 1, 7 ];
 $sql = "SELECT a FROM vtb WHERE a IN intarray";
 $res = $dbh->selectcol_arrayref($sql);
 is_deeply $res, [ 1, 7 ], "IN intarray";
-
 
 # same thing with strings
 our $strings = [qw/one two three/];

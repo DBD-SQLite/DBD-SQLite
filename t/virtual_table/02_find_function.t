@@ -7,7 +7,6 @@ use Test::NoWarnings;
 
 plan tests => 15;
 
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 
 $dbh->$sqlite_call(create_module => vtab => "DBD::SQLite::VirtualTable::T");
@@ -50,7 +49,6 @@ is $DBD::SQLite::VirtualTable::T::funcs{abs}{calls},    1, "abs still 1";
 is $DBD::SQLite::VirtualTable::T::funcs{substr}{calls}, 1, "substr still 1";
 is $DBD::SQLite::VirtualTable::T::funcs{trim}{calls},   1, "trim still 1";
 
-
 # new table : should issue new calls to FIND_FUNCTION
 ok $dbh->do("CREATE VIRTUAL TABLE barfoo USING vtab(foo INTEGER, bar INTEGER)"),
    "created barfoo"; 
@@ -66,7 +64,6 @@ is $DBD::SQLite::VirtualTable::T::funcs{abs}{calls},    2, "abs now 2";
 is $DBD::SQLite::VirtualTable::T::funcs{substr}{calls}, 2, "substr now 2";
 is $DBD::SQLite::VirtualTable::T::funcs{trim}{calls},   2, "trim now 2";
 
-
 # drop table : should free references to functions
 ok $dbh->do("DROP TABLE foobar");
 
@@ -75,13 +72,10 @@ undef $dbh;
 
 note "done";
 
-
 package DBD::SQLite::VirtualTable::T;
 use strict;
 use warnings;
 use base 'DBD::SQLite::VirtualTable';
-
-
 
 sub BEST_INDEX {
   my ($self, $constraints, $order_by) = @_;
@@ -106,7 +100,6 @@ sub BEST_INDEX {
 
 our %funcs;
 
-
 sub FIND_FUNCTION {
   my ($self, $n_arg, $function_name) = @_;
 
@@ -114,7 +107,6 @@ sub FIND_FUNCTION {
   my $func = $funcs{$function_name}{overloaded};
   return $func;
 }
-
 
 package DBD::SQLite::VirtualTable::T::Cursor;
 use strict;
@@ -135,8 +127,6 @@ sub FILTER {
 
   return;
 }
-
-
 
 sub EOF {
   my $self = shift;
@@ -162,8 +152,4 @@ sub ROWID {
   return $self->{row_count};
 }
 
-
 1;
-
-
-

@@ -37,10 +37,6 @@ sub fetchrow_1 {
 	is_deeply( $row, [ 1 ], 'Got row 1' );
 }
 
-
-
-
-
 ######################################################################
 # A well-behaved non-cached statement
 
@@ -74,10 +70,6 @@ SCOPE: {
 	is( $c, 0, 'No warnings' );
 }
 
-
-
-
-
 ######################################################################
 # A badly-behaved regular statement
 
@@ -104,10 +96,6 @@ SCOPE: {
 	$dbh->disconnect;
 	is( $c, 1, 'Got a warning' );
 }
-
-
-
-
 
 ######################################################################
 # A well-behaved cached statement
@@ -150,10 +138,6 @@ SCOPE: {
 	$dbh->disconnect;
 	is( $c, 1, 'No warnings' );
 }
-
-
-
-
 
 #####################################################################
 # Badly-behaved prepare_cached (but still acceptable)

@@ -51,13 +51,12 @@ BEGIN {
 		setlocale(LC_COLLATE, 'en-us');
 	}
 }
-use locale;
 
+use locale;
 
 sub locale_tokenizer { # see also: Search::Tokenizer
   return sub {
     my $string = shift;
-
     my $regex      = qr/\w+/;
     my $term_index = 0;
 
@@ -70,11 +69,7 @@ sub locale_tokenizer { # see also: Search::Tokenizer
   };
 }
 
-
-
 use DBD::SQLite;
-
-
 
 for my $use_unicode (0, 1) {
 
@@ -83,6 +78,7 @@ for my $use_unicode (0, 1) {
 
   for my $fts (qw/fts3 fts4/) {
     next if $fts eq 'fts4' && !has_sqlite('3.7.4');
+
     # create fts table
     $dbh->do(<<"") or die DBI::errstr;
       CREATE VIRTUAL TABLE try_$fts
@@ -104,7 +100,9 @@ for my $use_unicode (0, 1) {
          . "ENABLE_FTS3_PARENTHESIS option", scalar @tests
         unless DBD::SQLite->can('compile_options') &&
         grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options();
+
       my $sql = "SELECT docid FROM try_$fts WHERE content MATCH ?";
+
       for my $t (@tests) {
         my ($query, @expected) = @$t;
         @expected = map {$doc_ids[$_]} @expected;
@@ -114,5 +112,3 @@ for my $use_unicode (0, 1) {
     }
   }
 }
-
-

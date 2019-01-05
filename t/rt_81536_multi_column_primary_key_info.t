@@ -39,7 +39,7 @@ plan tests => 15 + 1;
 	my $sth = $dbh->primary_key_info(undef, undef, 'foo');
 	my @pk_info;
 	while(my $row = $sth->fetchrow_hashref) { push @pk_info, $row };
-       is @pk_info => 2, "found 2 pks";
+    is @pk_info => 2, "found 2 pks";
 	is $pk_info[0]{COLUMN_NAME} => 'type', "first pk name is type";
 	is $pk_info[1]{COLUMN_NAME} => 'id', "second pk name is id";
 }

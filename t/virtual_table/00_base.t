@@ -20,7 +20,6 @@ is $rows->[0]{rowid}, 5, "rowid column";
 is $rows->[0]{foo}, "auto_vivify:0", "foo column";
 is $rows->[0]{bar}, "auto_vivify:1", "bar column";
 
-
 $sql = "SELECT * FROM foobar ";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 5, "got 5 rows again";
@@ -30,7 +29,6 @@ is_deeply([sort keys %{$rows->[0]}], [qw/bar foo/], "col list OK");
 $sql = "SELECT * FROM foobar WHERE foo > -1 and bar < 33";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 5, "got 5 rows (because of omitted constraints)";
-
 
 package DBD::SQLite::VirtualTable::T;
 use strict;
@@ -48,7 +46,6 @@ sub NEW {
 
   return $self;
 }
-
 
 sub BEST_INDEX {
   my ($self, $constraints, $order_by) = @_;
@@ -77,8 +74,6 @@ sub BEST_INDEX {
   return $outputs;
 }
 
-
-
 package DBD::SQLite::VirtualTable::T::Cursor;
 use strict;
 use warnings;
@@ -98,8 +93,6 @@ sub FILTER {
 
   return;
 }
-
-
 
 sub EOF {
   my $self = shift;
@@ -125,8 +118,4 @@ sub ROWID {
   return $self->{row_count};
 }
 
-
 1;
-
-
-

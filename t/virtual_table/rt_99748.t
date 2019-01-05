@@ -18,7 +18,6 @@ my @interpolation_attempts = (
   '$self',
  );
 
-
 # sample data
 our $perl_rows = [
   [1, 2, 'three'],

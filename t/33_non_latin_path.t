@@ -98,7 +98,6 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 	unlink(_path($dbfilex))  if -e _path($dbfilex);
 }
 
-
 # connect to an empty filename - sqlite will create a tempfile
 eval {
 	my $dbh = DBI->connect("dbi:SQLite:dbname=", undef, undef, {
@@ -109,9 +108,6 @@ eval {
 };
 is( $@, '', "Could connect to temp database (empty filename)" );
 diag( $@ ) if $@;
-
-
-
 
 sub _path {  # copied from DBD::SQLite::connect
 	my $path = shift;

@@ -122,19 +122,16 @@ foreach my $call_func (@CALL_FUNCS) {
             [DBD::SQLite::DELETE, 'hook_test', undef, 'temp', undef],
             "args to authorizer (DELETE)");
 
-
   # unregister the authorizer ... now DELETE should be authorized
   $dbh->$call_func(undef, "set_authorizer");
   eval {$dbh->do("DELETE FROM hook_test WHERE foo = 'auth_test'")};
   ok(!$@, "delete was accepted");
-
 
   # sqlite3 did warn in tests above, so avoid complains from Test::Warnings
   # (would be better to turn off warnings from sqlite3, but I didn't find
   #  any way to do that)
   clear_warnings();
 }
-
 
 sub do_transaction {
   my $dbh = shift;

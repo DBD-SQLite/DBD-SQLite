@@ -40,7 +40,6 @@ CREATE TABLE remote.b (
 
 __EOSQL__
 
-
 plan tests => @sql_statements + 2 + 46 * 2;
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );

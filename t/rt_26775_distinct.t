@@ -50,7 +50,6 @@ for my $query (split m/ ; /xms, $slurp) {
 # Then we test the bug.
 # 
 
-
 # We test with both 'DISTINCT(t.name) [..]' and 'DISTINCT t.name [..]'
 #
 my $query_with_parens = trim(q{

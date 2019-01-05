@@ -48,6 +48,7 @@ my $str  = "\x{20ac}";
 
 {
 	my $sth = $dbh->prepare('select * from test1 order by id');
+
 	$sth->execute;
 
 	my $expected = [undef, 1, 0, 0, 1, 1, 1];
@@ -58,6 +59,7 @@ my $str  = "\x{20ac}";
 		ok $row && utf8::is_utf8($row->[1]) == $expected->[$_],
 			"row $_ is ".($expected->[$_] ? "unicode" : "not unicode");
 	}
+
 	$sth->finish;
 }
 
@@ -104,7 +106,6 @@ my $str  = "\x{20ac}";
 	my $expected = [undef, 0, 0, 0, 0, 0, 0];
 	for (1..6) {
 		$sth->fetch;
-
 		ok $col1 && $col1 == $_;
 		ok $col2 && utf8::is_utf8($col2) == $expected->[$_],
 			"row $_ is ".($expected->[$_] ? "unicode" : "not unicode");

@@ -110,7 +110,6 @@ SCOPE: {
 	ok( $sth->finish, '->finish' );
 }
 
-
 # Delete the test row from the table
 ok( $dbh->do('DELETE FROM ONE WHERE id = 2 AND name IS NULL'), 'DELETE' );
 

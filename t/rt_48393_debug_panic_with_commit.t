@@ -54,4 +54,3 @@ $sth->execute;
 
 # XXX: Panic occurs here when running under the debugger
 $dbh->commit or die $dbh->errstr;
-

@@ -49,7 +49,6 @@ is $res->[0]{block}, $sigma_block, "letter in proper block";
 # the following does not work because \b gets escaped as a literal
 #$sql = "SELECT * FROM charinfo WHERE script='Greek' AND name MATCH '\\bSIGMA\\b'";
 
-
 # but the following does work because the REGEXP operator is handled
 # outside of the BEST_INDEX / FILTER methods
 $sql = "SELECT * FROM charinfo WHERE script='Greek' AND name REGEXP '\\bSIGMA\\b'";

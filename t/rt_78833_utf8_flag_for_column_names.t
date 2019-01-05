@@ -95,7 +95,6 @@ sub unicode_test {
     }
 
     { # tests for an environment where everything is decoded
-
         my $dbh = connect_ok(sqlite_unicode => 1);
         $dbh->do("pragma foreign_keys = on");
         my $unicode_quoted = $dbh->quote_identifier($unicode);

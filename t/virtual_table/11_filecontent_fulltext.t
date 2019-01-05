@@ -66,7 +66,6 @@ $dbh->do("CREATE TABLE files (id INTEGER PRIMARY KEY, path TEXT)");
 my $sth = $dbh->prepare("INSERT INTO files(path) VALUES (?)");
 $sth->execute($_) foreach @perl_files;
 
-
 # create the virtual table
 $dbh->$sqlite_call(create_module => fc => "DBD::SQLite::VirtualTable::FileContent");
 $dbh->do(<<"");
@@ -92,7 +91,6 @@ foreach my $test (@tests) {
 my $remove_path = 'lib/DBD/SQLite/VirtualTable.pm';
 $dbh->do("DELETE FROM fts WHERE path='$remove_path'");
 
-
 # test again
 foreach my $test (@tests) {
   my ($pattern, @expected)  = @$test;
@@ -113,4 +111,3 @@ foreach my $test (@tests) {
   my $paths = $dbh->selectcol_arrayref($sql, {}, $pattern);
   is_deeply([sort @$paths], \@expected, "search '$pattern' -- after reconnect");
 }
-

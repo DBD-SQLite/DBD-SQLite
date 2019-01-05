@@ -45,4 +45,3 @@ foreach my $call_func (@CALL_FUNCS) {
     note explain $db_match;
   }
 }
-

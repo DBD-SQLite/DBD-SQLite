@@ -88,7 +88,6 @@ foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
 	$result = $dbh->selectall_arrayref( "SELECT newcount() FROM aggr_test GROUP BY field" );
 	ok( @$result == 3 && $result->[0][0] == 1 && $result->[1][0] == 1 );
 
-
 	# Test aggregate on empty table
 	$dbh->do( "DROP TABLE aggr_empty_test;" );
 	$dbh->do( "CREATE TABLE aggr_empty_test ( field )" );
