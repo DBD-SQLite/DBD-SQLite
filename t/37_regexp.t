@@ -3,6 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest     qw/connect_ok @CALL_FUNCS/;
 use Test::More;
+use Test::FailWarnings;
 
 my @words = qw{
 	berger Bergère bergère Bergere

@@ -8,7 +8,7 @@ BEGIN {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-use Test::NoWarnings;
+use Test::FailWarnings;
 use DBI qw/:sql_types/;
 
 my $dbh = connect_ok(sqlite_unicode => 1);

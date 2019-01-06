@@ -11,7 +11,7 @@ BEGIN {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-#use Test::NoWarnings;
+use Test::FailWarnings;
 use File::Temp ();
 use File::Spec::Functions ':ALL';
 

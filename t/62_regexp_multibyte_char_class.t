@@ -8,7 +8,7 @@ BEGIN {
 		plan skip_all => 'Unicode is not supported before 5.8.5';
 	}
 }
-#use Test::NoWarnings; # see RT#112220
+#use Test::FailWarnings; # see RT#112220
 
 # special case for multibyte (non-ASCII) character class,
 # which only works correctly under the unicode mode

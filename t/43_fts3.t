@@ -3,6 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest     qw/connect_ok has_sqlite/;
 use Test::More;
+use Test::FailWarnings;
 use DBD::SQLite;
 
 my @texts = ("il était une bergère",

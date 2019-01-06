@@ -3,10 +3,9 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
+use Test::FailWarnings;
 
 BEGIN { requires_sqlite('3.6.8') }
-
-use Test::NoWarnings;
 
 my $dbh = connect_ok(
 	AutoCommit => 1,

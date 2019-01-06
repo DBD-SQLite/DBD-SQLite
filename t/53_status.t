@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS has_sqlite/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbh = connect_ok();
 {

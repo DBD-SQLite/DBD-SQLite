@@ -14,7 +14,7 @@ BEGIN { requires_sqlite('3.7.9') }
 BEGIN { plan skip_all => 'FTS3 is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options() }
 
 use DBI qw/SQL_INTEGER/;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbh = connect_ok(RaiseError => 1, AutoCommit => 1);
 

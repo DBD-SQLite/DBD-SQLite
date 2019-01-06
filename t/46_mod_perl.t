@@ -3,6 +3,8 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
+use Test::FailWarnings;
+
 BEGIN {
 	eval {require APR::Table; 1};
 	if ($@) {

@@ -14,7 +14,7 @@ BEGIN {
   }
 }
 
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 our $chars = [map {charinfo($_)} 0x300..0x400];
 

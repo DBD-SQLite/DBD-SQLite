@@ -100,15 +100,6 @@ On more recent versions, the loop will run twice;
 the second execution will call
 C<< $dbh->sqlite_method_to_call(@args) >>.
 
-The number of tests to plan should be adapted accordingly.
-It can be computed like this :
-
-  plan tests => $n_normal_tests * @CALL_FUNCS + 1;
-
-The additional C< + 1> is required when using
-L<Test::NoWarnings>, because that module adds 
-a final test in an END block outside of the loop.
-
 =cut
 
 

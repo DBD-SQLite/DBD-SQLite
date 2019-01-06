@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $N_OPCODES = 50; # how many opcodes before calling the progress handler
 

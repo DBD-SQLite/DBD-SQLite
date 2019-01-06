@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbfile = "tmp.sqlite";
 

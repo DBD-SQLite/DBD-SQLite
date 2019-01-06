@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use lib "t/lib";
 use SQLiteTest;
+use Test::FailWarnings;
 
 my $dbh = connect_ok( PrintError => 0, RaiseError => 0 );
 

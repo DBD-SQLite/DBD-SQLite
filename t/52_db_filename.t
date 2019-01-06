@@ -6,7 +6,7 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.7.10') }
 
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 for my $func (@CALL_FUNCS) {
 	{

@@ -11,7 +11,7 @@ BEGIN {
 
 use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 for my $call_func (@CALL_FUNCS) {
 	my $dbh = connect_ok(RaiseError => 1);

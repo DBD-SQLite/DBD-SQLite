@@ -6,7 +6,7 @@ use lib "t/lib";
 use SQLiteTest qw/connect_ok/;
 use DBI qw(:sql_types);
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbh = connect_ok(
     RaiseError => 1,

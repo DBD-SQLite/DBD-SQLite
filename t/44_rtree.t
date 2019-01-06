@@ -52,7 +52,7 @@ BEGIN {
 		plan skip_all => 'RTREE is disabled for this DBD::SQLite';
 	}
 }
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 # connect
 my $dbh = connect_ok( RaiseError => 1 );

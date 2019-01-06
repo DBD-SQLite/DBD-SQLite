@@ -4,7 +4,7 @@ use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use DBD::SQLite;
-#use Test::NoWarnings;
+#use Test::FailWarnings;
 
 my @methods = qw(
 	commit rollback

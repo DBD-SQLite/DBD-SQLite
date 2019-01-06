@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok $sqlite_call has_sqlite/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbh = connect_ok(sqlite_trace => 2);
 # register the module and declare the virtual table

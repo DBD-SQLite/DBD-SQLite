@@ -4,7 +4,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 

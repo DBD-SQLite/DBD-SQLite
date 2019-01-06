@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 # The following snippets are copied from Cookbook.pod by hand.
 # Don't forget to update here when the pod is updated.

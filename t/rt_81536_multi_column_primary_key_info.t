@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 # single column integer primary key
 {

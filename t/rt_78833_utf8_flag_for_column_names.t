@@ -9,7 +9,7 @@ BEGIN {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-use Test::NoWarnings;
+use Test::FailWarnings;
 use Encode;
 
 unicode_test("\x{263A}");  # (decoded) smiley character

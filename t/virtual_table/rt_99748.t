@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok $sqlite_call has_sqlite/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 # tests that the MATCH operator does not allow code injection
 my @interpolation_attempts = (

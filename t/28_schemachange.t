@@ -6,6 +6,7 @@ use warnings;
 use Test::More;
 use lib "t/lib";
 use SQLiteTest;
+use Test::FailWarnings;
 
 my $create1 = 'CREATE TABLE table1 (id INTEGER NOT NULL, name CHAR (64) NOT NULL)';
 my $create2 = 'CREATE TABLE table2 (id INTEGER NOT NULL, name CHAR (64) NOT NULL)';

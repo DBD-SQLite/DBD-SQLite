@@ -3,6 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok/;
 use Test::More;
+use Test::FailWarnings;
 use DBI qw/:sql_types/;
 
 my $id = 0;

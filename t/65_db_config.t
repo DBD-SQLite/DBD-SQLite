@@ -4,6 +4,7 @@ use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use DBD::SQLite::Constants qw/:database_connection_configuration_options/;
+use Test::FailWarnings;
 
 # LOOKASIDE
 for my $func (@CALL_FUNCS) {

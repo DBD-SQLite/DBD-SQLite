@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest     qw/connect_ok @CALL_FUNCS/;
 use Test::More;
-use Test::NoWarnings qw/had_no_warnings clear_warnings/;
+use Test::FailWarnings;
 
 use DBD::SQLite;
 
@@ -63,9 +63,6 @@ foreach my $call_func (@CALL_FUNCS) {
   is($n_commits, 0, "commit hook unregistered");
   is($n_updates, 0, "update hook unregistered");
 
-  # check here explicitly for warnings, before we clear them
-  had_no_warnings();
-
   # remember how many rows we had so far
   my ($n_rows) = $dbh->selectrow_array($sql_count_rows);
 
@@ -124,11 +121,6 @@ foreach my $call_func (@CALL_FUNCS) {
   $dbh->$call_func(undef, "set_authorizer");
   eval {$dbh->do("DELETE FROM hook_test WHERE foo = 'auth_test'")};
   ok(!$@, "delete was accepted");
-
-  # sqlite3 did warn in tests above, so avoid complains from Test::Warnings
-  # (would be better to turn off warnings from sqlite3, but I didn't find
-  #  any way to do that)
-  clear_warnings();
 }
 
 sub do_transaction {

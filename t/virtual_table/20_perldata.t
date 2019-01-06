@@ -6,7 +6,7 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.7.4') }
 
-use Test::NoWarnings;
+use Test::FailWarnings;
 use FindBin;
 
 our $perl_rows = [

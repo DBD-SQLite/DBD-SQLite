@@ -10,7 +10,7 @@ BEGIN{
     plan skip_all => 'this test requires SQLite 3.7.12 and above' unless $DBD::SQLite::sqlite_version_number > 3007011;
 }
 
-use Test::NoWarnings;
+use Test::FailWarnings;
 use DBD::SQLite::Constants qw/:extended_result_codes :result_codes/;
 use File::Temp;
 

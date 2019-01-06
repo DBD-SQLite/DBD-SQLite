@@ -4,6 +4,7 @@ use Test::More;
 use lib "t/lib";
 use SQLiteTest;
 use DBD::SQLite;
+use Test::FailWarnings;
 
 BEGIN {
 	if (!grep /^ENABLE_COLUMN_METADATA/, DBD::SQLite::compile_options()) {

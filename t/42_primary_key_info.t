@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok/;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 for my $quote ('', qw/' " ` []/) {
 	my ($begin_quote, $end_quote) = (substr($quote, 0, 1), substr($quote, -1, 1));

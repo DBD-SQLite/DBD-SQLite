@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 # Create a database
 my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1, PrintError => 1, PrintWarn => 1 );

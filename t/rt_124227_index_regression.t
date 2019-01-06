@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $sql_in_question = <<'EOS';
 SELECT cdid

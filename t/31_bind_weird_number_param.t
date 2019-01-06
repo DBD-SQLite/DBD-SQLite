@@ -6,6 +6,7 @@ BEGIN { @to_be_tested = (1.23E4); }
 use Test::More;
 use lib "t/lib";
 use SQLiteTest;
+use Test::FailWarnings;
 
 my $dbh = connect_ok();
 

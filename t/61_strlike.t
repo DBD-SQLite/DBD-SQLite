@@ -7,7 +7,7 @@ use DBD::SQLite;
 
 BEGIN { requires_sqlite('3.10.0'); }
 
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 ok !DBD::SQLite::strlike("foo_bar", "FOO1BAR");
 ok !DBD::SQLite::strlike("foo_bar", "FOO_BAR");

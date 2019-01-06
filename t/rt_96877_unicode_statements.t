@@ -12,7 +12,7 @@ BEGIN {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
-use Test::NoWarnings;
+use Test::FailWarnings;
 
 my $dbh = connect_ok( sqlite_unicode => 1 );
 is( $dbh->{sqlite_unicode}, 1, 'Unicode is on' );
