@@ -9,7 +9,7 @@ BEGIN {
 	plan skip_all => "FTS is disabled for this DBD::SQLite" unless has_fts();
 }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 0 );
 

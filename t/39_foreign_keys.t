@@ -6,7 +6,7 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.6.19') }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 # following tests are from http://www.sqlite.org/foreignkeys.html
 

@@ -6,7 +6,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 use File::Temp ();
 use File::Spec::Functions ':ALL';
 

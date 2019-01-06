@@ -6,7 +6,7 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.7.10') }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 for my $func (@CALL_FUNCS) {
 	{

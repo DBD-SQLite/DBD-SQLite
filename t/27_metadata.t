@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use lib "t/lib";
 use SQLiteTest;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 # 1-4. Connect & create tables
 my $dbh = connect_ok(dbfile => 'foo');

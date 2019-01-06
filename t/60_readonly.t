@@ -7,7 +7,7 @@ use DBD::SQLite::Constants qw/SQLITE_OPEN_READONLY/;
 
 BEGIN { requires_sqlite('3.7.11') }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 {
 	my $dbh = connect_ok(

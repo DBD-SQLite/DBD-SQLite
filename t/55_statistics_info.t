@@ -12,7 +12,7 @@ BEGIN {
     }
 }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 my @sql_statements = split /\n\n/, <<__EOSQL__;
 CREATE TABLE a (

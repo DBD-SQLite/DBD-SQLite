@@ -11,7 +11,7 @@ BEGIN {
 		unless $ENV{TEST_DBD_SQLITE_WITH_DEBUGGER};
 }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 my $file = 't/panic.pl';
 open my $fh, '>', $file;

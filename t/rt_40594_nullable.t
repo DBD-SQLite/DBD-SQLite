@@ -4,7 +4,7 @@ use Test::More;
 use lib "t/lib";
 use SQLiteTest;
 use DBD::SQLite;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 BEGIN {
 	if (!has_compile_option('ENABLE_COLUMN_METADATA')) {

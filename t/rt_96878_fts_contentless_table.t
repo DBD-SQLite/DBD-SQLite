@@ -9,7 +9,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 use DBI qw/SQL_INTEGER/;
 
 BEGIN { requires_sqlite('3.7.9') }

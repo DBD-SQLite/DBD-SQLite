@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 BEGIN { requires_sqlite('3.7.7') }
 BEGIN { plan skip_all => 'FTS is disabled for this DBD::SQLite' unless has_fts() }

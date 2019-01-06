@@ -7,7 +7,7 @@ use SQLiteTest qw/connect_ok dbfile @CALL_FUNCS requires_sqlite/;
 
 BEGIN { requires_sqlite('3.6.11') }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 use DBI;
 
 foreach my $call_func (@CALL_FUNCS) {

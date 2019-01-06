@@ -8,7 +8,7 @@ BEGIN {
         plan( skip_all => 'requires SQLite ICU plugin to be enabled' );
     }
 }
-# use Test::FailWarnings;
+# use if -d ".git", "Test::FailWarnings";
 
 my @isochars = (ord("K"), 0xf6, ord("n"), ord("i"), ord("g"));
 my $koenig   = pack("U*", @isochars);

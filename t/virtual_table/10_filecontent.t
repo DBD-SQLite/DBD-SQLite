@@ -3,7 +3,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 use FindBin;
 
 plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;

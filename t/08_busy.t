@@ -5,7 +5,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok dbfile @CALL_FUNCS/;
 use Test::More;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 foreach my $call_func (@CALL_FUNCS) {
 

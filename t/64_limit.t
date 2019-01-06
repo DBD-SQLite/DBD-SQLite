@@ -4,7 +4,7 @@ use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use DBD::SQLite::Constants qw/SQLITE_LIMIT_VARIABLE_NUMBER/;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 for my $func (@CALL_FUNCS) {
 	my $dbh = connect_ok(PrintError => 0, RaiseError => 1);

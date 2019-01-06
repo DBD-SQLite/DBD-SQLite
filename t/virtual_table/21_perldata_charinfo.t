@@ -14,7 +14,7 @@ BEGIN {
   }
 }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 our $chars = [map {charinfo($_)} 0x300..0x400];
 

@@ -4,7 +4,7 @@ use DBI;
 use Test::More;
 use lib "t/lib";
 use SQLiteTest;
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 BEGIN { requires_sqlite('3.6.3') }
 

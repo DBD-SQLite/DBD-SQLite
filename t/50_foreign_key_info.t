@@ -12,7 +12,7 @@ BEGIN {
     }
 }
 
-use Test::FailWarnings;
+use if -d ".git", "Test::FailWarnings";
 
 # SQL below freely adapted from http://www.sqlite.org/foreignkeys.htm ...
 # not the best datamodel in the world, but good enough for our tests.

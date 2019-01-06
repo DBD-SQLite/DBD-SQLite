@@ -5,7 +5,7 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-# use Test::FailWarnings;
+# use if -d ".git", "Test::FailWarnings";
 
 my $warning_count = 0;
 
