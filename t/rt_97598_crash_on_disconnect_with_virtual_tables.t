@@ -7,7 +7,6 @@ use Test::More;
 BEGIN { requires_sqlite('3.7.7') }
 BEGIN { plan skip_all => 'FTS3 is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options() }
 
-plan tests => 3;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(AutoCommit => 0);
@@ -36,3 +35,5 @@ $dbh->commit;
 $dbh->disconnect;
 
 pass "all done without segfault";
+
+done_testing;

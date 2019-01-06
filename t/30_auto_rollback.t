@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 6;
+use Test::More;
 use Test::NoWarnings;
 
 SCOPE: {
@@ -17,3 +17,5 @@ SCOPE: {
 		'INSERT ok',
 	);
 }
+
+done_testing;

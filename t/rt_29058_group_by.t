@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 9;
+use Test::More;
 use Test::NoWarnings;
 use DBI qw(:sql_types);
 
@@ -74,3 +74,5 @@ is( scalar(@$ar), 2, 'Got 2 results' );
 	# print "4: @$_\n" for @$ar;
 	is( scalar(@$ar), 2, "we got ".(@$ar)." items" );
 #}
+
+done_testing;

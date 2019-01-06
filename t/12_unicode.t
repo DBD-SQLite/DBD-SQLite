@@ -7,9 +7,7 @@ use lib "t/lib";
 use SQLiteTest;
 use Test::More;
 BEGIN {
-	if ( $] >= 5.008005 ) {
-		plan( tests => 26 );
-	} else {
+	unless ( $] >= 5.008005 ) {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
@@ -131,3 +129,5 @@ sub database_roundtrip {
 	croak "Bad row length ".@row unless (@row == 2);
 	@row;
 }
+
+done_testing;

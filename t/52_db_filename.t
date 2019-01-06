@@ -8,8 +8,6 @@ BEGIN { requires_sqlite('3.7.10') }
 
 use Test::NoWarnings;
 
-plan tests => 6 * @CALL_FUNCS + 1;
-
 for my $func (@CALL_FUNCS) {
 	{
 		my $db = filename($func);
@@ -33,3 +31,5 @@ sub filename {
 	my $dbh = connect_ok(@_);
 	$dbh->$func('db_filename');
 }
+
+done_testing;

@@ -48,8 +48,6 @@ if (grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options()) {
   );
 }
 
-plan tests => 3 + 3 * @tests;
-
 # find out perl files in this distrib
 my $distrib_dir = "$FindBin::Bin/../..";
 open my $fh, "<", "$distrib_dir/MANIFEST" or die "open $distrib_dir/MANIFEST: $!";
@@ -111,3 +109,5 @@ foreach my $test (@tests) {
   my $paths = $dbh->selectcol_arrayref($sql, {}, $pattern);
   is_deeply([sort @$paths], \@expected, "search '$pattern' -- after reconnect");
 }
+
+done_testing;

@@ -35,8 +35,6 @@ my %info = (
     SQL_TABLE_TERM             => 'table',
 );
 
-plan tests => scalar(keys %info) + 2;
-
 my $dbh = connect_ok( RaiseError => 1 );
 
 foreach my $option ( sort keys %info ) {
@@ -47,3 +45,5 @@ foreach my $option ( sort keys %info ) {
 }
 
 $dbh->disconnect;
+
+done_testing;

@@ -52,8 +52,6 @@ CREATE TABLE song(
 );
 __EOSQL__
 
-plan tests => @sql_statements + 22;
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
 my $fk_data;
@@ -114,3 +112,5 @@ for ($fk_data->{songartist}) {
 for ($fk_data->{songalbum}) {
   is($_->{KEY_SEQ}, 2, "FK song, key seq 2");
 }
+
+done_testing;

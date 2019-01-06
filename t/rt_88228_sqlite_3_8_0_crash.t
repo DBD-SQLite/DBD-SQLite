@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 3;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok();
@@ -44,3 +44,5 @@ $dbh->do($_) for (
 );
 
 pass "all done without segfault";
+
+done_testing;

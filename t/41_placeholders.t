@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 13;
-
 my $dbh = connect_ok( RaiseError => 1 );
 ok $dbh->do('create table foo (id integer, value integer)');
 
@@ -52,3 +50,5 @@ SKIP: {
 
     ok $count == 2;
 }
+
+done_testing;

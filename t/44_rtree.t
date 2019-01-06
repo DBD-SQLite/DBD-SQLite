@@ -54,8 +54,6 @@ BEGIN {
 }
 use Test::NoWarnings;
 
-plan tests => @coords + (2 * @test_regions)  + 4;
-
 # connect
 my $dbh = connect_ok( RaiseError => 1 );
 
@@ -106,3 +104,5 @@ for my $region (@test_regions) {
     my $results = $dbh->selectcol_arrayref($overlap_sql, undef, @$region);
     is_deeply_approx($results, shift @test_results);
 }
+
+done_testing;

@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 4;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -21,3 +21,5 @@ END_SQL
 
 # Drop the table
 ok( $dbh->do('DROP TABLE one'), 'DROP TABLE' );
+
+done_testing;

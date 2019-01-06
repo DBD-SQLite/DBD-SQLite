@@ -5,10 +5,8 @@ use SQLiteTest;
 use Test::More;
 BEGIN {
     require DBD::SQLite;
-    if (DBD::SQLite->can('compile_options')
+    unless (DBD::SQLite->can('compile_options')
         && grep /ENABLE_ICU/, DBD::SQLite::compile_options()) {
-        plan( tests => 16 );
-    } else {
         plan( skip_all => 'requires SQLite ICU plugin to be enabled' );
     }
 }
@@ -89,3 +87,5 @@ utf8::encode($koenig);
         is $got[$i] => $expected[$i], "got: $got[$i]";
     }
 }
+
+done_testing;

@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use DBD::SQLite::Constants qw/:database_connection_configuration_options/;
 
-plan tests => 38 * @CALL_FUNCS + 3;
-
 # LOOKASIDE
 for my $func (@CALL_FUNCS) {
     SKIP: {
@@ -215,3 +213,5 @@ SKIP: {
     ok $@, "updating sqlite_master is prohibited";
     like $@ => qr/table sqlite_master may not be modified/;
 }
+
+done_testing;

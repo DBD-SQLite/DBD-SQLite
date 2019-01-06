@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 39;
+use Test::More;
 use Test::NoWarnings;
 use DBI ':sql_types';
 
@@ -81,3 +81,5 @@ SCOPE: {
 	is( $id,   6,   'id = 6'   );
 	is( $name, 'Larry', 'name = Larry' );
 }
+
+done_testing;

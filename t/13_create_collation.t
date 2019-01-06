@@ -4,13 +4,7 @@ use lib "t/lib";
 use SQLiteTest     qw/connect_ok dies @CALL_FUNCS/;
 use Test::More;
 BEGIN {
-        my $COLLATION_TESTS = 10;
-        my $WRITE_ONCE_TESTS = 4;
-
-	if ( $] >= 5.008005 ) {
-		plan( tests => $COLLATION_TESTS * @CALL_FUNCS + 
-                               $WRITE_ONCE_TESTS + 1);
-	} else {
+	unless ( $] >= 5.008005 ) {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
@@ -128,3 +122,5 @@ foreach my $call_func (@CALL_FUNCS) {
               "collate by_length (@sorted // @$db_sorted)");
   }
 }
+
+done_testing;

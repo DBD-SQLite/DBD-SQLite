@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 37;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -130,3 +130,5 @@ SCOPE: {
 	my $sth = $dbh->prepare("UPDATE one SET id = 3 WHERE name = 'Gary Shea'");
 	isa_ok( $sth, 'DBI::st' );
 }
+
+done_testing;

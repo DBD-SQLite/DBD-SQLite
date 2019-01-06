@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 21;
+use Test::More;
 use lib "t/lib";
 use SQLiteTest;
 
@@ -51,3 +51,5 @@ isnt $types->[0], 'VARCHAR(2)', '$sth->{TYPE}[0] doesn\'t return a string';
 isnt $types->[1], 'CHAR(1)', '$sth->{TYPE}[1] doesn\'t return a string';
 like $types->[0], qr/^-?\d+$/, '$sth->{TYPE}[0] returns an integer';
 like $types->[1], qr/^-?\d+$/, '$sth->{TYPE}[1] returns an integer';
+
+done_testing;

@@ -9,10 +9,7 @@ use Test::More;
 
 BEGIN {
   # check for old Perls which did not have Unicode::UCD in core
-  if (eval "use Unicode::UCD 'charinfo'; 1") {
-    plan tests => 10;
-  }
-  else {
+  unless (eval "use Unicode::UCD 'charinfo'; 1") {
     plan skip_all => "Unicode::UCD does not seem to be installed";
   }
 }
@@ -55,3 +52,5 @@ $sql = "SELECT * FROM charinfo WHERE script='Greek' AND name REGEXP '\\bSIGMA\\b
 $res = $dbh->selectall_arrayref($sql, {Slice => {}});
 ok scalar(@$res),                        "found sigma letters";
 is $res->[0]{block},  $sigma_block, "letter in proper block";
+
+done_testing;

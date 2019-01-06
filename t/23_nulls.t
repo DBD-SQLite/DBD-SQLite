@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 9;
+use Test::More;
 
 # Create a database
 my $dbh = connect_ok();
@@ -34,3 +34,5 @@ SCOPE: {
 	is( $row->[1], 'NULL-valued id', 'Second column is defined' );
 	ok( $sth->finish, '->finish' );
 }
+
+done_testing;

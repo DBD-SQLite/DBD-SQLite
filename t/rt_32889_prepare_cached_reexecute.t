@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 32;
+use Test::More;
 use Test::NoWarnings;
 
 # Create the table
@@ -155,3 +155,5 @@ SCOPE: {
 	$dbh->disconnect;
 	is( $c, 1, 'No warnings' );
 }
+
+done_testing;

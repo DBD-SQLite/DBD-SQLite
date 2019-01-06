@@ -7,9 +7,7 @@ use lib "t/lib";
 use SQLiteTest;
 use Test::More;
 BEGIN {
-	if ( $] >= 5.008005 ) {
-		plan( tests => 2 + 12 * (($^O eq 'cygwin') ? 2 : 4) );
-	} else {
+	unless ( $] >= 5.008005 ) {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
@@ -127,3 +125,5 @@ sub _path {  # copied from DBD::SQLite::connect
 	}
 	return $path;
 }
+
+done_testing;

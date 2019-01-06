@@ -11,8 +11,6 @@ BEGIN {
 	}
 }
 
-plan tests => 6;
-
 my $dbh = connect_ok();
 
 ok $dbh->do("CREATE TABLE foo (id INTEGER PRIMARY KEY NOT NULL, col1 varchar(2) NOT NULL, col2 varchar(2), col3 char(2) NOT NULL)");
@@ -28,3 +26,5 @@ my $expected = {
 for my $m (keys %$expected) {
     is_deeply($sth->{$m}, $expected->{$m});
 }
+
+done_testing;

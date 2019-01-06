@@ -3,8 +3,6 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-
-plan tests => 14;
 use Test::NoWarnings;
 
 {
@@ -30,3 +28,5 @@ use Test::NoWarnings;
 	is $info{bat}[1] => 4;
 	is $info{bat}[2] => 4;
 }
+
+done_testing;

@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 11;
+use Test::More;
 use Test::NoWarnings;
 
 SCOPE: {
@@ -27,3 +27,5 @@ SCOPE: {
 	is_deeply( $sth2->fetchrow_arrayref, [ 'foo', 'bar', 2 ], 'Row 2 ok' );
 	ok( $sth2->finish, '->finish ok' );
 }
+
+done_testing;

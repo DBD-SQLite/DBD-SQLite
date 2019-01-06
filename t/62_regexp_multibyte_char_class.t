@@ -16,8 +16,6 @@ my @words = ("\x{e3}\x{83}\x{86}\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{88}", "\x{e3}\x
 
 my $regex = "\x{e3}\x{83}\x{86}[\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{b3}]\x{e3}\x{83}\x{88}"; # テ[スン]ト
 
-plan tests => 2 * 2 * @CALL_FUNCS;
-
 foreach my $call_func (@CALL_FUNCS) {
 
   for my $use_unicode (0, 1) {
@@ -45,3 +43,5 @@ foreach my $call_func (@CALL_FUNCS) {
     note explain $db_match;
   }
 }
+
+done_testing;

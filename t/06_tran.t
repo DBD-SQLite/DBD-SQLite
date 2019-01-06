@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 6;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
@@ -48,3 +48,5 @@ $dbh->rollback;
 	);
 	ok !$dbh->{sqlite_use_immediate_transaction}, "sqlite_use_immediate_transaction is false if you set explicitly";
 }
+
+done_testing;

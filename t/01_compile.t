@@ -3,7 +3,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More;
 
 use lib "t/lib";
 
@@ -17,3 +17,5 @@ if (my @compile_options = DBD::SQLite::compile_options()) {
     diag("Compile Options:");
     diag(join "", map { "  $_\n" } @compile_options);
 }
+
+done_testing;

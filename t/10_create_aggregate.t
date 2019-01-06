@@ -12,8 +12,6 @@ if ($DBD::SQLite::sqlite_version_number >= 3008003) {
   push @function_flags, DBD::SQLite::Constants::SQLITE_DETERMINISTIC;
 }
 
-plan tests => 21 * @CALL_FUNCS * @function_flags + 1;
-
 # Create the aggregate test packages
 SCOPE: {
 	package count_aggr;
@@ -134,3 +132,5 @@ foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
 
 	$dbh->disconnect;
 }}
+
+done_testing;

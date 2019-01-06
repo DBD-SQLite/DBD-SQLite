@@ -7,9 +7,6 @@ use SQLiteTest;
 use Test::More;
 use Test::NoWarnings;
 
-my $tests = 2;
-plan tests => 1 + $tests * @CALL_FUNCS + 1;
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0 );
 for my $func (@CALL_FUNCS) {
 	my $filename = eval { $dbh->$func('db_filename') };
@@ -22,3 +19,5 @@ for my $func (@CALL_FUNCS) {
 	my $filename = eval { $dbh->$func('db_filename') };
 	ok !$@ && !$filename, "got no error; no filename; and no segfault";
 }
+
+done_testing;

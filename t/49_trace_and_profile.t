@@ -8,8 +8,6 @@ BEGIN { requires_sqlite('3.6.21') }
 
 use Test::NoWarnings;
 
-plan tests => 12 * @CALL_FUNCS + 1;
-
 my $flag = 0;
 for my $call_func (@CALL_FUNCS) {
 	my $dbh = connect_ok();
@@ -57,3 +55,5 @@ for my $call_func (@CALL_FUNCS) {
 	is $profile[2][0] => "insert into bar values (?)";
 	like $profile[2][1] => qr/^[0-9]+$/;
 }
+
+done_testing;

@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More;
 use lib "t/lib";
 use SQLiteTest;
 
@@ -42,3 +42,5 @@ like(
 	qr/attempt to fetch on inactive database handle/,
 	'Got the expected warning',
 );
+
+done_testing;

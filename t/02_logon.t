@@ -7,8 +7,6 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 20 * @CALL_FUNCS + 1;
-
 my $show_diag = 0;
 foreach my $call_func (@CALL_FUNCS) {
 
@@ -59,3 +57,5 @@ foreach my $call_func (@CALL_FUNCS) {
 		isa_ok( $dbh, 'DBI::db' );	
 	}
 }
+
+done_testing;

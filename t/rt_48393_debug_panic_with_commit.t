@@ -13,8 +13,6 @@ BEGIN {
 
 use Test::NoWarnings;
 
-plan tests => 2;
-
 my $file = 't/panic.pl';
 open my $fh, '>', $file;
 print $fh <DATA>;
@@ -31,6 +29,8 @@ END {
 	unlink $file if $file && -f $file;
 	unlink 'test.db' if -f 'test.db';
 }
+
+done_testing;
 
 __DATA__
 use strict;

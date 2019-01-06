@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 5 * @CALL_FUNCS + 1;
-
 my $N_OPCODES = 50; # how many opcodes before calling the progress handler
 
 # our progress_handler just remembers how many times it was called
@@ -48,3 +46,5 @@ foreach my $call_func (@CALL_FUNCS) {
 
 	$dbh->disconnect;
 }
+
+done_testing;

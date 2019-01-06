@@ -6,7 +6,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 13;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -68,3 +68,5 @@ SCOPE: {
 		'Query 2 Row 2',
 	);
 }
+
+done_testing;

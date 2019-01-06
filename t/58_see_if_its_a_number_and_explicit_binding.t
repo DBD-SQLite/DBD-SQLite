@@ -6,8 +6,6 @@ use Test::More;
 use Test::NoWarnings;
 use DBI qw(:sql_types);
 
-plan tests => 9;
-
 # The following is by mje++
 # http://pastebin.com/RkUwwVti
 
@@ -66,3 +64,5 @@ $sth->bind_param(1, 1, SQL_INTEGER);
 $sth->bind_param(2, $test_value, SQL_VARCHAR);
 $sth->execute;
 my_is($dbh, "prepared insert with provided bound data and type SQL_VARCHAR see_if_its_a_number=0");
+
+done_testing;

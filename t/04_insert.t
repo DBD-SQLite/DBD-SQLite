@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 14;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok();
@@ -34,3 +34,5 @@ SCOPE: {
 }
 
 is( $dbh->do("delete from f where f1='test'"), 3 );
+
+done_testing;

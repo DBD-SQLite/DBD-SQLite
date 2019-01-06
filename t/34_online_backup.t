@@ -10,8 +10,6 @@ BEGIN { requires_sqlite('3.6.11') }
 use Test::NoWarnings;
 use DBI;
 
-plan tests => 11 * @CALL_FUNCS + 1;
-
 foreach my $call_func (@CALL_FUNCS) {
 	# Connect to the test db and add some stuff:
 	my $foo = connect_ok( dbfile => 'foo', RaiseError => 1 );
@@ -109,3 +107,5 @@ foreach my $call_func (@CALL_FUNCS) {
 
 	$foo->disconnect;
 }
+
+done_testing;

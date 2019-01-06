@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 12;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -40,3 +40,5 @@ SCOPE: {
 	is( $sth->{NUM_OF_FIELDS}, 0, 'No fields in statement' );
 	ok( $sth->finish, '->finish ok' );
 }
+
+done_testing;

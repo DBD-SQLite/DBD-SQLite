@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 18;
+use Test::More;
 use Test::NoWarnings;
 
 sub rows {
@@ -72,3 +72,5 @@ SCOPE: {
 	rows( $sth, 2 );
 	ok( $sth->finish, '->finish' );
 }
+
+done_testing;

@@ -5,8 +5,6 @@ use SQLiteTest;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 3 * @CALL_FUNCS * 3 + 1;
-
 # The following snippets are copied from Cookbook.pod by hand.
 # Don't forget to update here when the pod is updated.
 # Or, use/coin something like Test::Snippets for better synching.
@@ -126,3 +124,5 @@ END_SQL
 		is $result->[1] => 1250;
 	}
 }
+
+done_testing;

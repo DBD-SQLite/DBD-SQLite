@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 15 + 1;
-
 # single column integer primary key
 {
 	my $dbh = connect_ok();
@@ -59,3 +57,5 @@ plan tests => 15 + 1;
 	@pk = map $_->{COLUMN_NAME}, sort {$a->{KEY_SEQ} <=> $b->{KEY_SEQ}} @pk_info;
 	is join(' ', @pk) => 'c"d b a', 'pk KEY_SEQ is correct';
 }
+
+done_testing;

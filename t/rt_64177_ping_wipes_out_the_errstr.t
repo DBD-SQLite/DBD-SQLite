@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 8;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
@@ -13,3 +13,5 @@ ok $dbh->errstr, "has errstr";
 ok $dbh->ping, "ping succeeded";
 ok $dbh->err, "err is not wiped out";
 ok $dbh->errstr, "errstr is not wiped out";
+
+done_testing;

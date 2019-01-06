@@ -8,8 +8,6 @@ use DBI qw(:sql_types);
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 10 + 1;
-
 my $dbh = connect_ok(
     RaiseError => 1,
     PrintError => 0,
@@ -41,3 +39,5 @@ $dbh->commit;
 
 $dbh->disconnect;
 undef($dbh);
+
+done_testing;

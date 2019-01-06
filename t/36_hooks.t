@@ -7,8 +7,6 @@ use Test::NoWarnings qw/had_no_warnings clear_warnings/;
 
 use DBD::SQLite;
 
-plan tests => 24 * @CALL_FUNCS + 1;
-
 # hooks : just count the commits / rollbacks / updates
 my ($n_commits, $n_rollbacks, $n_updates, @update_args);
 sub commit_hook   {  $n_commits   += 1; return 0; }
@@ -143,3 +141,5 @@ sub do_transaction {
   }
   $dbh->commit;
 }
+
+done_testing;

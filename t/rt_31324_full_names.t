@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 8;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok( RaiseError => 1 );
@@ -37,3 +37,5 @@ SCOPE: {
 		'f.f3'  => 1,
 	}, 'Shortname row ok' );
 }
+
+done_testing;

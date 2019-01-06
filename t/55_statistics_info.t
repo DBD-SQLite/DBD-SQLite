@@ -40,8 +40,6 @@ CREATE TABLE remote.b (
 
 __EOSQL__
 
-plan tests => @sql_statements + 2 + 46 * 2;
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 my $sth;
 my $stats_data;
@@ -116,3 +114,5 @@ for my $table_name ('a', 'A') {
   }
   ok(not(exists $stats_data->{a_ln}->{3}), "only two indexes in a_an index");
 }
+
+done_testing;

@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 7;
-
 my $dbh = connect_ok( RaiseError => 1 );
 ok $dbh->do('create table foo (id integer, value integer)');
 {
@@ -28,3 +26,5 @@ ok $dbh->do('create table foo (id integer, value integer)');
     my $sth = $dbh->prepare('select * from foo where id = ?');
     is_deeply $sth->{ParamValues} => {1 => undef}, "ParamValues without binding";
 }
+
+done_testing;

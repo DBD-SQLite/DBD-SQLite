@@ -19,8 +19,6 @@ BEGIN {
 	}
 }
 
-plan tests => 2 * (3 + 2 * @regexes) * @CALL_FUNCS;
-
 BEGIN {
 	# Sadly perl for windows (and probably sqlite, too) may hang
 	# if the system locale doesn't support european languages.
@@ -83,3 +81,5 @@ foreach my $call_func (@CALL_FUNCS) {
     }
   }
 }
+
+done_testing;

@@ -5,11 +5,7 @@ use SQLiteTest;
 use Test::More;
 
 BEGIN {
-	if ( $] >= 5.008005 ) {
-		my $tests = 27;
-		$tests += 2 if has_sqlite('3.6.14');
-		plan( tests => $tests * 2 + 1 );
-	} else {
+	unless ( $] >= 5.008005 ) {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
@@ -161,3 +157,5 @@ sub unicode_test {
         }
     }
 }
+
+done_testing;

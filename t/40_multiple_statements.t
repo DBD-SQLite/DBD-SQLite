@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 21;
-
 {
 	# DBD::SQLite prepares/does the first statement only;
 	# the following statements will be discarded silently.
@@ -126,3 +124,5 @@ plan tests => 21;
 	ok $got->[0][0] == 1
 	&& $got->[1][0] == 2, "and got the inserted values";
 }
+
+done_testing;

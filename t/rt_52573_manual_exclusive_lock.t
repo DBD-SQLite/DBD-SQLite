@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 92 * 4 + 2;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
@@ -207,3 +207,5 @@ foreach my $func (@funcs) {
 }
 eval { $dbh->{AutoCommit} = 1 }; # to end transaction
 $dbh->disconnect;
+
+done_testing;

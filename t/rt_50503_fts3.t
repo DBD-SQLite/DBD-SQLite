@@ -17,8 +17,6 @@ BEGIN {
 
 use Test::NoWarnings;
 
-plan tests => 6;
-
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 0 );
 
 $dbh->do(<<EOF);
@@ -54,3 +52,5 @@ sub insert_data {
 	$sth->execute($inc_num, $text) || die "execute failed\n";
 	$dbh->commit;
 }
+
+done_testing;

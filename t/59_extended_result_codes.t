@@ -14,8 +14,6 @@ use Test::NoWarnings;
 use DBD::SQLite::Constants qw/:extended_result_codes :result_codes/;
 use File::Temp;
 
-plan tests => 18;
-
 my $tmpdir = File::Temp::tempdir(CLEANUP => 1);
 ok -d $tmpdir;
 
@@ -50,3 +48,5 @@ for my $flag (0, 1) {
     my $err = DBI->err;
     is $err => $expected{$flag};
 }
+
+done_testing;

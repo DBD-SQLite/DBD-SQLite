@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 15;
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 
 $dbh->$sqlite_call(create_module => vtab => "DBD::SQLite::VirtualTable::T");
@@ -71,6 +69,8 @@ ok $dbh->do("DROP TABLE foobar");
 undef $dbh;
 
 note "done";
+
+done_testing;
 
 package DBD::SQLite::VirtualTable::T;
 use strict;

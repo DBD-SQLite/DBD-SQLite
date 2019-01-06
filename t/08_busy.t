@@ -7,8 +7,6 @@ use SQLiteTest qw/connect_ok dbfile @CALL_FUNCS/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 11 * @CALL_FUNCS + 1;
-
 foreach my $call_func (@CALL_FUNCS) {
 
 	my $dbh = connect_ok(
@@ -119,3 +117,5 @@ foreach my $call_func (@CALL_FUNCS) {
 	    unlink $dbfile;
 	}
 }
+
+done_testing;

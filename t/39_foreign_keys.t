@@ -8,8 +8,6 @@ BEGIN { requires_sqlite('3.6.19') }
 
 use Test::NoWarnings;
 
-plan tests => 17;
-
 # following tests are from http://www.sqlite.org/foreignkeys.html
 
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
@@ -71,3 +69,5 @@ sub insert_track {  _do("INSERT INTO track (trackid, trackname, trackartist) VAL
 sub update_track {  _do("UPDATE track SET trackartist = ? WHERE trackname = ?", @_); }
 
 sub _do { eval { $dbh->do(shift, undef, @_) }; }
+
+done_testing;

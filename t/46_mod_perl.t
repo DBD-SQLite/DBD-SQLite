@@ -8,9 +8,6 @@ BEGIN {
 	if ($@) {
 		plan skip_all => 'requires APR::Table';
 	}
-	else {
-		plan tests => 2;
-	}
 }
 
 my $dbh = connect_ok(
@@ -21,3 +18,5 @@ my $dbh = connect_ok(
 eval { $dbh->do('SELECT 1') };
 ok !$@, "no errors";
 diag $@ if $@;
+
+done_testing;

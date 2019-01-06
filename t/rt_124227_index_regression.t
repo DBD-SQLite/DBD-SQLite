@@ -5,8 +5,6 @@ use SQLiteTest;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 5;
-
 my $sql_in_question = <<'EOS';
 SELECT cdid
   FROM cd me
@@ -73,3 +71,5 @@ EOS
 
   is_deeply $res => [[4], [5]], "got the expected result without the index" or note explain $res;
 }
+
+done_testing;

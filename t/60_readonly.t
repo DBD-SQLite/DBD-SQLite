@@ -9,8 +9,6 @@ BEGIN { requires_sqlite('3.7.11') }
 
 use Test::NoWarnings;
 
-plan tests => 14;
-
 {
 	my $dbh = connect_ok(
 		sqlite_open_flags => SQLITE_OPEN_READONLY,
@@ -40,3 +38,5 @@ plan tests => 14;
 	# told so)
 	ok $dbh->do('CREATE TABLE foo (id)');
 }
+
+done_testing;

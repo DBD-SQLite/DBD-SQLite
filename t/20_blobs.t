@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 17;
+use Test::More;
 use Test::NoWarnings;
 use DBI ':sql_types';
 
@@ -81,3 +81,5 @@ SCOPE: {
 	], 'Got the blob back ok' );
 	ok( $sth->finish, '->finish' );
 }
+
+done_testing;

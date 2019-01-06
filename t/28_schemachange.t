@@ -3,7 +3,7 @@
 
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More;
 use lib "t/lib";
 use SQLiteTest;
 
@@ -53,3 +53,5 @@ SCOPE: {
 	ok( $dbh->do($create2), $create2 ) or diag("Error: '$DBI::errstr'");
 	ok( $dbh->disconnect, '->disconnect ok' );
 }
+
+done_testing;

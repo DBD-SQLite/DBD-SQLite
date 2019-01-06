@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 2;
+use Test::More;
 use DBI;
 
 my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
@@ -31,3 +31,5 @@ eval {
   $dbh->do('CREATE VIRTUAL TABLE FIXMESSAGE USING FTS3(MESSAGE, tokenize=perl, "main::locale_tokenizer");');
 };
 ok $@, "cause an error but not segfault";
+
+done_testing;

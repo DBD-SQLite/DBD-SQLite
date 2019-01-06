@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 5;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -18,3 +18,5 @@ ok( $dbh->do('INSERT INTO one ( num ) values ( 1 )'), 'insert' );
 
 # Insert a duplicate
 ok( ! $dbh->do('INSERT INTO one ( num ) values ( 1 )'), 'duplicate' );
+
+done_testing;

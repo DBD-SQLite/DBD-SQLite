@@ -3,11 +3,6 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-
-my $tests = 7;
-$tests += 1 if has_sqlite('3.7.7');
-plan tests => $tests;
-
 use DBI;
 use DBD::SQLite;
 
@@ -105,3 +100,5 @@ if (has_sqlite('3.7.7')) {
   $dbh->disconnect;
   unlink $dbfile if -f $dbfile;
 }
+
+done_testing;

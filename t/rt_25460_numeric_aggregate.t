@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 14;
+use Test::More;
 use Test::NoWarnings;
 
 # Create the table
@@ -55,3 +55,5 @@ is_deeply(
 	],
 	'group/sum/sort/limit query ok'
 );
+
+done_testing;

@@ -6,7 +6,6 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.7.7') }
 
-plan tests => 17;
 use DBI;
 use DBD::SQLite;
 
@@ -219,3 +218,5 @@ cleanup();
   $dbh->disconnect;
   cleanup();
 }
+
+done_testing;

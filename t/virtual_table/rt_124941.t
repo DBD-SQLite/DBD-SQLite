@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok $sqlite_call has_sqlite/;
-use Test::More tests => 6;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(sqlite_trace => 2);
@@ -88,3 +88,5 @@ EOT
 
     is_deeply($got_aref, $expected_aref, $test_desc);
 }
+
+done_testing;

@@ -15,10 +15,6 @@ our $perl_rows = [
   [7, 8, 'nine' ],
 ];
 
-my $tests = 25;
-$tests += 2 * 2 if has_sqlite('3.7.11');
-plan tests => $tests;
-
 my $dbh = connect_ok( RaiseError => 1, AutoCommit => 1 );
 
 ok $dbh->$sqlite_call(create_module =>
@@ -117,3 +113,5 @@ is_deeply $res, [ 1 ], "IN strarray";
 $sql = "SELECT a FROM vtb WHERE c IN (SELECT str FROM strarray WHERE str > 'a')";
 $res = $dbh->selectcol_arrayref($sql);
 is_deeply $res, [ 1 ], "IN SELECT FROM strarray";
+
+done_testing;

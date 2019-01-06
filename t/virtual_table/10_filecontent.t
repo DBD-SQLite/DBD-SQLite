@@ -8,8 +8,6 @@ use FindBin;
 
 plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;
 
-plan tests => 13;
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 
 # create index table
@@ -53,3 +51,5 @@ is $rows->[1]{bar},   'bar2', 'got bar2';
 $sql  = "SELECT * FROM vfs WHERE content LIKE '%filesys%'";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 1, "got 1 row";
+
+done_testing;

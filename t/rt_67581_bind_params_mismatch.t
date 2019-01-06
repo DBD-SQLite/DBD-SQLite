@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest qw/connect_ok/;
-use Test::More tests => 34;
+use Test::More;
 use DBI qw/:sql_types/;
 
 my $id = 0;
@@ -139,3 +139,5 @@ for my $has_pk (0..1) {
 
 	$dbh->disconnect;
 }
+
+done_testing;

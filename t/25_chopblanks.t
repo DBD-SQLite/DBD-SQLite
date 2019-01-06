@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 14;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -61,3 +61,5 @@ SCOPE: {
 	], 'ChopBlanks = 1' );
 	ok( $sth->finish, '->finish' );
 }
+
+done_testing;

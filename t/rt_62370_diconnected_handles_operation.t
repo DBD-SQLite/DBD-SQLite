@@ -10,8 +10,6 @@ my @methods = qw(
 	commit rollback
 );
 
-plan tests => 2 * (6 + @methods) + 2 * @CALL_FUNCS * (14 + ($DBD::SQLite::sqlite_version_number >= 3006011) * 2);
-
 local $SIG{__WARN__} = sub {};  # to hide warnings/error messages
 
 # DBI methods
@@ -175,3 +173,5 @@ for my $call_func (@CALL_FUNCS) {
 		}
 	}
 }
+
+done_testing;

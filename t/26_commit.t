@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 28;
+use Test::More;
 # use Test::NoWarnings;
 
 my $warning_count = 0;
@@ -107,3 +107,5 @@ SCOPE: {
 	$SIG{__WARN__} = 'DEFAULT';
 	is( $warning_count, 2, 'Got one warning' );
 }
+
+done_testing;

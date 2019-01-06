@@ -6,7 +6,6 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.6.8') }
 
-plan tests => 5;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
@@ -41,3 +40,5 @@ is $dbh->selectrow_array("SELECT COUNT(*) FROM MST"), 0,
 	"savepoint rolled back";
 
 $dbh->rollback;
+
+done_testing;

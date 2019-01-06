@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 4;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
@@ -19,3 +19,5 @@ ok $row, 'Found the primary key column.';
 is $row->{COLUMN_NAME} => "Country Code",
 	'Key column name reported correctly.'
 	or note explain $row;
+
+done_testing;

@@ -4,9 +4,7 @@ use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 BEGIN {
-	if ( $] >= 5.008005 ) {
-		plan( tests => 15 * @CALL_FUNCS + 1);
-	} else {
+	unless ( $] >= 5.008005 ) {
 		plan( skip_all => 'Unicode is not supported before 5.8.5' );
 	}
 }
@@ -38,3 +36,5 @@ sub perl_uc {
 	my $string = shift;
 	return uc($string);
 }
+
+done_testing;

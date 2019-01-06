@@ -6,7 +6,6 @@ use Test::More;
 
 BEGIN { requires_sqlite('3.6.8') }
 
-plan tests => 2;
 use Test::NoWarnings;
 
 { # simple case
@@ -20,3 +19,5 @@ use Test::NoWarnings;
 	$dbh->commit;
 	# should not spit the "Issuing rollback()" warning
 }
+
+done_testing;

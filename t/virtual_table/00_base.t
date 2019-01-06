@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 1 + 9;
-
 my $dbh = connect_ok( RaiseError => 1, PrintError => 0, AutoCommit => 1 );
 
 $dbh->$sqlite_call(create_module => vtab => "DBD::SQLite::VirtualTable::T");
@@ -29,6 +27,8 @@ is_deeply([sort keys %{$rows->[0]}], [qw/bar foo/], "col list OK");
 $sql = "SELECT * FROM foobar WHERE foo > -1 and bar < 33";
 $rows = $dbh->selectall_arrayref($sql, {Slice => {}});
 is scalar(@$rows), 5, "got 5 rows (because of omitted constraints)";
+
+done_testing;
 
 package DBD::SQLite::VirtualTable::T;
 use strict;

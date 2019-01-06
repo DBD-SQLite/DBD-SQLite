@@ -43,8 +43,6 @@ my @tests = qw(
   2147483649
 );
 
-plan tests => 1 + @tests * 6 * 6;
-
 my $dbh = connect_ok();
 $dbh->do('
   CREATE TABLE t (
@@ -108,3 +106,5 @@ for my $val (@tests) {
     }
   }
 }
+
+done_testing;

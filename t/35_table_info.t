@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 22;
+use Test::More;
 use Test::NoWarnings;
 
 my @catalog_info = (
@@ -139,3 +139,5 @@ is_deeply $info, [$table2_info, @systable_info, $table4_info, $table3_info, $tab
 #warn 'Schema Names', substr Dumper($dbh->table_info('', '%', '')->fetchall_arrayref), 5;
 #warn 'Table Types', substr Dumper($dbh->table_info('', '', '', '%')->fetchall_arrayref), 5;
 #warn 'table_info', substr Dumper($info), 5;
+
+done_testing;

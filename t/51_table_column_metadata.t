@@ -13,8 +13,6 @@ use lib "t/lib";
 use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::NoWarnings;
 
-plan tests => 16 * @CALL_FUNCS + 1;
-
 for my $call_func (@CALL_FUNCS) {
 	my $dbh = connect_ok(RaiseError => 1);
 	$dbh->do('create table foo (id integer primary key autoincrement, "name space", unique_col integer unique)');
@@ -58,3 +56,5 @@ for my $call_func (@CALL_FUNCS) {
 		ok $@, "successfully died when dbh is inactive";
 	}
 }
+
+done_testing;

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 10;
+use Test::More;
 use Test::NoWarnings;
 
 # Create a database
@@ -41,3 +41,5 @@ SCOPE: {
 	my $row2 = $sth->fetchrow_arrayref;
 	is( $row2, undef, 'fetch empty statement handler' );
 }
+
+done_testing;

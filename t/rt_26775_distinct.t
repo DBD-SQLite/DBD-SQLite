@@ -7,8 +7,6 @@ use SQLiteTest;
 
 BEGIN { requires_sqlite('3.6.3') }
 
-plan tests => 22;
-
 use_ok('DBD::SQLite');
 
 my $noprintquerymsg = '(Set ENV{PRINT_QUERY} to true value to see query)';
@@ -94,6 +92,8 @@ foreach my $query (($query_with_parens, $query_without_parens)) {
 }
 
 $dbh->disconnect;
+
+done_testing;
 
 sub trim {
     my ($string) = @_;

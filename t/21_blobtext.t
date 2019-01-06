@@ -2,7 +2,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 27;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok(
@@ -74,3 +74,5 @@ sub dumpblob {
     }
     if ($ENV{SHOW_BLOBS}) { close(OUT) }
 }
+
+done_testing;

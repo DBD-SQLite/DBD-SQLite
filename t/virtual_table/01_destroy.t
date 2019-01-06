@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok $sqlite_call/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 1 + 19;
-
 my $dbfile = "tmp.sqlite";
 
 my $dbh = connect_ok( dbfile => $dbfile, RaiseError => 1, AutoCommit => 1 );
@@ -51,6 +49,8 @@ ok !$DBD::SQLite::VirtualTable::T::CONNECT_COUNT,    "no vtab connected";
 my $sth = $dbh->prepare("SELECT * FROM barfoo");
 ok !$DBD::SQLite::VirtualTable::T::CREATE_COUNT,    "no vtab created";
 is $DBD::SQLite::VirtualTable::T::CONNECT_COUNT, 1, "1 vtab connected";
+
+done_testing;
 
 package DBD::SQLite::VirtualTable::T;
 use base 'DBD::SQLite::VirtualTable';

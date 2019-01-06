@@ -5,8 +5,6 @@ use SQLiteTest qw/connect_ok/;
 use Test::More;
 use Test::NoWarnings;
 
-plan tests => 8;
-
 my $dbh = connect_ok( RaiseError => 1 );
 
 eval { $dbh->do("\n") };
@@ -32,3 +30,5 @@ diag $@ if $@;
 eval { $dbh->do(undef) };
 ok !$@, "undef statement does not spit a warning, and does not die anyway";
 diag $@ if $@;
+
+done_testing;

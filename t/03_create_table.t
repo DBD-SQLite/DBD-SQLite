@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
-use Test::More tests => 7;
+use Test::More;
 use Test::NoWarnings;
 
 my $dbh = connect_ok();
@@ -28,3 +28,5 @@ ok( $sth->execute, '->execute ok' );
 my $names = $sth->{NAME};
 is( scalar(@$names), 4, 'Got 4 columns' );
 is_deeply( $names, [ 'f1', 'f1', 'f2', 'f3' ], 'Table prepending is disabled by default' );
+
+done_testing;
