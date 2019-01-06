@@ -9,12 +9,11 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
+use Test::FailWarnings;
+use DBI qw/SQL_INTEGER/;
 
 BEGIN { requires_sqlite('3.7.9') }
-BEGIN { plan skip_all => 'FTS3 is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options() }
-
-use DBI qw/SQL_INTEGER/;
-use Test::FailWarnings;
+BEGIN { plan skip_all => 'FTS is disabled for this DBD::SQLite' unless has_fts() }
 
 my $dbh = connect_ok(RaiseError => 1, AutoCommit => 1);
 

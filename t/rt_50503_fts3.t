@@ -5,14 +5,8 @@ use SQLiteTest;
 use Test::More;
 
 BEGIN {
-	use DBD::SQLite;
-	unless ($DBD::SQLite::sqlite_version_number && $DBD::SQLite::sqlite_version_number >= 3006006) {
-		plan skip_all => "this test requires SQLite 3.6.6 and newer";
-		exit;
-	}
-	if (!grep /^ENABLE_FTS3/, DBD::SQLite::compile_options()) {
-		plan skip_all => "FTS3 is disabled for this DBD::SQLite";
-	}
+	requires_sqlite('3.6.6');
+	plan skip_all => "FTS is disabled for this DBD::SQLite" unless has_fts();
 }
 
 use Test::FailWarnings;

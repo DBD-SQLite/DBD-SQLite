@@ -6,7 +6,7 @@ use Test::More;
 use Test::FailWarnings;
 
 BEGIN { requires_sqlite('3.7.7') }
-BEGIN { plan skip_all => 'FTS3 is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options() }
+BEGIN { plan skip_all => 'FTS is disabled for this DBD::SQLite' unless has_fts() }
 
 my $dbh = connect_ok(AutoCommit => 0);
 

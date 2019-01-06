@@ -8,7 +8,11 @@ use File::Spec ();
 use Test::More ();
 
 our @ISA     = 'Exporter';
-our @EXPORT  = qw/connect_ok dies dbfile @CALL_FUNCS $sqlite_call has_sqlite requires_sqlite/;
+our @EXPORT  = qw/
+    connect_ok dies dbfile @CALL_FUNCS $sqlite_call
+    has_sqlite requires_sqlite requires_unicode_support
+    allow_warnings has_compile_option has_fts
+/;
 our @CALL_FUNCS;
 our $sqlite_call;
 
@@ -137,6 +141,40 @@ $sqlite_call = sub {
   $CALL_FUNCS[-1]->($dbh, @_, $func_to_call);
 };
 
+=head2 has_compile_option
+
+  has_compile_option('ENABLE_FTS3');
+  has_compile_option(qr/^ENABLE_FTS[345]/);
+
+returns true if DBD::SQLite is built with a specified compile option.
+
+=cut
+
+sub has_compile_option {
+  my $option = shift;
+  require DBD::SQLite;
+  return unless DBD::SQLite->can('compile_options');
+  my $re = ref $option eq ref qr// ? $option : qr/\b$option\b/;
+  grep /$re/, DBD::SQLite::compile_options();
+}
+
+=head2 has_fts
+
+  has_fts();
+  has_fts(3);
+
+returns true if DBD::SQLite is built with FTS.
+
+=cut
+
+sub has_fts {
+  if (my $version = shift) {
+    has_compile_option("ENABLE_FTS$version");
+  } else {
+    has_compile_option(qr/\bENABLE_FTS\d\b/);
+  }
+}
+
 =head2 has_sqlite
 
   has_sqlite('3.6.11');
@@ -168,6 +206,35 @@ sub requires_sqlite {
     Test::More::plan skip_all => "this test requires SQLite $version and newer";
     exit;
   }
+}
+
+=head2 requires_unicode_support
+
+  BEGIN { requires_unicode_support(); }
+
+skips all the tests if Perl does not have sane Unicode support.
+
+=cut
+
+sub requires_unicode_support {
+  unless ($] >= 5.008005) {
+    Test::More::plan skip_all => "Unicode is not supported before 5.8.5";
+    exit;
+  }
+}
+
+=head2 allow_warnings
+
+  allow_warnings { eval {...} };
+
+hides SQLite warnings from Test::FailWarnings.
+
+=cut
+
+sub allow_warnings (&) {
+  my $code = shift;
+  local $SIG{__WARN__} = sub { Test::More::note @_ };
+  $code->();
 }
 
 1;

@@ -1,14 +1,11 @@
 use strict;
 use warnings;
 use lib "t/lib";
-use SQLiteTest qw/connect_ok @CALL_FUNCS/;
+use SQLiteTest;
 use Test::More;
-BEGIN {
-	unless ( $] >= 5.008005 ) {
-		plan( skip_all => 'Unicode is not supported before 5.8.5' );
-	}
-}
 use Test::FailWarnings;
+
+BEGIN { requires_unicode_support() }
 
 foreach my $call_func (@CALL_FUNCS) {
 	my $dbh = connect_ok( sqlite_unicode => 1 );

@@ -3,14 +3,10 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-
-BEGIN {
-	unless ( $] >= 5.008005 ) {
-		plan( skip_all => 'Unicode is not supported before 5.8.5' );
-	}
-}
 use Test::FailWarnings;
 use Encode;
+
+BEGIN { requires_unicode_support() }
 
 unicode_test("\x{263A}");  # (decoded) smiley character
 unicode_test("\x{0100}");  # (decoded) capital A with macron

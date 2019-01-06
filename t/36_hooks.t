@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use lib "t/lib";
-use SQLiteTest     qw/connect_ok @CALL_FUNCS/;
+use SQLiteTest;
 use Test::More;
 use Test::FailWarnings;
 
@@ -68,7 +68,7 @@ foreach my $call_func (@CALL_FUNCS) {
 
   # a commit hook that rejects the transaction
   $dbh->$call_func(sub {return 1}, "commit_hook");
-  eval {do_transaction($dbh)}; # in eval() because of RaiseError
+  allow_warnings { eval {do_transaction($dbh)} }; # in eval() because of RaiseError
   ok ($@, "transaction was rejected: $@" );
 
   # no explicit rollback, because SQLite already did it
@@ -85,7 +85,7 @@ foreach my $call_func (@CALL_FUNCS) {
 
   # try transaction again .. rollback hook should not be called
   $n_rollbacks = 0;
-  eval {do_transaction($dbh)};
+  allow_warnings { eval {do_transaction($dbh)} };
   is($n_rollbacks, 0, "rollback hook unregistered");
 
   # check that the rollbacks did really occur
@@ -111,7 +111,7 @@ foreach my $call_func (@CALL_FUNCS) {
             "args to authorizer (INSERT)");
 
   # try a delete (should be unauthorized)
-  eval {$dbh->do("DELETE FROM hook_test WHERE foo = 'auth_test'")};
+  allow_warnings { eval {$dbh->do("DELETE FROM hook_test WHERE foo = 'auth_test'")} };
   ok($@, "delete was rejected with message $@");
   is_deeply(\@authorizer_args, 
             [DBD::SQLite::DELETE, 'hook_test', undef, 'temp', undef],
@@ -119,7 +119,7 @@ foreach my $call_func (@CALL_FUNCS) {
 
   # unregister the authorizer ... now DELETE should be authorized
   $dbh->$call_func(undef, "set_authorizer");
-  eval {$dbh->do("DELETE FROM hook_test WHERE foo = 'auth_test'")};
+  allow_warnings { eval {$dbh->do("DELETE FROM hook_test WHERE foo = 'auth_test'")} };
   ok(!$@, "delete was accepted");
 }
 

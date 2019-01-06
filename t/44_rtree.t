@@ -3,8 +3,13 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-use DBD::SQLite;
-use Data::Dumper;
+use Test::FailWarnings;
+
+BEGIN {
+	if (!has_compile_option('ENABLE_RTREE')) {
+		plan skip_all => 'RTREE is disabled for this DBD::SQLite';
+	}
+}
 
 # NOTE: It seems to be better to compare rounded values
 # because stored coordinate values may have slight errors
@@ -46,13 +51,6 @@ my @test_results = (
     [1..6],
     [1, 3, 5, 6]
 );
-
-BEGIN {
-	if (!grep /ENABLE_RTREE/, DBD::SQLite::compile_options()) {
-		plan skip_all => 'RTREE is disabled for this DBD::SQLite';
-	}
-}
-use Test::FailWarnings;
 
 # connect
 my $dbh = connect_ok( RaiseError => 1 );

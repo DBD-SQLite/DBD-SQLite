@@ -6,14 +6,11 @@ use warnings;
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
-BEGIN {
-	unless ( $] >= 5.008005 ) {
-		plan( skip_all => 'Unicode is not supported before 5.8.5' );
-	}
-}
 use Test::FailWarnings;
 use File::Temp ();
 use File::Spec::Functions ':ALL';
+
+BEGIN { requires_unicode_support() }
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
 foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿') {

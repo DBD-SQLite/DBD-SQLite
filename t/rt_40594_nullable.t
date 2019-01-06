@@ -7,7 +7,7 @@ use DBD::SQLite;
 use Test::FailWarnings;
 
 BEGIN {
-	if (!grep /^ENABLE_COLUMN_METADATA/, DBD::SQLite::compile_options()) {
+	if (!has_compile_option('ENABLE_COLUMN_METADATA')) {
 		plan skip_all => "Column metadata is disabled for this DBD::SQLite";
 	}
 }

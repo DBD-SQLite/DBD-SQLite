@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 use lib "t/lib";
-use SQLiteTest     qw/connect_ok has_sqlite/;
+use SQLiteTest;
 use Test::More;
 use Test::FailWarnings;
 use DBD::SQLite;
@@ -24,13 +24,12 @@ my @tests = (
 );
 
 BEGIN {
-	if ($] < 5.008005) {
-		plan skip_all => 'Unicode is not supported before 5.8.5';
+	requires_unicode_support();
+
+	if (!has_fts()) {
+		plan skip_all => 'FTS is disabled for this DBD::SQLite';
 	}
-	if (!grep /ENABLE_FTS3/, DBD::SQLite::compile_options()) {
-		plan skip_all => 'FTS3 is disabled for this DBD::SQLite';
-	}
-	if ($DBD::SQLite::sqlite_version_number >= 3011000 and $DBD::SQLite::sqlite_version_number < 3012000 and !grep /ENABLE_FTS3_TOKENIZER/, DBD::SQLite::compile_options()) {
+	if ($DBD::SQLite::sqlite_version_number >= 3011000 and $DBD::SQLite::sqlite_version_number < 3012000 and !has_compile_option('ENABLE_FTS3_TOKENIZER')) {
 		plan skip_all => 'FTS3 tokenizer is disabled for this DBD::SQLite';
 	}
 }
@@ -94,8 +93,7 @@ for my $use_unicode (0, 1) {
   SKIP: {
       skip "These tests require SQLite compiled with "
          . "ENABLE_FTS3_PARENTHESIS option", scalar @tests
-        unless DBD::SQLite->can('compile_options') &&
-        grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options();
+        unless has_compile_option('ENABLE_FTS3_PARENTHESIS');
 
       my $sql = "SELECT docid FROM try_$fts WHERE content MATCH ?";
 

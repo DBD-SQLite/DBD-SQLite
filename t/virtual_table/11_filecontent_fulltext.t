@@ -1,18 +1,17 @@
 use strict;
 use warnings;
+use FindBin;
 use lib "t/lib";
-use SQLiteTest qw/connect_ok $sqlite_call requires_sqlite/;
+use SQLiteTest;
 use Test::More;
+use Test::FailWarnings;
 
 BEGIN { requires_sqlite('3.7.12') }
 
-use FindBin;
-
 BEGIN {
   plan skip_all => "\$FindBin::Bin points to a nonexistent path for some reason: $FindBin::Bin" if !-d $FindBin::Bin;
-  plan skip_all => 'FTS is disabled for this DBD::SQLite' if !grep /ENABLE_FTS3/, DBD::SQLite::compile_options();
+  plan skip_all => 'FTS is disabled for this DBD::SQLite' unless has_fts();
 }
-use Test::FailWarnings;
 
 my $dbfile = "tmp.sqlite";
 
@@ -35,7 +34,7 @@ my @tests = (
 # The last set of tests tries to use enhanced query syntax. But when
 # SQLite is compiled without it's support, the word 'AND' is taken
 # literally.
-if (grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options()) {
+if (has_compile_option('ENABLE_FTS3_PARENTHESIS')) {
   push @tests, (
   ['"use strict" AND "use warnings"' => qw[inc/Test/FailWarnings.pm
                                            lib/DBD/SQLite/Constants.pm

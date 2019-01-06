@@ -4,9 +4,7 @@ use lib "t/lib";
 use SQLiteTest;
 use Test::More;
 BEGIN {
-    require DBD::SQLite;
-    unless (DBD::SQLite->can('compile_options')
-        && grep /ENABLE_ICU/, DBD::SQLite::compile_options()) {
+    unless (has_compile_option('ENABLE_ICU')) {
         plan( skip_all => 'requires SQLite ICU plugin to be enabled' );
     }
 }
