@@ -34,7 +34,7 @@ for my $func (@CALL_FUNCS) {
         skip 'ENABLE_FKEY is not supported', 3 if !SQLITE_DBCONFIG_ENABLE_FKEY;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_FKEY, -1, 'db_config');
-        diag "current ENABLE_FKEY value: $ret";
+        note "current ENABLE_FKEY value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_FKEY, 1, 'db_config');
         is $ret => 1, 'enable foreign key';
@@ -52,7 +52,7 @@ for my $func (@CALL_FUNCS) {
         skip 'ENABLE_TRIGGER is not supported', 3 if !SQLITE_DBCONFIG_ENABLE_TRIGGER;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_TRIGGER, -1, 'db_config');
-        diag "current ENABLE_TRIGGER value: $ret";
+        note "current ENABLE_TRIGGER value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_TRIGGER, 1, 'db_config');
         is $ret => 1, 'enable trigger';
@@ -70,7 +70,7 @@ for my $func (@CALL_FUNCS) {
         skip 'ENABLE_FTS3_TOKENIZER is not supported', 3 if !SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER, -1, 'db_config');
-        diag "current ENABLE_FTS3_TOKENIZER value: $ret";
+        note "current ENABLE_FTS3_TOKENIZER value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER, 1, 'db_config');
         is $ret => 1, 'enable fts3_tokenizer';
@@ -88,7 +88,7 @@ for my $func (@CALL_FUNCS) {
         skip 'ENABLE_LOAD_EXTENSION is not supported', 3 if !SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, -1, 'db_config');
-        diag "current ENABLE_LOAD_EXTENSION value: $ret";
+        note "current ENABLE_LOAD_EXTENSION value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1, 'db_config');
         is $ret => 1, 'enable load_extension';
@@ -106,7 +106,7 @@ for my $func (@CALL_FUNCS) {
         skip 'NO_CKPT_ON_CLOSE is not supported', 3 if !SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, -1, 'db_config');
-        diag "current NO_CKPT_ON_CLOSE value: $ret";
+        note "current NO_CKPT_ON_CLOSE value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, 1, 'db_config');
         is $ret => 1, 'no checkpoint on close';
@@ -124,7 +124,7 @@ for my $func (@CALL_FUNCS) {
         skip 'ENABLE_QPSG is not supported', 3 if !SQLITE_DBCONFIG_ENABLE_QPSG;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_QPSG, -1, 'db_config');
-        diag "current ENABLE_OPSG value: $ret";
+        note "current ENABLE_OPSG value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_ENABLE_QPSG, 1, 'db_config');
         is $ret => 1, 'enable query planner stability guarantee';
@@ -142,7 +142,7 @@ for my $func (@CALL_FUNCS) {
         skip 'TRIGGER_EQP is not supported', 3 if !SQLITE_DBCONFIG_TRIGGER_EQP;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_TRIGGER_EQP, -1, 'db_config');
-        diag "current TRIGGER_EQP value: $ret";
+        note "current TRIGGER_EQP value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_TRIGGER_EQP, 1, 'db_config');
         is $ret => 1, 'trigger explain query plan';
@@ -160,7 +160,7 @@ for my $func (@CALL_FUNCS) {
         skip 'RESET_DATABASE is not supported', 3 if !SQLITE_DBCONFIG_RESET_DATABASE;
     	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
         my $ret = $dbh->$func(SQLITE_DBCONFIG_RESET_DATABASE, -1, 'db_config');
-        diag "current RESET_DATABASE value: $ret";
+        note "current RESET_DATABASE value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_RESET_DATABASE, 1, 'db_config');
         is $ret => 1, 'enable reset database';
@@ -185,7 +185,7 @@ for my $func (@CALL_FUNCS) {
         is $row->{sql} => $sql, 'found sql';
 
         my $ret = $dbh->$func(SQLITE_DBCONFIG_DEFENSIVE, -1, 'db_config');
-        diag "current DEFENSIVE value: $ret";
+        note "current DEFENSIVE value: $ret";
 
         $ret = $dbh->$func(SQLITE_DBCONFIG_DEFENSIVE, 1, 'db_config');
         is $ret => 1;
