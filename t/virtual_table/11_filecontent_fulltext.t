@@ -22,8 +22,7 @@ my @tests = (
                           lib/DBD/SQLite/VirtualTable/FileContent.pm
                           lib/DBD/SQLite/VirtualTable/PerlData.pm]],
   ["install_method" => qw[lib/DBD/SQLite.pm]],
-  ['"use strict"'   => qw[inc/Test/NoWarnings.pm
-                          inc/Test/NoWarnings/Warning.pm
+  ['"use strict"'   => qw[inc/Test/FailWarnings.pm
                           lib/DBD/SQLite.pm
                           lib/DBD/SQLite/Constants.pm
                           lib/DBD/SQLite/GetInfo.pm
@@ -38,7 +37,7 @@ my @tests = (
 # literally.
 if (grep /ENABLE_FTS3_PARENTHESIS/, DBD::SQLite::compile_options()) {
   push @tests, (
-  ['"use strict" AND "use warnings"' => qw[inc/Test/NoWarnings.pm
+  ['"use strict" AND "use warnings"' => qw[inc/Test/FailWarnings.pm
                                            lib/DBD/SQLite/Constants.pm
                                            lib/DBD/SQLite/GetInfo.pm
                                            lib/DBD/SQLite/VirtualTable.pm
