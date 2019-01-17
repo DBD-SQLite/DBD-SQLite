@@ -1,5 +1,6 @@
 use strict;
 use warnings;
+no warnings 'locale';
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
