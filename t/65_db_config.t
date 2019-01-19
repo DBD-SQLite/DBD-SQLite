@@ -204,7 +204,7 @@ for my $func (@CALL_FUNCS) {
 
 # DEFENSIVE at connection
 SKIP: {
-    skip 'DEFENSIVE is not supported', 8 if !SQLITE_DBCONFIG_DEFENSIVE;
+    skip 'DEFENSIVE is not supported', 3 if !SQLITE_DBCONFIG_DEFENSIVE;
     my $dbh = connect_ok(RaiseError => 1, PrintError => 0, sqlite_defensive => 1);
 
     my $sql = 'CREATE TABLE foo (id, text)';
