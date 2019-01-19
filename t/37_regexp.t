@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-no warnings 'locale';
+no if $] > 5.020, "warnings", "locale";
 use lib "t/lib";
 use SQLiteTest;
 use Test::More;
