@@ -14,7 +14,7 @@ our $scan_results = [
 my $dbh = connect_ok(RaiseError => 1, AutoCommit => 1);
 
 # register the module
-$dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
+$dbh->$sqlite_call(create_module => perl => "DBD::SQLite::VirtualTable::PerlData");
 $dbh->do(<<'SQL');
         CREATE VIRTUAL TABLE temp.scan_results
         USING perl(file varchar,
