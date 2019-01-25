@@ -1,7 +1,9 @@
-#!perl -w
-
 use strict;
-use Test::More tests => 4;
+use warnings;
+use lib "t/lib";
+use SQLiteTest;
+use Test::More;
+use if -d ".git", "Test::FailWarnings";
 
 our $scan_results = [
     { nodepath => 1 },
@@ -9,8 +11,7 @@ our $scan_results = [
     { nodepath => 3 },
 ];
 
-my $dbh = DBI->connect("dbi:SQLite:dbname=:memory:", '', '',
-                        {RaiseError => 1, AutoCommit => 1});
+my $dbh = connect_ok(RaiseError => 1, AutoCommit => 1);
 
 # register the module
 $dbh->sqlite_create_module(perl => "DBD::SQLite::VirtualTable::PerlData");
@@ -91,3 +92,5 @@ undef $ok;
 #my $rows = $sth->fetchall_arrayref;
 #use Data::Dumper;
 #warn Dumper $rows;
+
+done_testing;
