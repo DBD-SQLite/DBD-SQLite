@@ -88,7 +88,7 @@ sub BEST_INDEX {
   # in FILTER() for deciding which rows match the constraints.
   my @conditions;
   my $ix = 0;
-  foreach my $constraint (grep {$_->{usable}} @$constraints) {
+  foreach my $constraint (grep {$_->{usable} and exists $SQLOP2PERLOP{ $_->{op} } } @$constraints) {
     my $col = $constraint->{col};
     my ($member, $optype);
 
