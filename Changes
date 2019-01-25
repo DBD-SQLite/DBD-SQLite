@@ -1,5 +1,12 @@
 Changes for Perl extension DBD-SQLite
 
+1.63_01 2019-01-26
+    - Made sure an internal hv is initialized (GH#45)
+    - Fixed a number of tests to skip
+    - Bumped up Test::More requirement
+    - Replaced bundled Test::NoWarnings with Test::FailWarnings
+    - Handle 'unknown' op in DBD::SQLite::VirtualTable::PerlData (Corion++)
+
 1.62 2018-12-29
     - Switched to a production version
 
