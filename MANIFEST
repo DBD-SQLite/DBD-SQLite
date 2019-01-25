@@ -138,6 +138,7 @@ t/virtual_table/20_perldata.t
 t/virtual_table/21_perldata_charinfo.t
 t/virtual_table/rt_124941.t
 t/virtual_table/rt_99748.t
+t/virtual_table/unknown_op.t
 typemap
 xt/cpp_comments.t
 xt/meta.t
