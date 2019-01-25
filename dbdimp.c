@@ -459,7 +459,8 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
 
     sqlite3_busy_timeout(imp_dbh->db, SQL_TIMEOUT);
 
-    if (SvROK(attr) && hv) {
+    if (SvROK(attr)) {
+        hv = (HV*)SvRV(attr);
         if (hv_exists(hv, "sqlite_defensive", 16)) {
             val = hv_fetch(hv, "sqlite_defensive", 16, 0);
             if (val && SvIOK(*val)) {
