@@ -28,7 +28,8 @@ sub cleanup {
 
 cleanup();
 
-{
+SKIP: {
+  skip 'URI filename is enabled', 1 if has_compile_option('USE_URI');
   my $dbh = eval {
     DBI->connect("dbi:SQLite:$uri{base}", undef, undef, {
       PrintError => 0,
