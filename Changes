@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.63_02 2019-02-14
+    - Upgraded SQLite to 3.27.1
+    - Let a URI filename test skip if SQLite is compiled with URI filename
+      support (GH#47)
+
 1.63_01 2019-01-26
     - Made sure an internal hv is initialized (GH#45)
     - Fixed a number of tests to skip
