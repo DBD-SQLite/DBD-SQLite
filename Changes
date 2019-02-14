@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.63_03 2019-02-15
+    - Applied a patch to fix segmentation fault on 32-bit big-endian
+      platforms by Niko Tyni (GH#45)
+
 1.63_02 2019-02-14
     - Upgraded SQLite to 3.27.1
     - Let a URI filename test skip if SQLite is compiled with URI filename
