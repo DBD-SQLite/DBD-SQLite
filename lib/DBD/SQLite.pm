@@ -1864,7 +1864,8 @@ C<$dbh-E<gt>sqlite_last_insert_rowid()> directly.
 
 =head2 $dbh->sqlite_db_filename()
 
-Retrieve the current (main) database filename. If the database is in-memory or temporary, this returns C<undef>.
+Retrieve the current (main) database filename. If the database is in-memory
+or temporary, this returns an empty string, or C<undef>.
 
 =head2 $dbh->sqlite_busy_timeout()
 
