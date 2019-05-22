@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.63_04 to be released
+    - Upgraded SQLite to 3.28.0
+    - Modified doc for sqlite_db_filename which actually returns undef
+      or an empty string (GH#50)
+
 1.63_03 2019-02-15
     - Applied a patch to fix segmentation fault on 32-bit big-endian
       platforms by Niko Tyni (GH#45)
