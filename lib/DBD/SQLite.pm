@@ -251,6 +251,16 @@ sub ping {
     return $dbh->FETCH('Active') ? 1 : 0;
 }
 
+sub quote {
+    my ($self, $value, $data_type) = @_;
+    return "NULL" unless defined $value;
+    if ($data_type and $data_type == DBI::SQL_BLOB) {
+        return q(X') . unpack('H*', $value) . q(');
+    }
+    $value =~ s/'/''/g;
+    return "'$value'";
+}
+
 sub get_info {
     my ($dbh, $info_type) = @_;
 

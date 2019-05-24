@@ -66,6 +66,13 @@ SCOPE: {
 	ok( $sth->bind_param(1, 3), '->bind_param' );
 	ok( $sth->bind_param(2, undef, SQL_BLOB), '->bind_param' );
 	ok( $sth->execute, '->execute' );
+
+    ok my $quoted_blob = $dbh->quote($blob, SQL_BLOB);
+	ok( $dbh->do("INSERT INTO one VALUES( 4, $quoted_blob )"), 'insert quoted blob' );
+    ok my $quoted_empty = $dbh->quote('', SQL_BLOB);
+	ok( $dbh->do("INSERT INTO one VALUES( 5, $quoted_empty )"), 'insert quoted empty string' );
+    ok my $quoted_undef = $dbh->quote(undef, SQL_BLOB);
+	ok( $dbh->do("INSERT INTO one VALUES( 6, $quoted_undef )"), 'insert quoted undef' );
 }
 
 # Now, try SELECT'ing the row out.
@@ -78,6 +85,9 @@ SCOPE: {
 		[ 1, $blob ],
 		[ 2, '' ],
 		[ 3, undef ],
+		[ 4, $blob ],
+		[ 5, '' ],
+		[ 6, undef ],
 	], 'Got the blob back ok' );
 	ok( $sth->finish, '->finish' );
 }
