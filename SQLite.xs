@@ -368,6 +368,18 @@ db_config(dbh, id, new_value = -1)
     OUTPUT:
         RETVAL
 
+static int
+get_autocommit(dbh)
+    SV *dbh
+    ALIAS:
+        DBD::SQLite::db::sqlite_get_autocommit = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_get_autocommit(aTHX_ dbh);
+    }
+    OUTPUT:
+        RETVAL
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE

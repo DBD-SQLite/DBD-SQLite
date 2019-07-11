@@ -90,6 +90,7 @@ t/62_regexp_multibyte_char_class.t
 t/63_param_values.t
 t/64_limit.t
 t/65_db_config.t
+t/66_get_autocommit.t
 t/cookbook_variance.t
 t/lib/SQLiteTest.pm
 t/rt_106151_outermost_savepoint.t

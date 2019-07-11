@@ -2801,6 +2801,13 @@ sqlite_db_config(pTHX_ SV *dbh, int id, int new_value)
     return ret;
 }
 
+int
+sqlite_db_get_autocommit(pTHX_ SV *dbh)
+{
+    D_imp_dbh(dbh);
+    return sqlite3_get_autocommit(imp_dbh->db);
+}
+
 #include "dbdimp_tokenizer.inc"
 #include "dbdimp_virtual_table.inc"
 

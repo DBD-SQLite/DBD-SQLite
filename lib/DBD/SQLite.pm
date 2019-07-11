@@ -61,6 +61,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_create_module');
         DBD::SQLite::db->install_method('sqlite_limit');
         DBD::SQLite::db->install_method('sqlite_db_config');
+        DBD::SQLite::db->install_method('sqlite_get_autocommit');
 
         $methods_are_installed++;
     }
@@ -2355,6 +2356,12 @@ Sets a new run-time limit for the category, and returns the current limit.
 If the new value is a negative number (or omitted), the limit is unchanged
 and just returns the current limit. Category ids (SQLITE_LIMIT_LENGTH,
 SQLITE_LIMIT_VARIABLE_NUMBER, etc) can be imported from DBD::SQLite::Constants. 
+
+=head2 $dbh->sqlite_get_autocommit()
+
+Returns true if the internal SQLite connection is in an autocommit mode.
+This does not always return the same value as C<< $dbh->{AutoCommit} >>.
+This returns false if you explicitly issue a C<<BEGIN>> statement.
 
 =head1 DRIVER FUNCTIONS
 
