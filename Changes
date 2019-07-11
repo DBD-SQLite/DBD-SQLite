@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.63_05 2019-07-12
+    - Upgraded SQLite to 3.29.0
+    - Added sqlite_get_autocommit private method (GH#52)
+    - Addded new db_config constants, notably to prohibit
+      double-quoted string literals
+
 1.63_04 2019-05-25
     - Upgraded SQLite to 3.28.0
     - Modified doc for sqlite_db_filename which actually returns undef
