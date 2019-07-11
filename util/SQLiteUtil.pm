@@ -162,6 +162,10 @@ my %since = (
   PREPARE_NORMALIZE => '3026000',
   SESSION_CONFIG_STRMSIZE => '3026000',
   DBCONFIG_DEFENSIVE => '3026000',
+  DBCONFIG_WRITABLE_SCHEMA => '3028000',
+  DBCONFIG_LEGACY_ALTER_TABLE => '3029000',
+  DBCONFIG_DQS_DML => '3029000',
+  DBCONFIG_DQS_DDL => '3029000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',

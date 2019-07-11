@@ -356,6 +356,58 @@ _const_database_connection_configuration_options_3026000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3028000
+
+IV
+_const_database_connection_configuration_options_3028000()
+    ALIAS:
+        SQLITE_DBCONFIG_WRITABLE_SCHEMA = SQLITE_DBCONFIG_WRITABLE_SCHEMA
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3028000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_WRITABLE_SCHEMA = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3029000
+
+IV
+_const_database_connection_configuration_options_3029000()
+    ALIAS:
+        SQLITE_DBCONFIG_LEGACY_ALTER_TABLE = SQLITE_DBCONFIG_LEGACY_ALTER_TABLE
+        SQLITE_DBCONFIG_DQS_DML = SQLITE_DBCONFIG_DQS_DML
+        SQLITE_DBCONFIG_DQS_DDL = SQLITE_DBCONFIG_DQS_DDL
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3029000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_LEGACY_ALTER_TABLE = 1
+        SQLITE_DBCONFIG_DQS_DML = 2
+        SQLITE_DBCONFIG_DQS_DDL = 3
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV
