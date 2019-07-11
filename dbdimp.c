@@ -2788,6 +2788,10 @@ sqlite_db_config(pTHX_ SV *dbh, int id, int new_value)
         case SQLITE_DBCONFIG_TRIGGER_EQP:
         case SQLITE_DBCONFIG_RESET_DATABASE:
         case SQLITE_DBCONFIG_DEFENSIVE:
+        case SQLITE_DBCONFIG_WRITABLE_SCHEMA:
+        case SQLITE_DBCONFIG_LEGACY_ALTER_TABLE:
+        case SQLITE_DBCONFIG_DQS_DML:
+        case SQLITE_DBCONFIG_DQS_DDL:
             rc = sqlite3_db_config(imp_dbh->db, id, new_value, &ret);
             break;
         default:

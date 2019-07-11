@@ -215,4 +215,99 @@ SKIP: {
     like $@ => qr/table sqlite_master may not be modified/;
 }
 
+# WRITABLE_SCHEMA
+for my $func (@CALL_FUNCS) {
+    SKIP: {
+        skip 'WRITABLE_SCHEMA is not supported', 5 if !SQLITE_DBCONFIG_WRITABLE_SCHEMA;
+    	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
+        my $ret = $dbh->$func(SQLITE_DBCONFIG_WRITABLE_SCHEMA, -1, 'db_config');
+        note "current WRITABLE_SCHEMA value: $ret";
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_WRITABLE_SCHEMA, 1, 'db_config');
+        is $ret => 1, 'schema is writable';
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_WRITABLE_SCHEMA, 0, 'db_config');
+        is $ret => 0, 'schema is not writable';
+
+        $dbh->do('PRAGMA writable_schema=ON');
+        $ret = $dbh->$func(SQLITE_DBCONFIG_WRITABLE_SCHEMA, -1, 'db_config');
+        is $ret => 1, 'schema is writable (by pragma)';
+
+        $dbh->do('PRAGMA writable_schema=OFF');
+        $ret = $dbh->$func(SQLITE_DBCONFIG_WRITABLE_SCHEMA, -1, 'db_config');
+        is $ret => 0, 'schema is not writable (by pragma)';
+    }
+}
+
+# LEGACY_ALTER_TABLE
+for my $func (@CALL_FUNCS) {
+    SKIP: {
+        skip 'WRITABLE_SCHEMA is not supported', 5 if !SQLITE_DBCONFIG_LEGACY_ALTER_TABLE;
+    	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
+        my $ret = $dbh->$func(SQLITE_DBCONFIG_LEGACY_ALTER_TABLE, -1, 'db_config');
+        note "current LEGACY_ALTER_TABLE value: $ret";
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_LEGACY_ALTER_TABLE, 1, 'db_config');
+        is $ret => 1, 'use legacy alter table';
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_LEGACY_ALTER_TABLE, 0, 'db_config');
+        is $ret => 0, 'no legacy alter table';
+
+        # TODO: add alter table check?
+
+        $dbh->do('PRAGMA legacy_alter_table=ON');
+        $ret = $dbh->$func(SQLITE_DBCONFIG_LEGACY_ALTER_TABLE, -1, 'db_config');
+        is $ret => 1, 'use legacy alter table (by pragma)';
+
+        $dbh->do('PRAGMA legacy_alter_table=OFF');
+        $ret = $dbh->$func(SQLITE_DBCONFIG_LEGACY_ALTER_TABLE, -1, 'db_config');
+        is $ret => 0, 'no legacy alter table (by pragma)';
+    }
+}
+
+# DQS_DML
+for my $func (@CALL_FUNCS) {
+    SKIP: {
+        skip 'DQS_DML is not supported', 5 if !SQLITE_DBCONFIG_DQS_DML;
+    	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
+        my $ret = $dbh->$func(SQLITE_DBCONFIG_DQS_DML, -1, 'db_config');
+        note "current DQS_DML value: $ret";
+        $dbh->do('CREATE TABLE foo (id, text)');
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_DQS_DML, 1, 'db_config');
+        is $ret => 1, 'allows double-quoted string literal';
+
+        eval { $dbh->do('INSERT INTO foo VALUES (1, "text")'); };
+        ok !$@, "double-quoted string literal is allowed";
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_DQS_DML, 0, 'db_config');
+        is $ret => 0, 'no double-quoted string literal';
+
+        eval { $dbh->do('INSERT INTO foo VALUES (2, "text2")'); };
+        like $@ => qr/no such column/, "double-quoted string literal is not allowed";
+    }
+}
+
+# DQS_DDL
+for my $func (@CALL_FUNCS) {
+    SKIP: {
+        skip 'DQS_DDL is not supported', 5 if !SQLITE_DBCONFIG_DQS_DDL;
+    	my $dbh = connect_ok(RaiseError => 1, PrintError => 0);
+        my $ret = $dbh->$func(SQLITE_DBCONFIG_DQS_DDL, -1, 'db_config');
+        note "current DQS_DDL value: $ret";
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_DQS_DDL, 1, 'db_config');
+        is $ret => 1, 'allows double-quoted string literal';
+
+        eval { $dbh->do('CREATE TABLE foo (a, b, c CHECK (c!="null") )'); };
+        ok !$@, "double-quoted string literal is allowed";
+
+        $ret = $dbh->$func(SQLITE_DBCONFIG_DQS_DDL, 0, 'db_config');
+        is $ret => 0, 'no double-quoted string literal';
+
+        eval { $dbh->do('CREATE TABLE bar (a, b, c CHECK (c!="null") )'); };
+        like $@ => qr/no such column/, "double-quoted string literal is not allowed";
+    }
+}
+
 done_testing;
