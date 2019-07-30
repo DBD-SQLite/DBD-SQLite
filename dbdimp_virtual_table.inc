@@ -496,8 +496,7 @@ static int perl_vt_Eof(sqlite3_vtab_cursor *pVtabCursor){
     count = call_method ("EOF", G_SCALAR);
     SPAGAIN;
     if (count != 1) {
-        warn("cursor->EOF() method returned %d vals instead of 1", count);
-        SP -= count;
+        croak("cursor->EOF() method returned %d vals instead of 1", count);
     }
     else {
         SV *sv = POPs;     /* need 2 lines, because this doesn't work :        */
