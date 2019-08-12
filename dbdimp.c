@@ -1650,7 +1650,7 @@ SV *
 sqlite_db_filename(pTHX_ SV *dbh)
 {
     D_imp_dbh(dbh);
-    const char *filename;
+    const char *filename = NULL;
 
     if (!imp_dbh->db) {
         return &PL_sv_undef;
