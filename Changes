@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.64 2019-08-12
+    - Switched to a production version
+
 1.63_05 2019-07-12
     - Upgraded SQLite to 3.29.0
     - Added sqlite_get_autocommit private method (GH#52)
