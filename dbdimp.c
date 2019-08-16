@@ -223,7 +223,11 @@ sqlite_type_from_odbc_type(int type)
         case SQL_REAL:
         case SQL_DOUBLE:
             return SQLITE_FLOAT;
+        case SQL_BIT:
         case SQL_BLOB:
+        case SQL_BINARY:
+        case SQL_VARBINARY:
+        case SQL_LONGVARBINARY:
             return SQLITE_BLOB;
         default:
             return SQLITE_TEXT;
