@@ -214,6 +214,7 @@ sqlite_type_from_odbc_type(int type)
     switch(type) {
         case SQL_UNKNOWN_TYPE:
             return SQLITE_NULL;
+        case SQL_BOOLEAN:
         case SQL_INTEGER:
         case SQL_SMALLINT:
         case SQL_TINYINT:
