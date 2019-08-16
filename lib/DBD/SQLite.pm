@@ -255,7 +255,12 @@ sub ping {
 sub quote {
     my ($self, $value, $data_type) = @_;
     return "NULL" unless defined $value;
-    if ($data_type and $data_type == DBI::SQL_BLOB) {
+    if (defined $data_type and (
+            $data_type == DBI::SQL_BIT ||
+            $data_type == DBI::SQL_BLOB ||
+            $data_type == DBI::SQL_BINARY ||
+            $data_type == DBI::SQL_VARBINARY ||
+            $data_type == DBI::SQL_LONGVARBINARY)) {
         return q(X') . unpack('H*', $value) . q(');
     }
     $value =~ s/'/''/g;

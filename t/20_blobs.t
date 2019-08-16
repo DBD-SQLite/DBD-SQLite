@@ -73,6 +73,19 @@ SCOPE: {
 	ok( $dbh->do("INSERT INTO one VALUES( 5, $quoted_empty )"), 'insert quoted empty string' );
     ok my $quoted_undef = $dbh->quote(undef, SQL_BLOB);
 	ok( $dbh->do("INSERT INTO one VALUES( 6, $quoted_undef )"), 'insert quoted undef' );
+
+
+	ok my $quoted_bit = $dbh->quote($blob, SQL_BIT);
+	ok( $dbh->do("INSERT INTO one VALUES( 7, $quoted_bit )"), 'insert quoted bit' );
+
+	ok my $quoted_binary = $dbh->quote($blob, SQL_BINARY);
+	ok( $dbh->do("INSERT INTO one VALUES( 8, $quoted_binary )"), 'insert quoted binary' );
+
+	ok my $quoted_varbinary = $dbh->quote($blob, SQL_VARBINARY);
+	ok( $dbh->do("INSERT INTO one VALUES( 9, $quoted_varbinary )"), 'insert quoted varbinary' );
+
+	ok my $quoted_longvarbinary = $dbh->quote($blob, SQL_LONGVARBINARY);
+	ok( $dbh->do("INSERT INTO one VALUES( 10, $quoted_longvarbinary )"), 'insert quoted longvarbinary' );
 }
 
 # Now, try SELECT'ing the row out.
@@ -88,6 +101,10 @@ SCOPE: {
 		[ 4, $blob ],
 		[ 5, '' ],
 		[ 6, undef ],
+		[ 7, $blob ],
+		[ 8, $blob ],
+		[ 9, $blob ],
+		[ 10, $blob ],
 	], 'Got the blob back ok' );
 	ok( $sth->finish, '->finish' );
 }
