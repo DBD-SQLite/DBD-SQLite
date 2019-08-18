@@ -484,7 +484,8 @@ static int perl_vt_Next(sqlite3_vtab_cursor *pVtabCursor){
 static int perl_vt_Eof(sqlite3_vtab_cursor *pVtabCursor){
     dTHX;
     dSP;
-    int count, eof;
+    int count;
+    int eof = 1;
 
     ENTER;
     SAVETMPS;
