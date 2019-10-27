@@ -408,6 +408,30 @@ _const_database_connection_configuration_options_3029000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3030000
+
+IV
+_const_database_connection_configuration_options_3030000()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_VIEW = SQLITE_DBCONFIG_ENABLE_VIEW
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3030000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_ENABLE_VIEW = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV
@@ -1151,6 +1175,32 @@ IV
 _const_function_flags_3008003_zero()
     ALIAS:
         SQLITE_DETERMINISTIC = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3030000
+
+IV
+_const_function_flags_3030000()
+    ALIAS:
+        SQLITE_DIRECTONLY = SQLITE_DIRECTONLY
+        SQLITE_SUBTYPE = SQLITE_SUBTYPE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_function_flags_3030000_zero()
+    ALIAS:
+        SQLITE_DIRECTONLY = 1
+        SQLITE_SUBTYPE = 2
     CODE:
         RETVAL = 0;
     OUTPUT:

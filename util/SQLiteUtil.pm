@@ -166,6 +166,9 @@ my %since = (
   DBCONFIG_LEGACY_ALTER_TABLE => '3029000',
   DBCONFIG_DQS_DML => '3029000',
   DBCONFIG_DQS_DDL => '3029000',
+  DBCONFIG_ENABLE_VIEW => '3030000',
+  DIRECTONLY => '3030000',
+  SUBTYPE => '3030000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
