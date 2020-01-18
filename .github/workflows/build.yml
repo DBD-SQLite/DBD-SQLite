@@ -1,0 +1,47 @@
+name: build
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  perl:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        perl-version:
+          - '5.8'
+          - '5.10'
+          - '5.18'
+          - 'latest'
+
+    container:
+      image: perl:${{ matrix.perl-version }}
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: perl -V
+        run: perl -V
+      - name: Install dependencies
+        run: curl -sL https://git.io/cpm | perl - install -g --with-recommends --with-test --with-configure --show-build-log-on-failure
+        if: matrix.perl-version != 'latest'
+      - name: Install dependencies with develop
+        run: curl -sL https://git.io/cpm | perl - install -g --with-recommends --with-test --with-configure --with-develop --show-build-log-on-failure
+        if: matrix.perl-version == 'latest'
+      - name: Install Cover
+        run: curl -sL https://git.io/cpm | perl - install -g --show-build-log-on-failure Devel::Cover::Report::Coveralls
+        if: matrix.perl-version == 'latest'
+      - name: Run tests
+        run: perl Makefile.PL && make && make test
+      - name: Run Cover
+        env:
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
+        run: |
+            cover -test
+            cover -report coveralls
+        if: matrix.perl-version == 'latest'
