@@ -1,5 +1,12 @@
 Changes for Perl extension DBD-SQLite
 
+1.65_01 2020-01-18
+    - Upgraded SQLite to 3.30.1
+    - Added several SQL_ types as alias (pali++)
+    - Fixed two initialization issues (ppisar++)
+    - Allowed create_function to return an array reference
+      to specify the type of the value
+
 1.64 2019-08-12
     - Switched to a production version
 
