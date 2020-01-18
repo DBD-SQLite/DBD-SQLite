@@ -1927,6 +1927,13 @@ After this, it could be used from SQL as:
 
   INSERT INTO mytable ( now() );
 
+The function should return a scalar value, and the value is treated as a text
+(or a number if appropriate) by default. If you do need to specify a type
+of the return value (like BLOB), you can return a reference to an array that
+contains the value and the type, as of 1.65_01.
+
+  $dbh->sqlite_create_function( 'md5', 1, sub { return [md5($_[0]), SQL_BLOB] } );
+
 =head3 REGEXP function
 
 SQLite includes syntactic support for an infix operator 'REGEXP', but
