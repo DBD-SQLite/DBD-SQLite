@@ -7,6 +7,8 @@ use Test::More;
 use if -d ".git", "Test::FailWarnings";
 use DBD::SQLite;
 use DBD::SQLite::Constants;
+use Digest::MD5 qw/md5/;
+use DBI qw/:sql_types/;
 
 my @function_flags = (undef, 0);
 if ($DBD::SQLite::sqlite_version_number >= 3008003) {
@@ -38,19 +40,27 @@ sub void_return {
 }
 
 sub return2 {
-        return ( 1, 2 );
+    return ( 1, 2 );
 }
 
 sub return_null {
-        return undef;
+    return undef;
 }
 
 sub my_defined {
-        defined($_[0]) ? 1 : 0;
+    defined($_[0]) ? 1 : 0;
 }
 
 sub noop {
-        return $_[0];
+    return $_[0];
+}
+
+sub md5_text {
+    return md5($_[0]);
+}
+
+sub md5_blob {
+    return [md5($_[0]), SQL_BLOB];
 }
 
 foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
@@ -125,6 +135,20 @@ foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
 
 	$result = $dbh->selectrow_arrayref( "SELECT typeof(noop(2147483648))" );
 	is_deeply( $result, [ 'integer' ], "SELECT typeof(noop(2147483648))" );
+
+	ok($dbh->$call_func( "md5_text", 1, \&md5_text, defined $flags ? $flags : (), "create_function" ));
+	$result = $dbh->selectrow_arrayref( "SELECT md5_text('my_blob')" );
+	is_deeply( $result, [ md5('my_blob') ], "SELECT md5_text('my_blob')" );
+
+	$result = $dbh->selectrow_arrayref( "SELECT typeof(md5_text('my_blob'))" );
+	is_deeply( $result, [ 'text' ], "SELECT typeof(md5_text('my_blob'))" );
+
+	ok($dbh->$call_func( "md5_blob", 1, \&md5_blob, defined $flags ? $flags : (), "create_function" ));
+	$result = $dbh->selectrow_arrayref( "SELECT md5_blob('my_blob')" );
+	is_deeply( $result, [ md5('my_blob') ], "SELECT md5_blob('my_blob')" );
+
+	$result = $dbh->selectrow_arrayref( "SELECT typeof(md5_blob('my_blob'))" );
+	is_deeply( $result, [ 'blob' ], "SELECT typeof(md5_blob('my_blob'))" );
 
 	$dbh->disconnect;
 }}
