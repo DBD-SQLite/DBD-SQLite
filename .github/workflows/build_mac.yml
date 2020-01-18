@@ -1,0 +1,24 @@
+name: build_mac
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  perl:
+    runs-on: macOS-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - name: perl -V
+        run: perl -V
+      - name: Install dependencies with develop
+        run: curl -sL https://git.io/cpm | perl - install -g --with-recommends --with-test --with-configure --with-develop --show-build-log-on-failure
+      - name: Run Makefile.PL
+        run: perl Makefile.PL
+      - name: Run tests
+        run: make && make test

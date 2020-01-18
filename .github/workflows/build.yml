@@ -1,0 +1,31 @@
+name: build
+
+on:
+  push:
+    branches:
+      - '*'
+    tags-ignore:
+      - '*'
+  pull_request:
+
+jobs:
+  perl:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        perl-version:
+          - '5.8'
+          - 'latest'
+
+    container:
+      image: perl:${{ matrix.perl-version }}
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: perl -V
+        run: perl -V
+      - name: Install dependencies
+        run: curl -sL https://git.io/cpm | perl - install -g --with-recommends --with-test --with-configure --show-build-log-on-failure
+      - name: Run tests
+        run: perl Makefile.PL && make && make test
