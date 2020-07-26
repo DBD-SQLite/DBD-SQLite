@@ -1102,6 +1102,34 @@ _const_extended_result_codes_3031000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3032000
+
+IV
+_const_extended_result_codes_3032000()
+    ALIAS:
+        SQLITE_IOERR_DATA = SQLITE_IOERR_DATA
+        SQLITE_BUSY_TIMEOUT = SQLITE_BUSY_TIMEOUT
+        SQLITE_CORRUPT_INDEX = SQLITE_CORRUPT_INDEX
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_extended_result_codes_3032000_zero()
+    ALIAS:
+        SQLITE_IOERR_DATA = 1
+        SQLITE_BUSY_TIMEOUT = 2
+        SQLITE_CORRUPT_INDEX = 3
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 IV
 _const_flags_for_file_open_operations()
     ALIAS:

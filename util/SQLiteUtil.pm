@@ -176,6 +176,9 @@ my %since = (
   OK_SYMLINK => '3031000',
   OPEN_NOFOLLOW => '3031000',
   INNOCUOUS => '3031000',
+  IOERR_DATA => '3032000',
+  BUSY_TIMEOUT => '3032000',
+  CORRUPT_INDEX => '3032000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
