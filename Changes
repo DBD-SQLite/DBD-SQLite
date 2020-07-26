@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.65_03 2020-07-27
+    - Upgraded SQLite to 3.32.3
+
 1.65_02 2020-02-08
     - Upgraded SQLite to 3.31.1
 
