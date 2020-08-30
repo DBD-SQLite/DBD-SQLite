@@ -51,6 +51,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_enable_load_extension');
         DBD::SQLite::db->install_method('sqlite_load_extension');
         DBD::SQLite::db->install_method('sqlite_register_fts3_perl_tokenizer');
+        DBD::SQLite::db->install_method('sqlite_register_fts5_perl_tokenizer');
         DBD::SQLite::db->install_method('sqlite_trace', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_profile', { O => 0x0004 });
         DBD::SQLite::db->install_method('sqlite_table_column_metadata', { O => 0x0004 });
