@@ -17,13 +17,30 @@ typedef struct perl_fts3_tokenizer_cursor {
 } perl_fts3_tokenizer_cursor;
 
 typedef struct perl_Fts5Tokenizer {
-    Fts5Tokenizer base;
+    /* Fts5Tokenizer base;       /* this is an empty struct, so we omit  it entirely */
     SV *coderef;                 /* the perl tokenizer is a coderef that takes
                                  ** a string and and some parameters and
                                  ** in turn calls the xToken() function
                                  ** passed to it
                                  */
 } perl_Fts5Tokenizer;
+
+/* This is the structure where we store the information between calls
+ * from Perl and callbacks to SQLite. We could instead pass these values
+ * as opaque arguments to Perl and back, but this reduces the number of
+ * opaque values handled by Perl to a single such value.
+ */
+typedef struct perl_cb_ctx {
+    void * Ctx;
+    int (*xToken)(
+        void *pCtx,         /* Copy of 2nd argument to xTokenize() */
+        int tflags,         /* Mask of FTS5_TOKEN_* flags */
+        const char *pToken, /* Pointer to buffer containing token */
+        int nToken,         /* Size of token in bytes */
+        int iStart,         /* Byte offset of token within input text */
+        int iEnd            /* Byte offset of end of token within input text */
+    );
+} perl_cb_ctx;
 
 /*
 ** Create a new tokenizer instance.
@@ -338,7 +355,6 @@ static int perl_fts5_tokenizer_Create(
     int n_retval;
     SV *retval;
     perl_Fts5Tokenizer *t;
-
     if (!nArg) {
         return SQLITE_ERROR;
     }
@@ -346,7 +362,6 @@ static int perl_fts5_tokenizer_Create(
     t = (perl_Fts5Tokenizer *) sqlite3_malloc(sizeof(*t));
     if( t==NULL ) return SQLITE_NOMEM;
     memset(t, 0, sizeof(*t));
-
     ENTER;
     SAVETMPS;
 
@@ -358,11 +373,12 @@ static int perl_fts5_tokenizer_Create(
 
     /* store a copy of the returned coderef into the tokenizer structure */
     if (n_retval != 1) {
-        warn("tokenizer_Create returned %d arguments", n_retval);
+        warn("tokenizer_Create returned %d arguments, expected a single coderef", n_retval);
     }
     retval = POPs;
     t->coderef   = newSVsv(retval);
-    *ppOut = &t->base;
+    /* *ppOut = &t->base; */ /* Fts5Tokenizer is empty and gcc complains about that */
+    *ppOut = (Fts5Tokenizer *) t;
 
     PUTBACK;
     FREETMPS;
@@ -405,18 +421,38 @@ static int perl_fts5_tokenizer_Tokenize(
     int n_retval;
     char *token;
     char *byteOffset;
-    STRLEN n_a; /* this is required for older perls < 5.8.8 */
-    I32 hop;
-
     dTHX;
     dSP;
+
+    /* The implicit assumption here is that our callback will only be
+     * invoked from a stack frame below this frame!
+     */
+    perl_cb_ctx ctx;
+    SV* ctxP;
+    SV* text;
+
+    STRLEN n_a; /* this is required for older perls < 5.8.8 */
+    I32 hop;
 
     ENTER;
     SAVETMPS;
 
     /* call the Perl tokenizer, and pass it our token callback */
     PUSHMARK(SP);
-    PUTBACK;
+
+    ctx.Ctx = pCtx;
+    ctx.xToken = xToken;
+    ctxP = newSVpvn((const char *const)&ctx, sizeof(ctx));
+
+    text = newSVpvn(pText, nText);
+
+    // We pass four arguments
+    //EXTEND(SP, 2);
+    XPUSHs(sv_2mortal(ctxP));
+    XPUSHs(sv_2mortal(text));
+    XPUSHs(sv_2mortal(newSViv(flags)));
+    // We need to properly wrap this so it is callable from Perl...
+    // ... without needing actual local storage or a global variable...
 
     // XXX Wrap the "found token" callback, and pass it to the user
     //     Then, restructure the data if it is UTF-8
@@ -471,10 +507,9 @@ static int perl_fts5_tokenizer_Tokenize(
     //
     //    result = SQLITE_OK;
     //
-
+    PUTBACK;
     n_retval = call_sv(c->coderef, G_ARRAY);
     SPAGAIN;
-
 
     PUTBACK;
     FREETMPS;
@@ -482,6 +517,20 @@ static int perl_fts5_tokenizer_Tokenize(
 
     return result;
 }
+
+int perl_fts5_xToken(pTHX_
+        SV* pCtx,
+        int tflags,         /* Mask of FTS5_TOKEN_* flags */
+        SV* svToken,         /* Pointer to buffer containing token */
+        int iStart,         /* Byte offset of token within input text */
+        int iEnd            /* Byte offset of end of token within input text */
+) {
+    const char* chrToken = SvPV_nolen(svToken);
+    STRLEN nToken = strlen(chrToken);
+    perl_cb_ctx * p = (perl_cb_ctx *)SvPV_nolen( pCtx );
+    return p->xToken(p->Ctx,tflags,chrToken,nToken,iStart,iEnd);
+}
+
 
 /*
 ** The set of routines that implement the perl FTS5 tokenizer
@@ -533,8 +582,7 @@ int sqlite_db_register_fts5_perl_tokenizer(pTHX_ SV *dbh)
     fts5_api *pFts5Api = sqlite_fetch_fts5_api(aTHX_ dbh);
     fts5_tokenizer *p = &perl_fts5_tokenizer_Module;
 
-    // pFts5Api->xCreateTokenizer(pFts5Api,...);
+    rc = pFts5Api->xCreateTokenizer(pFts5Api, "perl", 0, p, 0);
 
-
-    return 0;
+    return rc;
 }

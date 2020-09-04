@@ -143,10 +143,12 @@ sub connect {
         $dbh->sqlite_collation_needed( \&install_collation );
         $dbh->sqlite_create_function( "REGEXP", 2, \&regexp );
         $dbh->sqlite_register_fts3_perl_tokenizer();
+        $dbh->sqlite_register_fts5_perl_tokenizer();
     } else {
         $dbh->func( \&install_collation, "collation_needed"  );
         $dbh->func( "REGEXP", 2, \&regexp, "create_function" );
         $dbh->func( "register_fts3_perl_tokenizer" );
+        $dbh->func( "register_fts5_perl_tokenizer" );
     }
 
     # HACK: Since PrintWarn = 0 doesn't seem to actually prevent warnings
@@ -1223,7 +1225,7 @@ store natively as a BLOB use the following code:
 
   use DBI qw(:sql_types);
   my $dbh = DBI->connect("dbi:SQLite:dbfile","","");
-  
+
   my $blob = `cat foo.jpg`;
   my $sth = $dbh->prepare("INSERT INTO mytable VALUES (1, ?)");
   $sth->bind_param(1, $blob, SQL_BLOB);
@@ -1235,7 +1237,7 @@ And then retrieval just works:
   $sth->execute();
   my $row = $sth->fetch;
   my $blobo = $row->[1];
-  
+
   # now $blobo == $blob
 
 =head2 Functions And Bind Parameters
@@ -1264,7 +1266,7 @@ As shown above in the C<BLOB> section, you can always use
 C<bind_param()> to tell the type of a bind value.
 
   use DBI qw(:sql_types);  # Don't forget this
-  
+
   my $sth = $dbh->prepare(q{
     SELECT bar FROM foo GROUP BY bar HAVING count(*) > ?;
   });
@@ -1454,13 +1456,13 @@ statement. To end it, call C<commit/rollback> methods, or issue
 the corresponding statements.
 
   $dbh->{AutoCommit} = 1;
-  
+
   $dbh->begin_work; # or $dbh->do('BEGIN TRANSACTION');
-  
+
   # $dbh->{AutoCommit} is turned off temporarily during a transaction;
-  
+
   $dbh->commit; # or $dbh->do('COMMIT');
-  
+
   # $dbh->{AutoCommit} is turned on again;
 
 =item When the AutoCommit flag is off
@@ -1474,15 +1476,15 @@ You can commit or roll it back freely. Another transaction will
 automatically begin if you execute another statement.
 
   $dbh->{AutoCommit} = 0;
-  
+
   # $dbh->do('BEGIN TRANSACTION') is not necessary, but possible
-  
+
   ...
-  
+
   $dbh->commit; # or $dbh->do('COMMIT');
-  
+
   # $dbh->{AutoCommit} stays intact;
-  
+
   $dbh->{AutoCommit} = 1;  # ends the transactional mode
 
 =back
@@ -2090,38 +2092,38 @@ Here is a simple aggregate function which returns the variance
 (example adapted from pysqlite):
 
   package variance;
-  
+
   sub new { bless [], shift; }
-  
+
   sub step {
       my ( $self, $value ) = @_;
-  
+
       push @$self, $value;
   }
-  
+
   sub finalize {
       my $self = $_[0];
-  
+
       my $n = @$self;
-  
+
       # Variance is NULL unless there is more than one row
       return undef unless $n || $n == 1;
-  
+
       my $mu = 0;
       foreach my $v ( @$self ) {
           $mu += $v;
       }
       $mu /= $n;
-  
+
       my $sigma = 0;
       foreach my $v ( @$self ) {
           $sigma += ($v - $mu)**2;
       }
       $sigma = $sigma / ($n - 1);
-  
+
       return $sigma;
   }
-  
+
   $dbh->sqlite_create_aggregate( "variance", 1, 'variance' );
 
 The aggregate function can then be used as:
@@ -2390,13 +2392,13 @@ You may also pass 0 as an argument to reset the status.
 You can change how the connected database should behave like this:
 
   use DBD::SQLite::Constants qw/:database_connection_configuration_options/;
-  
+
   my $dbh = DBI->connect('dbi:SQLite::memory:');
 
   # This disables language features that allow ordinary SQL
   # to deliberately corrupt the database file
   $dbh->sqlite_db_config( SQLITE_DBCONFIG_DEFENSIVE, 1 );
-  
+
   # This disables two-arg version of fts3_tokenizer.
   $dbh->sqlite_db_config( SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER, 0 );
 
@@ -2693,16 +2695,16 @@ then query which buildings overlap or are contained within a specified region:
   SELECT id FROM city_buildings
      WHERE  minLong >= ? AND maxLong <= ?
      AND    minLat  >= ? AND maxLat  <= ?
-  
+
   # ... and those that overlap query coordinates
   my $overlap_sql = <<"";
   SELECT id FROM city_buildings
      WHERE    maxLong >= ? AND minLong <= ?
      AND      maxLat  >= ? AND minLat  <= ?
-  
+
   my $contained = $dbh->selectcol_arrayref($contained_sql,undef,
                         $minLong, $maxLong, $minLat, $maxLat);
-  
+
   my $overlapping = $dbh->selectcol_arrayref($overlap_sql,undef,
                         $minLong, $maxLong, $minLat, $maxLat);
 
@@ -2750,10 +2752,10 @@ header like this:
 
   use File::ShareDir 'dist_dir';
   use File::Spec::Functions 'catfile';
-  
+
   # the whole sqlite3.h header
   my $sqlite3_h = catfile(dist_dir('DBD-SQLite'), 'sqlite3.h');
-  
+
   # or only a particular header, amalgamated in sqlite3.c
   my $what_i_want = 'parse.h';
   my $sqlite3_c = catfile(dist_dir('DBD-SQLite'), 'sqlite3.c');
