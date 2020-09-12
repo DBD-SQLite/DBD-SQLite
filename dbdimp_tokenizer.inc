@@ -424,8 +424,8 @@ static int perl_fts5_tokenizer_Tokenize(
     dTHX;
     dSP;
 
-    /* The implicit assumption here is that our callback will only be
-     * invoked from a stack frame below this frame!
+    /* newSVpvn() will create a copy of this buffer, but ideally we would
+     * directly write into the PV part of that copied buffer instead
      */
     perl_cb_ctx ctx;
     SV* ctxP;
