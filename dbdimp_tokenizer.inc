@@ -17,7 +17,7 @@ typedef struct perl_fts3_tokenizer_cursor {
 } perl_fts3_tokenizer_cursor;
 
 typedef struct perl_Fts5Tokenizer {
-    /* Fts5Tokenizer base;       /* this is an empty struct, so we omit  it entirely */
+    /* Fts5Tokenizer base; */    /* this is an empty struct, so we omit  it entirely */
     SV *coderef;                 /* the perl tokenizer is a coderef that takes
                                  ** a string and and some parameters and
                                  ** in turn calls the xToken() function
