@@ -417,8 +417,6 @@ static int perl_fts5_tokenizer_Tokenize(
       )
 ){
     perl_Fts5Tokenizer *c = (perl_Fts5Tokenizer *) tokenizer;
-    int result;
-    int n_retval;
     char *token;
     char *byteOffset;
     dTHX;
@@ -508,14 +506,16 @@ static int perl_fts5_tokenizer_Tokenize(
     //    result = SQLITE_OK;
     //
     PUTBACK;
-    n_retval = call_sv(c->coderef, G_ARRAY);
+    call_sv(c->coderef, G_VOID);
+
+    printf("Returned from tokenization CB, returning to SQLite\n");
     SPAGAIN;
 
     PUTBACK;
     FREETMPS;
     LEAVE;
 
-    return result;
+    return SQLITE_OK;
 }
 
 int perl_fts5_xToken(pTHX_
