@@ -3,10 +3,9 @@ package DBD::SQLite;
 use 5.006;
 use strict;
 use DBI   1.57 ();
-use DynaLoader ();
+use XSLoader ();
 
 our $VERSION = '1.66';
-our @ISA     = 'DynaLoader';
 
 # sqlite_version cache (set in the XS bootstrap)
 our ($sqlite_version, $sqlite_version_number);
@@ -14,7 +13,7 @@ our ($sqlite_version, $sqlite_version_number);
 # not sure if we still need these...
 our ($err, $errstr);
 
-__PACKAGE__->bootstrap($VERSION);
+XSLoader::load('DBD::SQLite', $VERSION);
 
 # New or old API?
 use constant NEWAPI => ($DBI::VERSION >= 1.608);
