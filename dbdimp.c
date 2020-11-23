@@ -296,6 +296,7 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
     sqlite3_int64 iv;
     AV *av;
     SV *result2, *type;
+    SV **presult2, **ptype;
 
     if ( is_error ) {
         s = SvPV(result, len);
@@ -309,8 +310,10 @@ sqlite_set_result(pTHX_ sqlite3_context *context, SV *result, int is_error)
     } else if( SvROK(result) && SvTYPE(SvRV(result)) == SVt_PVAV ) {
         av = (AV*)SvRV(result);
         if ( av_len(av) == 1 ) {
-            result2 = av_shift(av);
-            type    = av_shift(av);
+            presult2 = av_fetch(av, 0, 0);
+            ptype    = av_fetch(av, 1, 0);
+            result2 = presult2 ? *presult2 : &PL_sv_undef;
+            type    = ptype ? *ptype : &PL_sv_undef;
             if ( SvIOK(type) ) {
                 switch(sqlite_type_from_odbc_type(SvIV(type))) {
                     case SQLITE_INTEGER:
