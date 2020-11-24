@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.67_01 to be released
+1.67_01 2020-11-24
     - Switched to XSLoader (GH#63; toddr++)
     - Use quadmath_snprintf if USE_QUADMATH is defined
     - Use av_fetch instead of av_shift (norimy++)
