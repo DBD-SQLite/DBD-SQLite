@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.67_02 2020-12-06
+    - Upgraded SQLite to 3.34.0
+    - Added a few new constants
+    - Added sqlite_txn_state method to see internal state
+      of the backend
+
 1.67_01 2020-11-24
     - Switched to XSLoader (GH#63; toddr++)
     - Use quadmath_snprintf if USE_QUADMATH is defined
