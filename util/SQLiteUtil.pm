@@ -179,6 +179,11 @@ my %since = (
   IOERR_DATA => '3032000',
   BUSY_TIMEOUT => '3032000',
   CORRUPT_INDEX => '3032000',
+  OPEN_SUPER_JOURNAL => '3033000',
+  TXN_NONE => '3034000',
+  TXN_READ => '3034000',
+  TXN_WRITE => '3034000',
+  IOERR_CORRUPTFS => '3034000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
@@ -193,6 +198,7 @@ my %since = (
   checkpoint_mode_values => '3008008',
   prepared_statement_scan_status_opcodes => '3008008',
   sql_trace_event_codes => '3014000',
+  allowed_return_values_from_sqlite3_txn_state => '3034000',
 );
 
 my %until = (
@@ -267,6 +273,7 @@ sub extract_constants {
     if (/^\*\* CAPI3REF: (.+)/) {
       $tag = lc $1;
       $tag =~ s/[ \-]+/_/g;
+      $tag =~ s/[\[\]]//g;
       ($tag) = $tag =~ /^(\w+)/;
       $tag =~ s/_$//;
       if ($tag =~ /^($ignore_tag_re)/) {
