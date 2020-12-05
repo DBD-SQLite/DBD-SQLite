@@ -380,6 +380,17 @@ get_autocommit(dbh)
     OUTPUT:
         RETVAL
 
+static int
+txn_state(SV* dbh, SV *schema = &PL_sv_undef)
+    ALIAS:
+        DBD::SQLite::db::sqlite_txn_state = 1
+    CODE:
+    {
+        RETVAL = sqlite_db_txn_state(aTHX_ dbh, schema);
+    }
+    OUTPUT:
+        RETVAL
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE

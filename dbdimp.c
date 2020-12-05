@@ -2851,6 +2851,21 @@ sqlite_db_get_autocommit(pTHX_ SV *dbh)
     return sqlite3_get_autocommit(imp_dbh->db);
 }
 
+int
+sqlite_db_txn_state(pTHX_ SV *dbh, SV *schema)
+{
+#if SQLITE_VERSION_NUMBER >= 3034000
+    D_imp_dbh(dbh);
+    if (SvOK(schema) && SvPOK(schema)) {
+        return sqlite3_txn_state(imp_dbh->db, SvPV_nolen(schema));
+    } else {
+        return sqlite3_txn_state(imp_dbh->db, NULL);
+    }
+#else
+    return -1;
+#endif
+}
+
 #include "dbdimp_tokenizer.inc"
 #include "dbdimp_virtual_table.inc"
 

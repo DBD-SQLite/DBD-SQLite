@@ -137,6 +137,7 @@ int sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_cl
 int sqlite_db_limit(pTHX_ SV *dbh, int id, int new_value);
 int sqlite_db_config(pTHX_ SV *dbh, int id, int new_value);
 int sqlite_db_get_autocommit(pTHX_ SV *dbh);
+int sqlite_db_txn_state(pTHX_ SV *dbh, SV *schema);
 int sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement);
 void init_cxt();
 

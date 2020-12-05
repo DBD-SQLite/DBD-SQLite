@@ -61,6 +61,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_limit');
         DBD::SQLite::db->install_method('sqlite_db_config');
         DBD::SQLite::db->install_method('sqlite_get_autocommit');
+        DBD::SQLite::db->install_method('sqlite_txn_state');
 
         $methods_are_installed++;
     }
@@ -2373,6 +2374,14 @@ SQLITE_LIMIT_VARIABLE_NUMBER, etc) can be imported from DBD::SQLite::Constants.
 Returns true if the internal SQLite connection is in an autocommit mode.
 This does not always return the same value as C<< $dbh->{AutoCommit} >>.
 This returns false if you explicitly issue a C<<BEGIN>> statement.
+
+=head2 $dbh->sqlite_txn_state()
+
+Returns the internal transaction status of SQLite (not of DBI).
+Return values (SQLITE_TXN_NONE, SQLITE_TXN_READ, SQLITE_TXN_WRITE)
+can be imported from DBD::SQLite::Constants. You may pass an optional
+schema name (usually "main"). If SQLite does not support this function,
+or if you pass a wrong schema name, -1 is returned.
 
 =head1 DRIVER FUNCTIONS
 
