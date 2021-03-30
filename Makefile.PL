@@ -236,6 +236,7 @@ my @CC_DEFINE = (
 #	'-DSQLITE_ENABLE_STAT4',            # for sqlite >= 3.8.3.1
 	'-DSQLITE_ENABLE_JSON1',            # for sqlite >= 3.9.0
 	'-DSQLITE_ENABLE_FTS5',             # for sqlite >= 3.9.0
+	'-DSQLITE_ENABLE_MATH_FUNCTIONS',   # for sqlite >= 3.35.0
 	'-DNDEBUG=1',
 );
 
