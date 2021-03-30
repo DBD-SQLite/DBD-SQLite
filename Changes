@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.67_03 2021-03-31
+    - Upgraded SQLite to 3.35.3
+    - Enabled math functions introduced in SQLite 3.35
+    - Fix quadmath issues (Tux++, leont++)
+
 1.67_02 2020-12-06
     - Upgraded SQLite to 3.34.0
     - Added a few new constants
