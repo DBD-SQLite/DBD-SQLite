@@ -262,7 +262,7 @@ if ( $^O eq 'cygwin') {
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 	push @CC_DEFINE, '-DHAVE_USLEEP=1';
 }
-if ( !$Config{usethreads} and $Config{libs} !~ /pthreads/ ) {
+if ( !$Config{usethreads} and $Config{libs} !~ /pthread/ ) {
 	push @CC_DEFINE, '-DTHREADSAFE=0';
 }
 if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
