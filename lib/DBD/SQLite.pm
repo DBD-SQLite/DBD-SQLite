@@ -2264,6 +2264,10 @@ SQLite3 extensions. After the call, you can load extensions like this:
 
 Loading an extension by a select statement (with the "load_extension" SQLite3 function like above) has some limitations. If you need to, say, create other functions from an extension, use this method. $file (a path to the extension) is mandatory, and $proc (an entry point name) is optional. You need to call C<sqlite_enable_load_extension> before calling C<sqlite_load_extension>.
 
+If the extension uses SQLite mutex functions like C<sqlite3_mutex_enter>, then
+the extension should be compiled with the same C<SQLITE_THREADSAFE> compile-time
+setting as this module, see C<DBD::SQLite::compile_options()>.
+
 =head2 $dbh->sqlite_trace( $code_ref )
 
 This method registers a trace callback to be invoked whenever
