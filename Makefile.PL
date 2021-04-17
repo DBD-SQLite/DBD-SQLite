@@ -262,6 +262,9 @@ if ( $^O eq 'cygwin') {
 if ( $Config{d_usleep} || $Config{osname} =~ m/linux/ ) {
 	push @CC_DEFINE, '-DHAVE_USLEEP=1';
 }
+unless ( $Config{usethreads} ) {
+	push @CC_DEFINE, '-DTHREADSAFE=0';
+}
 if ($^O eq 'hpux' and $Config{osvers} <= 10.20) {
 	# HP-UX 10.20 does not have pread () at all
 	push @CC_DEFINE,
