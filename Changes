@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.67_04 to be released
+    - Upgraded SQLite to 3.35.4
+    - Stop setting THREADSAFE=0 if perl has pthreads (ie. 5.20+)
+
 1.67_03 2021-03-31
     - Upgraded SQLite to 3.35.3
     - Enabled math functions introduced in SQLite 3.35
