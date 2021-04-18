@@ -176,10 +176,17 @@ _sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
 }
 
 static void
-_sqlite_log_callback(void *imp_dbh, int error_code, const char *message)
+_sqlite_log_callback(void *unused, int error_code, const char *message)
 {
     dTHX;
-    sqlite_trace(NULL, imp_dbh, 3, form("sqlite3_log %d, %s", error_code, message));
+
+    SV* drh = get_sv("DBD::SQLite::drh", 0);
+
+    if (drh && SvOK(drh)) {
+        D_imp_drh(drh);
+
+        sqlite_trace(NULL, imp_drh, 3, form("sqlite3_log %d, %s", error_code, message));
+    }
 }
 
 int
@@ -429,6 +436,27 @@ sqlite_init(dbistate_t *dbistate)
 {
     dTHX;
     DBISTATE_INIT; /* Initialize the DBI macros  */
+
+#if SQLITE_VERSION_NUMBER >= 3006023
+    /*
+     * "The sqlite3_config() interface may only be
+     * invoked prior to library initialization using
+     * sqlite3_initialize() or after shutdown by
+     * sqlite3_shutdown()."
+     * -- https://sqlite.org/c3ref/config.html
+     */
+    sqlite3_config(SQLITE_CONFIG_LOG, _sqlite_log_callback, NULL);
+#endif
+
+    /*
+     * "For maximum portability, it is recommended that
+     * applications always invoke sqlite3_initialize()
+     * directly prior to using any other SQLite interface.
+     * Future releases of SQLite may require this."
+     * -- https://sqlite.org/c3ref/initialize.html
+     */
+    sqlite3_initialize();
+
 }
 
 int
@@ -448,26 +476,6 @@ sqlite_db_login6(SV *dbh, imp_dbh_t *imp_dbh, char *dbname, char *user, char *pa
     int extended = 0;
     int flag = 0;
     int unicode = 0;
-
-#if SQLITE_VERSION_NUMBER >= 3006023
-    /*
-     * "The sqlite3_config() interface may only be
-     * invoked prior to library initialization using
-     * sqlite3_initialize() or after shutdown by
-     * sqlite3_shutdown()."
-     * -- https://sqlite.org/c3ref/config.html
-     */
-    sqlite3_config(SQLITE_CONFIG_LOG, _sqlite_log_callback, imp_dbh);
-#endif
-
-    /*
-     * "For maximum portability, it is recommended that
-     * applications always invoke sqlite3_initialize()
-     * directly prior to using any other SQLite interface.
-     * Future releases of SQLite may require this."
-     * -- https://sqlite.org/c3ref/initialize.html
-     */
-    sqlite3_initialize();
 
     sqlite_trace(dbh, imp_dbh, 3, form("login '%s' (version %s)", dbname, sqlite3_version));
 
