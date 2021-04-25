@@ -549,6 +549,9 @@ sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement)
     if (imp_dbh->unicode) {
         sv_utf8_upgrade(sv_statement);
     }
+    else {
+        sv_utf8_downgrade(sv_statement, 0);
+    }
 
     statement = SvPV_nolen(sv_statement);
 
@@ -893,6 +896,9 @@ sqlite_st_prepare_sv(SV *sth, imp_sth_t *imp_sth, SV *sv_statement, SV *attribs)
     if (imp_dbh->unicode) {
         sv_utf8_upgrade(sv_statement);
     }
+    else {
+        sv_utf8_downgrade(sv_statement, 0);
+    }
 
     statement = SvPV_nolen(sv_statement);
 
@@ -1007,9 +1013,11 @@ sqlite_st_execute(SV *sth, imp_sth_t *imp_sth)
             int numtype = 0;
 
             if (imp_dbh->unicode) {
-                sv_utf8_upgrade(value);
+                data = SvPVutf8(value, len);
             }
-            data = SvPV(value, len);
+            else {
+                data = SvPVbyte(value, len);
+            }
 
             /*
              *  XXX: For backward compatibility, it'd be better to
