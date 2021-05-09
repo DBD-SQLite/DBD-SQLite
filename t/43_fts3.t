@@ -24,6 +24,13 @@ my @tests = (
   ["(il OR elle) AND un*" => 0, 2    ],
 );
 
+
+
+my $ix_une_native = index($texts[0], "une");
+my $ix_une_utf8   = do {use bytes; utf8::upgrade(my $bergere_utf8 = $texts[0]); index($bergere_utf8, "une");};
+
+
+
 BEGIN {
 	requires_unicode_support();
 
@@ -105,6 +112,19 @@ for my $use_unicode (0, 1) {
         is_deeply($results, \@expected, "$query ($fts, unicode=$use_unicode)");
       }
     }
+
+
+    # the 'snippet' function should highlight the words in the MATCH query
+    my $sql_snip = "SELECT snippet(try_$fts) FROM try_$fts WHERE content MATCH ?";
+    my $result = $dbh->selectcol_arrayref($sql_snip, undef, 'une');
+    is_deeply($result, ['il était <b>une</b> bergère'], "snippet ($fts, unicode=$use_unicode)");
+
+    # the 'offsets' function should return integer offstes for the words in the MATCH query
+    my $sql_offsets = "SELECT offsets(try_$fts) FROM try_$fts WHERE content MATCH ?";
+    $result = $dbh->selectcol_arrayref($sql_offsets, undef, 'une');
+    my $offset_une = $use_unicode ? $ix_une_utf8 : $ix_une_native;
+    my $expected_offsets = "0 0 $offset_une 3";
+    is_deeply($result, [$expected_offsets], "offsets ($fts, unicode=$use_unicode)");
   }
 }
 
