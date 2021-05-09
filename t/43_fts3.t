@@ -99,18 +99,24 @@ for my $use_unicode (0, 1) {
       }
     }
 
-
     # the 'snippet' function should highlight the words in the MATCH query
     my $sql_snip = "SELECT snippet(try_$fts) FROM try_$fts WHERE content MATCH ?";
     my $result = $dbh->selectcol_arrayref($sql_snip, undef, 'une');
     is_deeply($result, ['il était <b>une</b> bergère'], "snippet ($fts, unicode=$use_unicode)");
 
-    # the 'offsets' function should return integer offstes for the words in the MATCH query
+    # the 'offsets' function should return integer offsets for the words in the MATCH query
     my $sql_offsets = "SELECT offsets(try_$fts) FROM try_$fts WHERE content MATCH ?";
     $result = $dbh->selectcol_arrayref($sql_offsets, undef, 'une');
     my $offset_une = $use_unicode ? $ix_une_utf8 : $ix_une_native;
     my $expected_offsets = "0 0 $offset_une 3";
     is_deeply($result, [$expected_offsets], "offsets ($fts, unicode=$use_unicode)");
+
+    # test a longer sentence
+    $dbh->do("INSERT INTO try_$fts(content) VALUES(?)", {}, join(" ", @texts));
+    $result = $dbh->selectcol_arrayref($sql_snip, undef, '"bergère qui gardait"');
+    like($result->[0],
+         qr[une <b>bergère</b> <b>qui</b> <b>gardait</b> ses],
+         "longer snippet ($fts, unicode=$use_unicode)");
   }
 }
 
