@@ -42,25 +42,11 @@ BEGIN {
 	}
 }
 
-# Perl may spit a warning on locale
-# use Test::NoWarnings;
 
-BEGIN {
-	# Sadly perl for windows (and probably sqlite, too) may hang
-	# if the system locale doesn't support european languages.
-	# en-us should be a safe default. if it doesn't work, use 'C'.
-	if ( $^O eq 'MSWin32') {
-		use POSIX 'locale_h';
-		setlocale(LC_COLLATE, 'en-us');
-	}
-}
-
-use locale;
-
-sub locale_tokenizer { # see also: Search::Tokenizer
+sub Unicode_Word_tokenizer { # see also: Search::Tokenizer
   return sub {
-    my $string = shift;
-    my $regex      = qr/\w+/;
+    my $string     = shift;
+    my $regex      = qr/\p{Word}+/;
     my $term_index = 0;
 
     return sub {
@@ -85,7 +71,7 @@ for my $use_unicode (0, 1) {
     # create fts table
     $dbh->do(<<"") or die DBI::errstr;
       CREATE VIRTUAL TABLE try_$fts
-            USING $fts(content, tokenize=perl 'main::locale_tokenizer')
+            USING $fts(content, tokenize=perl 'main::Unicode_Word_tokenizer')
 
     # populate it
     my $insert_sth = $dbh->prepare(<<"") or die DBI::errstr;

@@ -205,22 +205,33 @@ static int perl_tokenizer_Next(
         *pnBytes       = POPi;
         token          = POPpx;
 
+       
         if (c->pInput) { /* if working with utf8 data */
+
+#ifdef DEBUG_OFFSETS
+            warn("INI: token: %s, start=%d, end=%d, nBytes=%d\n", token, *piStartOffset, *piEndOffset, *pnBytes);
+#endif
 
             /* recompute *pnBytes in bytes, not in chars */
             *pnBytes = strlen(token);
 
-            /* recompute start/end offsets in bytes, not in chars */
-            hop            = *piStartOffset - c->lastCharOffset;
-            byteOffset     = (char*)utf8_hop((U8*)c->lastByteOffset, hop);
-            hop            = *piEndOffset - *piStartOffset;
-            *piStartOffset = byteOffset - c->pInput;
-            byteOffset     = (char*)utf8_hop((U8*)byteOffset, hop);
-            *piEndOffset   = byteOffset - c->pInput;
+            /* recompute start offset in bytes, not in chars */
+            hop               = *piStartOffset - c->lastCharOffset;
+            byteOffset        = (char*)utf8_hop((U8*)c->lastByteOffset, hop);
+            hop               = *piEndOffset - *piStartOffset;
+            *piStartOffset    = byteOffset - c->pInput;
+            byteOffset        = (char*)utf8_hop((U8*)byteOffset, hop);
 
             /* remember where we are for next round */
-            c->lastCharOffset = *piEndOffset,
+            c->lastCharOffset = *piEndOffset;
             c->lastByteOffset = byteOffset;
+
+            /* recompute end offset in bytes, not in chars */
+            *piEndOffset      = byteOffset - c->pInput;
+
+#ifdef DEBUG_OFFSETS
+            warn("FIX: token: %s, start=%d, end=%d, nBytes=%d\n", token, *piStartOffset, *piEndOffset, *pnBytes);
+#endif
         }
 
         /* make sure we have enough storage for copying the token */
