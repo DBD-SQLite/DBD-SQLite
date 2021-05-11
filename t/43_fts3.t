@@ -2,10 +2,18 @@ use strict;
 use warnings;
 no if $] >= 5.022, "warnings", "locale";
 use lib "t/lib";
+
+# TMP for running tests from Emacs
+use lib "lib";
+use lib "../blib/lib";
+use lib "../blib/arch";
+
+use Time::HiRes qw/time/;
 use SQLiteTest;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 use DBD::SQLite;
+
 
 my @texts = ("il était une bergère",
              "qui gardait ses moutons",
@@ -111,12 +119,27 @@ for my $use_unicode (0, 1) {
     my $expected_offsets = "0 0 $offset_une 3";
     is_deeply($result, [$expected_offsets], "offsets ($fts, unicode=$use_unicode)");
 
-    # test a longer sentence
-    $dbh->do("INSERT INTO try_$fts(content) VALUES(?)", {}, join(" ", @texts));
+    # test snippet() on a longer sentence
+    $insert_sth->execute(join " ", @texts);
     $result = $dbh->selectcol_arrayref($sql_snip, undef, '"bergère qui gardait"');
     like($result->[0],
          qr[une <b>bergère</b> <b>qui</b> <b>gardait</b> ses],
          "longer snippet ($fts, unicode=$use_unicode)");
+
+    # simulated large document
+    open my $fh, "<", $INC{'DBD/SQLite.pm'} or die $!;
+    my $source_code = do {local $/; <$fh>};
+    my $long_doc    = $source_code x 1;
+
+    my $t0 = time;
+    $insert_sth->execute($long_doc);
+    my $t1 = time;
+    $result = $dbh->selectcol_arrayref($sql_snip, undef, '"package DBD::SQLite"');
+    my $t2 = time;
+
+    note sprintf("long doc (%d chars): insert in %.4f secs, select in %.4f secs",
+                 length($long_doc), $t1-$t0, $t2-$t1);
+    like($result->[0], qr[^<b>package</b> <b>DBD</b>::<b>SQLite</b>;], 'snippet "package SQLite"');
   }
 }
 
