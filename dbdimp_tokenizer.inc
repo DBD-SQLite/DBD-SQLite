@@ -12,8 +12,8 @@ typedef struct perl_tokenizer_cursor {
 
     /* members below are only used if the input string is in utf8 */
     const char *pInput;          /* input we are tokenizing */
-    const char *lastByteOffset;  /* offset into pInput */
-    int lastCharOffset;          /* char offset corresponding to lastByteOffset */
+    const char *currentByte;     /* pointer into pInput */
+    int currentChar;             /* char corresponding to currentByte */
 } perl_tokenizer_cursor;
 
 /*
@@ -108,9 +108,9 @@ static int perl_tokenizer_Open(
     /* special handling if working with utf8 strings */
     if (MY_CXT.last_dbh_is_unicode) {
 
-        /* data to keep track of byte offsets */
-        c->lastByteOffset = c->pInput = pInput;
-        c->lastCharOffset = 0;
+        /* data to keep track of byte positions */
+        c->currentByte = c->pInput = pInput;
+        c->currentChar = 0;
 
         /* string passed to Perl needs to be flagged as utf8 */
         flags |= SVf_UTF8;
@@ -174,7 +174,7 @@ static int perl_tokenizer_Next(
     int result;
     int n_retval;
     char *token;
-    char *byteOffset;
+    char *nextByte;
     STRLEN n_a; /* this is required for older perls < 5.8.8 */
     I32 hop;
 
@@ -215,19 +215,27 @@ static int perl_tokenizer_Next(
             /* recompute *pnBytes in bytes, not in chars */
             *pnBytes = strlen(token);
 
-            /* recompute start offset in bytes, not in chars */
-            hop               = *piStartOffset - c->lastCharOffset;
-            byteOffset        = (char*)utf8_hop((U8*)c->lastByteOffset, hop);
+            /* nb of chars from last position to the start of the token */
+            hop               = *piStartOffset - c->currentChar;
+
+            /* advance to the first byte in token */
+            nextByte          = (char*)utf8_hop((U8*)c->currentByte, hop);
+
+            /* nb of chars in token */
             hop               = *piEndOffset - *piStartOffset;
-            *piStartOffset    = byteOffset - c->pInput;
-            byteOffset        = (char*)utf8_hop((U8*)byteOffset, hop);
+
+            /* recompute start offset in bytes, not in chars */
+            *piStartOffset    = nextByte - c->pInput;
+
+            /* advance past to the last byte in token */
+            nextByte          = (char*)utf8_hop((U8*)nextByte, hop);
 
             /* remember where we are for next round */
-            c->lastCharOffset = *piEndOffset;
-            c->lastByteOffset = byteOffset;
+            c->currentChar    = *piEndOffset;
+            c->currentByte    = nextByte;
 
             /* recompute end offset in bytes, not in chars */
-            *piEndOffset      = byteOffset - c->pInput;
+            *piEndOffset      = nextByte - c->pInput;
 
 #ifdef DEBUG_OFFSETS
             warn("FIX: token: %s, start=%d, end=%d, nBytes=%d\n", token, *piStartOffset, *piEndOffset, *pnBytes);
