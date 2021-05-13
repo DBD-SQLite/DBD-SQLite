@@ -1,13 +1,6 @@
 use strict;
 use warnings;
-no if $] >= 5.022, "warnings", "locale";
 use lib "t/lib";
-
-# TMP for running tests from Emacs
-use lib "lib";
-use lib "../blib/lib";
-use lib "../blib/arch";
-
 use Time::HiRes qw/time/;
 use SQLiteTest;
 use Test::More;
@@ -32,12 +25,8 @@ my @tests = (
   ["(il OR elle) AND un*" => 0, 2    ],
 );
 
-
-
 my $ix_une_native = index($texts[0], "une");
 my $ix_une_utf8   = do {use bytes; utf8::upgrade(my $bergere_utf8 = $texts[0]); index($bergere_utf8, "une");};
-
-
 
 BEGIN {
 	requires_unicode_support();
@@ -59,8 +48,10 @@ sub Unicode_Word_tokenizer { # see also: Search::Tokenizer
 
     return sub {
       $string =~ /$regex/g or return; # either match, or no more token
-      my ($start, $end) = ($-[0], $+[0]);
-      my $term = substr($string, $start, my $len = $end-$start);
+      my $term  = $&;
+      my $end   = pos $string; # $+[0] is much slower
+      my $len   = length($term);
+      my $start = $end - $len;
       return ($term, $len, $start, $end, $term_index++);
     };
   };
@@ -129,7 +120,7 @@ for my $use_unicode (0, 1) {
     # simulated large document
     open my $fh, "<", $INC{'DBD/SQLite.pm'} or die $!;
     my $source_code = do {local $/; <$fh>};
-    my $long_doc    = $source_code x 1;
+    my $long_doc    = $source_code x 5;
 
     my $t0 = time;
     $insert_sth->execute($long_doc);
