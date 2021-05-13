@@ -394,6 +394,9 @@ WriteMakefile(
 		? '$(O_FILES)'
 		: 'SQLite.o dbdimp.o'
 	),
+	depend           => {
+        	'dbdimp.o' => 'dbdimp_tokenizer.inc dbdimp_virtual_table.inc',
+	},
 	clean            => {
 		FILES => 'SQLite.xsi config.h tv.log *.old',
 	},
