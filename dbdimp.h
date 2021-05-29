@@ -7,8 +7,24 @@
 
 #define MY_CXT_KEY "DBD::SQLite::_guts" XS_VERSION
 
+typedef enum {
+    DBD_SQLITE_STRING_MODE_PV,
+    DBD_SQLITE_STRING_MODE_BYTES,
+
+    /* Leave space here so that we can use DBD_SQLITE_STRING_MODE_UNICODE_ANY
+       as a means of checking for any unicode mode. */
+
+    DBD_SQLITE_STRING_MODE_UNICODE_NAIVE = 4,
+    DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK,
+    DBD_SQLITE_STRING_MODE_UNICODE_STRICT,
+
+    _DBD_SQLITE_STRING_MODE_COUNT,
+} dbd_sqlite_string_mode_t;
+
+#define DBD_SQLITE_STRING_MODE_UNICODE_ANY DBD_SQLITE_STRING_MODE_UNICODE_NAIVE
+
 typedef struct {
-    int last_dbh_is_unicode;
+    dbd_sqlite_string_mode_t last_dbh_string_mode;
 } my_cxt_t;
 
 #define PERL_UNICODE_DOES_NOT_WORK_WELL           \
@@ -21,6 +37,41 @@ typedef struct {
 #ifndef sqlite3_int64
 #define sqlite3_int64 sqlite_int64
 #endif
+
+#define DBD_SQLITE_UTF8_DECODE_NAIVE(sv) SvUTF8_on(sv)
+
+#define DBD_SQLITE_UTF8_DECODE_CHECKED(sv, onfail) ( \
+    is_utf8_string((U8*) SvPVX(sv), SvCUR(sv)) \
+        ? SvUTF8_on(sv) \
+        : onfail("Received invalid UTF-8 from SQLite; cannot decode!") \
+)
+
+#define DBD_SQLITE_UTF8_DECODE_WITH_FALLBACK(sv) ( \
+    DBD_SQLITE_UTF8_DECODE_CHECKED(sv, warn) \
+)
+
+#define DBD_SQLITE_UTF8_DECODE_STRICT(sv) ( \
+    DBD_SQLITE_UTF8_DECODE_CHECKED(sv, croak) \
+)
+
+#define DBD_SQLITE_PREP_SV_FOR_SQLITE(sv, string_mode) STMT_START {     \
+    if (string_mode & DBD_SQLITE_STRING_MODE_UNICODE_ANY) {             \
+        sv_utf8_upgrade(sv);                                            \
+    }                                                                   \
+    else if (string_mode == DBD_SQLITE_STRING_MODE_BYTES) {    \
+        sv_utf8_downgrade(sv, 0);                                       \
+    }                                                                   \
+} STMT_END
+
+#define DBD_SQLITE_UTF8_DECODE_IF_NEEDED(sv, string_mode) ( \
+    string_mode == DBD_SQLITE_STRING_MODE_UNICODE_NAIVE         \
+        ? DBD_SQLITE_UTF8_DECODE_NAIVE(sv)                      \
+    : string_mode == DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK \
+        ? DBD_SQLITE_UTF8_DECODE_WITH_FALLBACK(sv) \
+    : string_mode == DBD_SQLITE_STRING_MODE_UNICODE_STRICT \
+        ? DBD_SQLITE_UTF8_DECODE_STRICT(sv) \
+    : 0 \
+)
 
 /* A linked list of statements prepared by this module */
 typedef struct stmt_list_s stmt_list_s;
@@ -41,7 +92,7 @@ struct imp_dbh_st {
     dbih_dbc_t com;
     /* sqlite specific bits */
     sqlite3 *db;
-    bool unicode;
+    dbd_sqlite_string_mode_t string_mode;
     bool handle_binary_nulls;
     int timeout;
     AV *functions;

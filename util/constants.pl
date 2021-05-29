@@ -17,6 +17,14 @@ my %shorter_tags = (
   compile_time_library_version_numbers => 'version',
 );
 
+my @dbd_sqlite_constants = (
+    'DBD_SQLITE_STRING_MODE_PV',
+    'DBD_SQLITE_STRING_MODE_BYTES',
+    'DBD_SQLITE_STRING_MODE_UNICODE_NAIVE',
+    'DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK',
+    'DBD_SQLITE_STRING_MODE_UNICODE_STRICT',
+);
+
 my %constants = extract_constants();
 write_inc(%constants);
 write_pm(%constants);
@@ -34,7 +42,12 @@ MODULE = DBD::SQLite    PACKAGE = DBD::SQLite::Constants
 
 PROTOTYPES: ENABLE
 
+BOOT:
 END
+
+    for my $constsub (@dbd_sqlite_constants) {
+        print {$fh} qq<    newCONSTSUB( gv_stashpv("DBD::SQLite::Constants", FALSE), "$constsub", newSVuv($constsub) );\n>
+    }
 
   for my $tag (sort grep !/^_/, keys %constants) {
     _write_tag($fh, $tag, $constants{$tag});
@@ -143,6 +156,10 @@ use base 'Exporter';
 use DBD::SQLite;
 our \@EXPORT_OK = (
 END
+
+  for my $const (@dbd_sqlite_constants) {
+    print {$fh} "    '$const',\n";
+  }
 
   for my $tag (sort keys %constants) {
     print $fh <<"END";

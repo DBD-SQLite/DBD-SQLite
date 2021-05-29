@@ -8,6 +8,8 @@ use SQLiteTest;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 
+my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+
 BEGIN { requires_unicode_support() }
 
 #
@@ -51,7 +53,7 @@ ok(
 my ($textback, $bytesback);
 SCOPE: {
 	my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1 );
-	is( $dbh->{sqlite_unicode}, 0, 'Unicode is off' );
+	is( $dbh->{sqlite_string_mode}, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_PV, 'default string mode is pv' );
 	ok(
 		$dbh->do("CREATE TABLE table1 (a TEXT, b BLOB)"),
 		'CREATE TABLE',
@@ -73,8 +75,8 @@ SCOPE: {
 
 # Start over but now activate Unicode support.
 SCOPE: {
-	my $dbh = connect_ok( dbfile => 'foo', sqlite_unicode => 1 );
-	is( $dbh->{sqlite_unicode}, 1, 'Unicode is on' );
+	my $dbh = connect_ok( dbfile => 'foo', sqlite_string_mode => $unicode_opt );
+	is( $dbh->{sqlite_string_mode}, $unicode_opt, 'Unicode is on' );
 
 	($textback, $bytesback) = database_roundtrip($dbh, $utfstring, $bytestring);
 

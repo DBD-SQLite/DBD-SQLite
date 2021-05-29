@@ -67,10 +67,10 @@ sub locale_tokenizer { # see also: Search::Tokenizer
 
 use DBD::SQLite;
 
-for my $use_unicode (0, 1) {
+for my $string_mode (DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
 
   # connect
-  my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
+  my $dbh = connect_ok( RaiseError => 1, sqlite_string_mode => $string_mode );
 
   for my $fts (qw/fts3 fts4/) {
     next if $fts eq 'fts4' && !has_sqlite('3.7.4');
@@ -102,7 +102,7 @@ for my $use_unicode (0, 1) {
         my ($query, @expected) = @$t;
         @expected = map {$doc_ids[$_]} @expected;
         my $results = $dbh->selectcol_arrayref($sql, undef, $query);
-        is_deeply($results, \@expected, "$query ($fts, unicode=$use_unicode)");
+        is_deeply($results, \@expected, "$query ($fts, string_mode=$string_mode)");
       }
     }
   }

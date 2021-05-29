@@ -10,6 +10,8 @@ use if -d ".git", "Test::FailWarnings";
 use File::Temp ();
 use File::Spec::Functions ':ALL';
 
+my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+
 BEGIN { requires_unicode_support() }
 
 my $dir = File::Temp::tempdir( CLEANUP => 1 );
@@ -55,7 +57,7 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 		my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", undef, undef, {
 			RaiseError => 1,
 			PrintError => 0,
-			sqlite_unicode    => 1,
+			sqlite_string_mode => $unicode_opt,
 		} );
 		isa_ok( $dbh, 'DBI::db' );
 	};
@@ -67,7 +69,7 @@ foreach my $subdir ( 'longascii', 'adatbázis', 'name with spaces', '¿¿¿ ¿¿¿¿¿¿')
 		my $dbh = DBI->connect("dbi:SQLite:dbname=$dbfile", undef, undef, {
 			RaiseError => 1,
 			PrintError => 0,
-			sqlite_unicode    => 1,
+			sqlite_string_mode => $unicode_opt,
 		} );
 		isa_ok( $dbh, 'DBI::db' );
 	};

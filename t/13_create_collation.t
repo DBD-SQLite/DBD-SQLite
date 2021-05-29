@@ -8,6 +8,8 @@ use if -d ".git", "Test::FailWarnings";
 use Encode qw/decode/;
 use DBD::SQLite;
 
+my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+
 BEGIN { requires_unicode_support(); }
 
 BEGIN {
@@ -71,10 +73,10 @@ is($DBD::SQLite::COLLATION{foo}, \&by_num_desc, "overridden collation");
 
 foreach my $call_func (@CALL_FUNCS) {
 
-  for my $use_unicode (0, 1) {
+  for my $unicode_opt ( DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
 
     # connect
-    my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
+    my $dbh = connect_ok( RaiseError => 1, sqlite_string_mode => $unicode_opt );
 
     # populate test data
     my @words = qw{
@@ -84,7 +86,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	HAT hâôer 
 	féôu fêôe fèöe ferme
      };
-    if ($use_unicode) {
+    if ($unicode_opt != DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES) {
       utf8::upgrade($_) foreach @words;
     }
 

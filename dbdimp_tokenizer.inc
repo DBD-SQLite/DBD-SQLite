@@ -94,6 +94,30 @@ static int perl_tokenizer_Open(
     SV *perl_string;
     int n_retval;
 
+    /* build a Perl copy of the input string */
+    if (nBytes < 0) { /* we get -1 from fts3. Don't know why ! */
+        nBytes = strlen(pInput);
+    }
+
+    /* SVs_TEMP will call sv_2mortal */
+    perl_string = newSVpvn_flags(pInput, nBytes, SVs_TEMP);
+
+    switch (MY_CXT.last_dbh_string_mode) {
+        DBD_SQLITE_STRING_MODE_UNICODE_NAIVE:
+            DBD_SQLITE_UTF8_DECODE_NAIVE(perl_string);
+            break;
+
+        DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK:
+        DBD_SQLITE_STRING_MODE_UNICODE_STRICT:
+            DBD_SQLITE_UTF8_DECODE_WITH_FALLBACK(perl_string);
+            break;
+
+        default:
+            break;
+    }
+
+    DBD_SQLITE_UTF8_DECODE_IF_NEEDED(perl_string, MY_CXT.last_dbh_string_mode);
+
     perl_tokenizer *t = (perl_tokenizer *)pTokenizer;
 
     /* allocate and initialize the cursor struct */
@@ -102,28 +126,16 @@ static int perl_tokenizer_Open(
     memset(c, 0, sizeof(*c));
     *ppCursor = &c->base;
 
-    /* flags for creating the Perl SV containing the input string */
-    flags = SVs_TEMP; /* will call sv_2mortal */
-
     /* special handling if working with utf8 strings */
-    if (MY_CXT.last_dbh_is_unicode) {
+    if (MY_CXT.last_dbh_string_mode & DBD_SQLITE_STRING_MODE_UNICODE_ANY) {
 
         /* data to keep track of byte offsets */
         c->lastByteOffset = c->pInput = pInput;
         c->lastCharOffset = 0;
-
-        /* string passed to Perl needs to be flagged as utf8 */
-        flags |= SVf_UTF8;
     }
 
     ENTER;
     SAVETMPS;
-
-    /* build a Perl copy of the input string */
-    if (nBytes < 0) { /* we get -1 from fts3. Don't know why ! */
-        nBytes = strlen(pInput);
-    }
-    perl_string = newSVpvn_flags(pInput, nBytes, flags);
 
     /* call the tokenizer coderef */
     PUSHMARK(SP);

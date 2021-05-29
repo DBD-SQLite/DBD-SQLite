@@ -6,6 +6,8 @@ use Test::More;
 use if -d ".git", "Test::FailWarnings";
 use Encode;
 
+use DBD::SQLite::Constants;
+
 BEGIN { requires_unicode_support() }
 
 unicode_test("\x{263A}");  # (decoded) smiley character
@@ -20,7 +22,7 @@ sub unicode_test {
 
     { # tests for an environment where everything is encoded
 
-        my $dbh = connect_ok(sqlite_unicode => 0);
+        my $dbh = connect_ok(sqlite_string_mode => DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES);
         $dbh->do("pragma foreign_keys = on");
         my $unicode_quoted = $dbh->quote_identifier($unicode_encoded);
         $dbh->do("create table $unicode_quoted (id, $unicode_quoted primary key)");
@@ -87,7 +89,7 @@ sub unicode_test {
     }
 
     { # tests for an environment where everything is decoded
-        my $dbh = connect_ok(sqlite_unicode => 1);
+        my $dbh = connect_ok(sqlite_string_mode => DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT);
         $dbh->do("pragma foreign_keys = on");
         my $unicode_quoted = $dbh->quote_identifier($unicode);
         $dbh->do("create table $unicode_quoted (id, $unicode_quoted primary key)");
