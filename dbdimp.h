@@ -22,6 +22,12 @@ typedef struct {
 #define sqlite3_int64 sqlite_int64
 #endif
 
+#define DBD_SQLITE_UTF8_DECODE(sv) ( \
+    is_utf8_string((U8*) SvPVX(sv), SvCUR(sv)) \
+        ? SvUTF8_on(sv) \
+        : warn("Received invalid UTF-8 from SQLite; cannot decode!") \
+)
+
 /* A linked list of statements prepared by this module */
 typedef struct stmt_list_s stmt_list_s;
 

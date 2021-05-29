@@ -272,7 +272,7 @@ stacked_sv_from_sqlite3_value(pTHX_ sqlite3_value *value, int is_unicode)
         len = sqlite3_value_bytes(value);
         sv = newSVpvn((const char *)sqlite3_value_text(value), len);
         if (is_unicode) {
-            SvUTF8_on(sv);
+            DBD_SQLITE_UTF8_DECODE(sv);
         }
         return sv_2mortal(sv);
     case SQLITE_BLOB:
@@ -1229,7 +1229,7 @@ sqlite_st_fetch(SV *sth, imp_sth_t *imp_sth)
                 }
                 sv_setpvn(AvARRAY(av)[i], val, len);
                 if (imp_dbh->unicode) {
-                    SvUTF8_on(AvARRAY(av)[i]);
+                    DBD_SQLITE_UTF8_DECODE(AvARRAY(av)[i]);
                 } else {
                     SvUTF8_off(AvARRAY(av)[i]);
                 }
@@ -1405,7 +1405,7 @@ sqlite_st_FETCH_attrib(SV *sth, imp_sth_t *imp_sth, SV *keysv)
                 /*    fieldname = ++dot;     */
                 SV *sv_fieldname = newSVpv(fieldname, 0);
                 if (imp_dbh->unicode)
-                    SvUTF8_on(sv_fieldname);
+                    DBD_SQLITE_UTF8_DECODE(sv_fieldname);
                 av_store(av, n, sv_fieldname);
             }
         }
@@ -2125,9 +2125,9 @@ sqlite_db_collation_dispatcher_utf8(void *func, int len1, const void *string1,
     SAVETMPS;
     PUSHMARK(SP);
     sv1 = newSVpvn(string1, len1);
-    SvUTF8_on(sv1);
+    DBD_SQLITE_UTF8_DECODE(sv1);
     sv2 = newSVpvn(string2, len2);
-    SvUTF8_on(sv2);
+    DBD_SQLITE_UTF8_DECODE(sv2);
     XPUSHs( sv_2mortal( sv1 ) );
     XPUSHs( sv_2mortal( sv2 ) );
     PUTBACK;
