@@ -7,6 +7,8 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 
+my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+
 my $show_diag = 0;
 foreach my $call_func (@CALL_FUNCS) {
 
@@ -30,9 +32,9 @@ foreach my $call_func (@CALL_FUNCS) {
 			skip( 'Unicode is not supported before 5.8.5', 2 );
 		}
 		my $file = 'foo'.$$;
-		my $dbh = DBI->connect( "dbi:SQLite:dbname=$file;sqlite_unicode=1", '', '' );
+		my $dbh = DBI->connect( "dbi:SQLite:dbname=$file;sqlite_string_mode=$unicode_opt", '', '' );
 		isa_ok( $dbh, 'DBI::db' );
-		is( $dbh->{sqlite_unicode}, 1, 'Unicode is on' );
+		is( $dbh->{sqlite_string_mode}, $unicode_opt, 'Unicode is on' );
 		$dbh->disconnect;
 		unlink $file;
 	}

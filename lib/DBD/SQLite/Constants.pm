@@ -8,6 +8,11 @@ use warnings;
 use base 'Exporter';
 use DBD::SQLite;
 our @EXPORT_OK = (
+    'DBD_SQLITE_STRING_MODE_PV',
+    'DBD_SQLITE_STRING_MODE_BYTES',
+    'DBD_SQLITE_STRING_MODE_UNICODE_NAIVE',
+    'DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK',
+    'DBD_SQLITE_STRING_MODE_UNICODE_STRICT',
     # allowed_return_values_from_sqlite3_txn_state
     qw/
       SQLITE_TXN_NONE

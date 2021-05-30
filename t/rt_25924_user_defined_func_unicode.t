@@ -5,10 +5,12 @@ use SQLiteTest;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 
+my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+
 BEGIN { requires_unicode_support() }
 
 foreach my $call_func (@CALL_FUNCS) {
-	my $dbh = connect_ok( sqlite_unicode => 1 );
+	my $dbh = connect_ok( sqlite_string_mode => $unicode_opt );
 	ok($dbh->$call_func( "perl_uc", 1, \&perl_uc, "create_function" ));
 
 	ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );

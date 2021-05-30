@@ -5,11 +5,13 @@ use strict;
 use warnings;
 use lib "t/lib";
 use SQLiteTest;
+use DBD::SQLite::Constants;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 
 {
     my $dbh = connect_ok( dbfile => 'foo', RaiseError => 1 );
+    $dbh->{sqlite_string_mode} = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES;
 
     my $tbl_name = "\xe9p\xe9e";
     utf8::encode $tbl_name;

@@ -432,7 +432,7 @@ static int perl_vt_Filter( sqlite3_vtab_cursor *pVtabCursor,
     dSP;
     dMY_CXT;
     int i, count;
-    int is_unicode = MY_CXT.last_dbh_is_unicode;
+    dbd_sqlite_string_mode_t string_mode = MY_CXT.last_dbh_string_mode;
 
     ENTER;
     SAVETMPS;
@@ -443,7 +443,7 @@ static int perl_vt_Filter( sqlite3_vtab_cursor *pVtabCursor,
     XPUSHs(sv_2mortal(newSViv(idxNum)));
     XPUSHs(sv_2mortal(newSVpv(idxStr, 0)));
     for(i = 0; i < argc; i++) {
-        XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ argv[i], is_unicode));
+        XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ argv[i], string_mode));
     }
     PUTBACK;
     count = call_method("FILTER", G_VOID);
@@ -588,7 +588,7 @@ static int perl_vt_Update( sqlite3_vtab *pVTab,
     dSP;
     dMY_CXT;
     int count, i;
-    int is_unicode = MY_CXT.last_dbh_is_unicode;
+    dbd_sqlite_string_mode_t string_mode = MY_CXT.last_dbh_string_mode;
     int rc = SQLITE_ERROR;
     SV *rowidsv;
 
@@ -599,7 +599,7 @@ static int perl_vt_Update( sqlite3_vtab *pVTab,
     PUSHMARK(SP);
     XPUSHs(((perl_vtab *) pVTab)->perl_vtab_obj);
     for(i = 0; i < argc; i++) {
-        XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ argv[i], is_unicode));
+        XPUSHs(stacked_sv_from_sqlite3_value(aTHX_ argv[i], string_mode));
     }
     PUTBACK;
     count = call_method ("_SQLITE_UPDATE", G_SCALAR);
@@ -704,8 +704,9 @@ static int perl_vt_FindFunction(sqlite3_vtab *pVTab,
     /* return function information for sqlite3 within *pxFunc and *ppArg */
     is_overloaded = coderef && SvTRUE(coderef);
     if (is_overloaded) {
-        *pxFunc = MY_CXT.last_dbh_is_unicode ? sqlite_db_func_dispatcher_unicode
-                                          : sqlite_db_func_dispatcher_no_unicode;
+
+        *pxFunc = _FUNC_DISPATCHER[MY_CXT.last_dbh_string_mode];
+
         *ppArg = coderef;
     }
 
