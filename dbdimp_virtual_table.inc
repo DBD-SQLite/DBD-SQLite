@@ -815,6 +815,7 @@ sqlite_db_destroy_module_data(void *pAux)
     /* free module memory */
     SvREFCNT_dec(init_data->dbh);
     sqlite3_free((char *)init_data->perl_class);
+    sqlite3_free(init_data);
 
     PUTBACK;
     FREETMPS;
