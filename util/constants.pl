@@ -189,11 +189,14 @@ END
 
   my %seen;
   $constants{all} = [sort grep {!$seen{$_}++} map {@$_} values %constants];
+  push @{$constants{all}}, @dbd_sqlite_constants;
+  $constants{dbd_sqlite_string_mode} = [grep /^DBD_SQLITE_STRING_MODE_/, @dbd_sqlite_constants];
 
+  my $sp = ' ' x 6;
   for my $tag (sort keys %constants) {
     print $fh <<"END";
     $tag => [qw/
-@{[join "\n", map {"      SQLITE_$_"} sort @{$constants{$tag}}]}
+@{[join "\n", map { /^DBD_SQLITE_/ ? "$sp$_" : "${sp}SQLITE_$_"} sort @{$constants{$tag}}]}
     /],
 
 END
@@ -244,10 +247,17 @@ END
 
 END
     for my $const (@{$constants{$tag}}) {
-      print $fh <<"END";
+      if ($const =~ /^DBD_SQLITE_/) {
+        print $fh <<"END";
+\=item $const
+
+END
+      } else {
+        print $fh <<"END";
 \=item SQLITE_$const
 
 END
+      }
     }
     print $fh <<"END";
 \=back
