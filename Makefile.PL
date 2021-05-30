@@ -290,6 +290,12 @@ if ($^O =~ /bsd/i && $^O !~ /(?:open|net)bsd/) {
 
 my (@CCFLAGS, @LDFLAGS, @LDDLFLAGS);
 
+if ($ENV{TEST_DBD_SQLITE_WITH_ASAN}) {
+    push @CCFLAGS, '-fsanitize=address -static-libasan -fuse-ld=gold -fno-omit-frame-pointer -g -O2';
+    push @LDFLAGS, '-fsanitize=address -static-libasan -fuse-ld=gold -fno-omit-frame-pointer -g -O2';
+    push @LDDLFLAGS, '-fsanitize=address -static-libasan -fuse-ld=gold -fno-omit-frame-pointer -g -O2';
+}
+
 # RT #70135: See if ld supports Bsymbolic; 
 unless ($^O eq 'MSWin32' && $Config{ld} =~ /link/) {
 	for my $path (File::Spec->path) {
