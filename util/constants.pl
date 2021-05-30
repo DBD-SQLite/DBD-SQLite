@@ -48,6 +48,7 @@ END
     for my $constsub (@dbd_sqlite_constants) {
         print {$fh} qq<    newCONSTSUB( gv_stashpv("DBD::SQLite::Constants", FALSE), "$constsub", newSVuv($constsub) );\n>
     }
+    print $fh "\n";
 
   for my $tag (sort grep !/^_/, keys %constants) {
     _write_tag($fh, $tag, $constants{$tag});
