@@ -12,8 +12,8 @@ typedef struct perl_tokenizer_cursor {
 
     /* members below are only used if the input string is in utf8 */
     const char *pInput;          /* input we are tokenizing */
-    const char *lastByteOffset;  /* offset into pInput */
-    int lastCharOffset;          /* char offset corresponding to lastByteOffset */
+    const char *currentByte;     /* pointer into pInput */
+    int         currentChar;     /* char position corresponding to currentByte */
 } perl_tokenizer_cursor;
 
 /*
@@ -108,9 +108,9 @@ static int perl_tokenizer_Open(
     /* special handling if working with utf8 strings */
     if (MY_CXT.last_dbh_is_unicode) {
 
-        /* data to keep track of byte offsets */
-        c->lastByteOffset = c->pInput = pInput;
-        c->lastCharOffset = 0;
+        /* data to keep track of byte positions */
+        c->currentByte = c->pInput = pInput;
+        c->currentChar = 0;
 
         /* string passed to Perl needs to be flagged as utf8 */
         flags |= SVf_UTF8;
@@ -134,7 +134,7 @@ static int perl_tokenizer_Open(
 
     /* store the cursor coderef returned by the tokenizer */
     if (n_retval != 1) {
-        warn("tokenizer returned %d arguments", n_retval);
+        warn("tokenizer returned %d arguments, expected 1", n_retval);
     }
     c->coderef = newSVsv(POPs);
 
@@ -164,17 +164,17 @@ static int perl_tokenizer_Close(sqlite3_tokenizer_cursor *pCursor){
 */
 static int perl_tokenizer_Next(
     sqlite3_tokenizer_cursor *pCursor,  /* Cursor returned by perl_tokenizer_Open */
-    const char **ppToken,               /* OUT: *ppToken is the token text */
-    int *pnBytes,                       /* OUT: Number of bytes in token */
-    int *piStartOffset,                 /* OUT: Starting offset of token */
-    int *piEndOffset,                   /* OUT: Ending offset of token */
-    int *piPosition                     /* OUT: Position integer of token */
+    const char **ppToken,               /* OUT: Normalized text for token */
+    int *pnBytes,                       /* OUT: Number of bytes in normalized text */
+    int *piStartOffset,                 /* Starting offset of token. IN : char offset; OUT : byte offset */
+    int *piEndOffset,                   /* Ending offset of token.   IN : char offset; OUT : byte offset */
+    int *piPosition                     /* OUT: Number of tokens returned before this one */
 ){
     perl_tokenizer_cursor *c = (perl_tokenizer_cursor *) pCursor;
     int result;
     int n_retval;
     char *token;
-    char *byteOffset;
+    char *nextByte;
     STRLEN n_a; /* this is required for older perls < 5.8.8 */
     I32 hop;
 
@@ -197,7 +197,7 @@ static int perl_tokenizer_Next(
     /* otherwise, get token details from the return list */
     else {
         if (n_retval != 5) {
-            warn("tokenizer cursor returned %d arguments", n_retval);
+            warn("tokenizer cursor returned %d arguments, expected 5", n_retval);
         }
         *piPosition    = POPi;
         *piEndOffset   = POPi;
@@ -206,21 +206,30 @@ static int perl_tokenizer_Next(
         token          = POPpx;
 
         if (c->pInput) { /* if working with utf8 data */
+            /* compute first hop : nb of chars from last position to the start of the token */
+            hop               = *piStartOffset - c->currentChar;
 
-            /* recompute *pnBytes in bytes, not in chars */
-            *pnBytes = strlen(token);
+            /* hop: advance to the first byte in token */
+            nextByte          = (char*)utf8_hop((U8*)c->currentByte, hop);
 
-            /* recompute start/end offsets in bytes, not in chars */
-            hop            = *piStartOffset - c->lastCharOffset;
-            byteOffset     = (char*)utf8_hop((U8*)c->lastByteOffset, hop);
-            hop            = *piEndOffset - *piStartOffset;
-            *piStartOffset = byteOffset - c->pInput;
-            byteOffset     = (char*)utf8_hop((U8*)byteOffset, hop);
-            *piEndOffset   = byteOffset - c->pInput;
+            /* compute 2nd hop : nb of chars from start of the token to end of token */
+            hop               = *piEndOffset - *piStartOffset;
 
-            /* remember where we are for next round */
-            c->lastCharOffset = *piEndOffset,
-            c->lastByteOffset = byteOffset;
+            /* now recompute the start offset in bytes, not in chars */
+            *piStartOffset    = nextByte - c->pInput;
+
+            /* 2nd hop: advance past to the last byte in token */
+            nextByte          = (char*)utf8_hop((U8*)nextByte, hop);
+
+            /* remember current position (useful for the next invocation) */
+            c->currentChar    = *piEndOffset;
+            c->currentByte    = nextByte;
+
+            /* now recompute the end offset in bytes, not in chars */
+            *piEndOffset      = nextByte - c->pInput;
+
+            /* compute the size of the normalized token in bytes, not in chars */
+            *pnBytes          = strlen(token);
         }
 
         /* make sure we have enough storage for copying the token */
@@ -232,8 +241,7 @@ static int perl_tokenizer_Next(
             c->pToken = pNew;
         }
 
-        /* need to copy the token into the C cursor before perl frees that
-           memory */
+        /* need to copy the token into the C cursor before perl frees that memory */
         memcpy(c->pToken, token, *pnBytes);
         *ppToken  = c->pToken;
 
