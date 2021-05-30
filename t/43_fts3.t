@@ -101,21 +101,21 @@ for my $string_mode (DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::
     # the 'snippet' function should highlight the words in the MATCH query
     my $sql_snip = "SELECT snippet(try_$fts) FROM try_$fts WHERE content MATCH ?";
     my $result = $dbh->selectcol_arrayref($sql_snip, undef, 'une');
-    is_deeply($result, ['il était <b>une</b> bergère'], "snippet ($fts, unicode=$use_unicode)");
+    is_deeply($result, ['il était <b>une</b> bergère'], "snippet ($fts, string_mode=$string_mode)");
 
     # the 'offsets' function should return integer offsets for the words in the MATCH query
     my $sql_offsets = "SELECT offsets(try_$fts) FROM try_$fts WHERE content MATCH ?";
     $result = $dbh->selectcol_arrayref($sql_offsets, undef, 'une');
-    my $offset_une = $use_unicode ? $ix_une_utf8 : $ix_une_native;
+    my $offset_une = $string_mode == DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT ? $ix_une_utf8 : $ix_une_native;
     my $expected_offsets = "0 0 $offset_une 3";
-    is_deeply($result, [$expected_offsets], "offsets ($fts, unicode=$use_unicode)");
+    is_deeply($result, [$expected_offsets], "offsets ($fts, string_mode=$string_mode)");
 
     # test snippet() on a longer sentence
     $insert_sth->execute(join " ", @texts);
     $result = $dbh->selectcol_arrayref($sql_snip, undef, '"bergère qui gardait"');
     like($result->[0],
          qr[une <b>bergère</b> <b>qui</b> <b>gardait</b> ses],
-         "longer snippet ($fts, unicode=$use_unicode)");
+         "longer snippet ($fts, string_mode=$string_mode)");
 
     # simulated large document
     open my $fh, "<", $INC{'DBD/SQLite.pm'} or die $!;
