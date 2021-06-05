@@ -1648,13 +1648,14 @@ e.g., L<Encode/decode>.
 
 Also note that, due to some bizarreness in SQLite's type system (see
 L<https://www.sqlite.org/datatype3.html>), if you want to retain
-blob-style behavior for B<some> columns under DBD_SQLITE_STRING_MODE_UNICODE
+blob-style behavior for B<some> columns under DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK
 (say, to store images in the database), you have to state so
 explicitly using the 3-argument form of L<DBI/bind_param> when doing
 updates:
 
   use DBI qw(:sql_types);
-  $dbh->{string_mode} = DBD_SQLITE_STRING_MODE_UNICODE;
+  use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
+  $dbh->{string_mode} = DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK;
   my $sth = $dbh->prepare("INSERT INTO mytable (blobcolumn) VALUES (?)");
 
   # Binary_data will be stored as is.
