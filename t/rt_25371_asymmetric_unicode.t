@@ -5,7 +5,9 @@ use SQLiteTest;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 
-my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
+
+my $unicode_opt = DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
 
 BEGIN { requires_unicode_support(); }
 

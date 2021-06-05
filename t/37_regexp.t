@@ -28,10 +28,11 @@ BEGIN {
 use locale;
 
 use DBD::SQLite;
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
 
 foreach my $call_func (@CALL_FUNCS) {
 
-  for my $string_mode (DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
+  for my $string_mode (DBD_SQLITE_STRING_MODE_BYTES, DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
 
     # connect
     my $dbh = connect_ok( RaiseError => 1, sqlite_string_mode => $string_mode );
@@ -43,7 +44,7 @@ foreach my $call_func (@CALL_FUNCS) {
 
     # populate test data
     my @vals = @words;
-    if ($string_mode == DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES) {
+    if ($string_mode == DBD_SQLITE_STRING_MODE_BYTES) {
       utf8::upgrade($_) foreach @vals;
     }
 

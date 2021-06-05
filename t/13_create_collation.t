@@ -7,8 +7,9 @@ use Test::More;
 use if -d ".git", "Test::FailWarnings";
 use Encode qw/decode/;
 use DBD::SQLite;
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
 
-my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+my $unicode_opt = DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
 
 BEGIN { requires_unicode_support(); }
 
@@ -73,7 +74,7 @@ is($DBD::SQLite::COLLATION{foo}, \&by_num_desc, "overridden collation");
 
 foreach my $call_func (@CALL_FUNCS) {
 
-  for my $unicode_opt ( DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
+  for my $unicode_opt (DBD_SQLITE_STRING_MODE_BYTES, DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
 
     # connect
     my $dbh = connect_ok( RaiseError => 1, sqlite_string_mode => $unicode_opt );
@@ -86,7 +87,7 @@ foreach my $call_func (@CALL_FUNCS) {
 	HAT hâôer 
 	féôu fêôe fèöe ferme
      };
-    if ($unicode_opt != DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES) {
+    if ($unicode_opt != DBD_SQLITE_STRING_MODE_BYTES) {
       utf8::upgrade($_) foreach @words;
     }
 

@@ -11,8 +11,10 @@ use if -d ".git", "Test::FailWarnings";
 
 BEGIN { requires_unicode_support() }
 
-my $dbh = connect_ok( sqlite_string_mode => DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_NAIVE );
-is( $dbh->{sqlite_string_mode}, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_NAIVE, 'Unicode is on' );
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
+
+my $dbh = connect_ok( sqlite_string_mode => DBD_SQLITE_STRING_MODE_UNICODE_NAIVE );
+is( $dbh->{sqlite_string_mode}, DBD_SQLITE_STRING_MODE_UNICODE_NAIVE, 'Unicode is on' );
 
 ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE' );
 CREATE TABLE foo (

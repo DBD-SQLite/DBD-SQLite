@@ -6,7 +6,7 @@ use SQLiteTest;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 use DBD::SQLite;
-
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
 
 my @texts = ("il était une bergère",
              "qui gardait ses moutons",
@@ -59,7 +59,7 @@ sub Unicode_Word_tokenizer { # see also: Search::Tokenizer
 
 use DBD::SQLite;
 
-for my $string_mode (DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
+for my $string_mode (DBD_SQLITE_STRING_MODE_BYTES, DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
 
   # connect
   my $dbh = connect_ok( RaiseError => 1, sqlite_string_mode => $string_mode );
@@ -106,7 +106,7 @@ for my $string_mode (DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_BYTES, DBD::
     # the 'offsets' function should return integer offsets for the words in the MATCH query
     my $sql_offsets = "SELECT offsets(try_$fts) FROM try_$fts WHERE content MATCH ?";
     $result = $dbh->selectcol_arrayref($sql_offsets, undef, 'une');
-    my $offset_une = $string_mode == DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT ? $ix_une_utf8 : $ix_une_native;
+    my $offset_une = $string_mode == DBD_SQLITE_STRING_MODE_UNICODE_STRICT ? $ix_une_utf8 : $ix_une_native;
     my $expected_offsets = "0 0 $offset_une 3";
     is_deeply($result, [$expected_offsets], "offsets ($fts, string_mode=$string_mode)");
 

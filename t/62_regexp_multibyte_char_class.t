@@ -7,6 +7,8 @@ use Test::More;
 
 BEGIN { requires_unicode_support() }
 
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
+
 # special case for multibyte (non-ASCII) character class,
 # which only works correctly under the unicode mode
 my @words = ("\x{e3}\x{83}\x{86}\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{88}", "\x{e3}\x{83}\x{86}\x{e3}\x{83}\x{b3}\x{e3}\x{83}\x{88}"); # テスト テント
@@ -15,15 +17,15 @@ my $regex = "\x{e3}\x{83}\x{86}[\x{e3}\x{82}\x{b9}\x{e3}\x{83}\x{b3}]\x{e3}\x{83
 
 foreach my $call_func (@CALL_FUNCS) {
 
-  for my $use_unicode (0, 1) {
+  for my $string_mode (DBD_SQLITE_STRING_MODE_PV, DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
 
     # connect
-    my $dbh = connect_ok( RaiseError => 1, sqlite_unicode => $use_unicode );
+    my $dbh = connect_ok( RaiseError => 1, sqlite_string_mode => $string_mode );
 
     # populate test data
     my @vals = @words;
     my $re = $regex;
-    if ($use_unicode) {
+    if ($string_mode == DBD_SQLITE_STRING_MODE_UNICODE_STRICT) {
       utf8::decode($_) foreach @vals;
       utf8::decode($re);
     }

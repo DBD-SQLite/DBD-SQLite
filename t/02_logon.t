@@ -7,7 +7,9 @@ use SQLiteTest qw/connect_ok @CALL_FUNCS/;
 use Test::More;
 use if -d ".git", "Test::FailWarnings";
 
-my $unicode_opt = DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
+
+my $unicode_opt = DBD_SQLITE_STRING_MODE_UNICODE_STRICT;
 
 my $show_diag = 0;
 foreach my $call_func (@CALL_FUNCS) {

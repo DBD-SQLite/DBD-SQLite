@@ -6,11 +6,11 @@ use Test::More;
 use if -d ".git", "Test::FailWarnings";
 use DBI qw/:sql_types/;
 
-use DBD::SQLite::Constants;
+use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
 
 BEGIN{ requires_unicode_support(); }
 
-my $dbh = connect_ok(sqlite_string_mode => DBD::SQLite::Constants::DBD_SQLITE_STRING_MODE_UNICODE_STRICT);
+my $dbh = connect_ok(sqlite_string_mode => DBD_SQLITE_STRING_MODE_UNICODE_STRICT);
 $dbh->do('create table test1 (id integer, b blob)');
 
 my $blob = "\x{82}\x{A0}";
