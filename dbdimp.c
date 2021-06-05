@@ -161,6 +161,25 @@ _sqlite_error(pTHX_ char *file, int line, SV *h, int rc, const char *what)
     }
 }
 
+static void
+_sqlite_log_callback(void *unused, int error_code, const char *message)
+{
+    dTHX;
+
+    SV* drh = get_sv("DBD::SQLite::drh", 0);
+
+    if (drh && SvOK(drh)) {
+        D_imp_drh(drh);
+
+        if ( DBIc_TRACE_LEVEL(imp_drh) >= 3 ) {
+            PerlIO_printf(
+                DBIc_LOGPIO(imp_drh),
+                "sqlite3_log (%d) %s\n", error_code, message
+            );
+        }
+    }
+}
+
 int
 _sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
 {
@@ -1724,6 +1743,23 @@ sqlite_db_filename(pTHX_ SV *dbh)
     filename = sqlite3_db_filename(imp_dbh->db, "main");
 #endif
     return filename ? newSVpv(filename, 0) : &PL_sv_undef;
+}
+
+int
+sqlite_trace_sqlite3_log(pTHX_ SV *drh, int flag)
+{
+    int rc = 0;
+#if SQLITE_VERSION_NUMBER >= 3006023
+    rc = sqlite3_config(SQLITE_CONFIG_LOG, flag ? _sqlite_log_callback : NULL, NULL);
+    if (rc == SQLITE_OK) {
+        return 1;
+    } else {
+        sqlite_error(drh, rc, "trace_sqlite3_log must be called before sqlite3 is initialized");
+        return 0;
+    }
+#else
+    return 0;
+#endif
 }
 
 int
