@@ -1,6 +1,6 @@
 Changes for Perl extension DBD-SQLite
 
-1.67_05 to be released
+1.67_05 2021-06-13
     - Made DBD_SQLITE_STRING_MODE constants exportable
 
 1.67_04 2021-05-31
