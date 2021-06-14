@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.67_06 2021-06-14
+    - Experiment with another quadmath patch to see if it works
+      with an older version of FreeBSD
+
 1.67_05 2021-06-13
     - Made DBD_SQLITE_STRING_MODE constants exportable
 
