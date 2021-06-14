@@ -405,7 +405,11 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
         if (!_sqlite_atoi64(v, &iv)) return 1;
     }
     if (sql_type != SQLITE_INTEGER) {
-        sprintf(format, (has_plus ? "+%%.%d" NVff : "%%.%d" NVff), precision);
+#ifdef USE_QUADMATH
+        sprintf(format, (has_plus ? "+%%.%dQf" : "%%.%dQf"), precision);
+#else
+        sprintf(format, (has_plus ? "+%%.%df"  : "%%.%df" ), precision);
+#endif
         if (strEQ(form(format, atof(v)), v)) return 2;
     }
     return 0;
