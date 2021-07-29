@@ -1,5 +1,10 @@
 Changes for Perl extension DBD-SQLite
 
+1.69_01 2021-07-30
+    - Typo (GH#85, grr++)
+    - Silenced deprecation warning of sqlite_unicode not to break
+      tests of existing applications
+
 1.68 2021-07-22
     - Switched to a production version
 
