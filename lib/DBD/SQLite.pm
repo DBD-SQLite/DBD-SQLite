@@ -1669,7 +1669,7 @@ rather than a warning if SQLite sends invalid UTF-8. (In Perl callbacks
 from SQLite we still warn instead.)
 
 =item * DBD_SQLITE_STRING_MODE_UNICODE_NAIVE: Like
-DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK but uses a "naïve" UTF-8 decoding
+DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK but uses a "naÃ¯ve" UTF-8 decoding
 method that forgoes validation. This is marginally faster than a validated
 decode, but it can also B<corrupt> B<Perl> B<itself!>
 
