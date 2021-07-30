@@ -1655,7 +1655,7 @@ updates:
 
   use DBI qw(:sql_types);
   use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
-  $dbh->{string_mode} = DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK;
+  $dbh->{sqlite_string_mode} = DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK;
   my $sth = $dbh->prepare("INSERT INTO mytable (blobcolumn) VALUES (?)");
 
   # Binary_data will be stored as is.
