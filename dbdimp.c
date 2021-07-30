@@ -856,11 +856,19 @@ sqlite_db_STORE_attrib(SV *dbh, imp_dbh_t *imp_dbh, SV *keysv, SV *valuesv)
         return TRUE;
     }
 
-    if (strEQ(key, "sqlite_unicode") || strEQ(key, "unicode")) {
-        if (strEQ(key, "unicode")) {
-            /* it's too early to warn the deprecation of sqlite_unicode as it's widely used */
-            _warn_deprecated_if_possible(key, "sqlite_string_mode");
-        }
+    if (strEQ(key, "sqlite_unicode")) {
+        /* it's too early to warn the deprecation of sqlite_unicode as it's widely used */
+#if PERL_UNICODE_DOES_NOT_WORK_WELL
+        sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
+        imp_dbh->string_mode = DBD_SQLITE_STRING_MODE_PV;
+#else
+        imp_dbh->string_mode = SvTRUE(valuesv) ? DBD_SQLITE_STRING_MODE_UNICODE_NAIVE : DBD_SQLITE_STRING_MODE_PV;
+#endif
+        return TRUE;
+    }
+
+    if (strEQ(key, "unicode")) {
+        _warn_deprecated_if_possible(key, "sqlite_string_mode");
 #if PERL_UNICODE_DOES_NOT_WORK_WELL
         sqlite_trace(dbh, imp_dbh, 3, form("Unicode support is disabled for this version of perl."));
         imp_dbh->string_mode = DBD_SQLITE_STRING_MODE_PV;
