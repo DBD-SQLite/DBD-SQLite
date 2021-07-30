@@ -1,5 +1,11 @@
 Changes for Perl extension DBD-SQLite
 
+1.69_02 2021-07-30
+    - Fix doc to use the correct attribute with sqlite_ (GH#86, eekboek++)
+    - Modify the fix to silence the sqlite_unicode warning not to check
+      the attribute twice
+    - Fix an encoding issue of naive (GH#83, HaraldJoerg++)
+
 1.69_01 2021-07-30
     - Typo (GH#85, grr++)
     - Silenced deprecation warning of sqlite_unicode not to break
