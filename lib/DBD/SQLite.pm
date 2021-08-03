@@ -2589,18 +2589,17 @@ or
 
 =head2 Unicode handling
 
-If the attribute C<< $dbh->{sqlite_unicode} >> is set, strings coming from
-the database and passed to the collation function will be properly
-tagged with the utf8 flag; but this only works if the
-C<sqlite_unicode> attribute is set B<before> the first call to
-a perl collation sequence . The recommended way to activate unicode
-is to set the parameter at connection time :
+Depending on the C<< $dbh->{sqlite_string_mode} >> value, strings coming
+from the database and passed to the collation function may be decoded as
+UTF-8. This only works, though, if the C<sqlite_string_mode> attribute is
+set B<before> the first call to a perl collation sequence. The recommended
+way to activate unicode is to set C<sqlite_string_mode> at connection time:
 
   my $dbh = DBI->connect(
       "dbi:SQLite:dbname=foo", "", "",
       {
-          RaiseError     => 1,
-          sqlite_unicode => 1,
+          RaiseError         => 1,
+          sqlite_string_mode => DBD_SQLITE_STRING_MODE_UNICODE_STRICT,
       }
   );
 
