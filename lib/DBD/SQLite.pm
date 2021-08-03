@@ -2621,7 +2621,7 @@ characters :
   use DBD::SQLite;
   $DBD::SQLite::COLLATION{no_accents} = sub {
     my ( $a, $b ) = map lc, @_;
-    tr[ΰβαδεγηπθκιλμξνορςτσφυψωϋϊόύ]
+    tr[Γ ΓΆΓ΅Γ¤Γ¥Γ£Γ§Γ°Γ¨ΓªΓ©Γ«Γ¬Γ®Γ­Γ―Γ±Γ²Γ΄Γ³Γ¶ΓµΓΈΓΉΓ»ΓΊΓΌΓ½]
       [aaaaaacdeeeeiiiinoooooouuuuy] for $a, $b;
     $a cmp $b;
   };
