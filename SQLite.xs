@@ -406,6 +406,20 @@ st_status(sth, reset = 0)
     OUTPUT:
         RETVAL
 
+MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::dr
+
+int
+trace_sqlite3_log(drh, flag = 1)
+    SV *drh
+    int flag
+    ALIAS:
+        DBD::SQLite::dr::sqlite_trace_sqlite3_log = 1
+    CODE:
+        RETVAL = sqlite_trace_sqlite3_log(aTHX_ drh, flag);
+    OUTPUT:
+        RETVAL
+
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite
 
 # a couple of constants exported from sqlite3.h

@@ -176,6 +176,7 @@ SV* sqlite_db_rollback_hook( pTHX_ SV *dbh, SV *hook );
 SV* sqlite_db_update_hook( pTHX_ SV *dbh, SV *hook );
 int sqlite_db_set_authorizer( pTHX_ SV *dbh, SV *authorizer );
 AV* sqlite_compile_options();
+int sqlite_trace_sqlite3_log(pTHX_ SV *drh, int flag);
 int sqlite_db_trace(pTHX_ SV *dbh, SV *func);
 int sqlite_db_profile(pTHX_ SV *dbh, SV *func);
 HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *columnname);
@@ -191,6 +192,7 @@ int sqlite_db_get_autocommit(pTHX_ SV *dbh);
 int sqlite_db_txn_state(pTHX_ SV *dbh, SV *schema);
 int sqlite_db_do_sv(SV *dbh, imp_dbh_t *imp_dbh, SV *sv_statement);
 void init_cxt();
+static void _sqlite_log_callback(void *unused, int error_code, const char *message);
 
 
 #ifdef SvUTF8_on

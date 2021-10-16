@@ -62,6 +62,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_db_config');
         DBD::SQLite::db->install_method('sqlite_get_autocommit');
         DBD::SQLite::db->install_method('sqlite_txn_state');
+        DBD::SQLite::dr->install_method('sqlite_trace_sqlite3_log');
 
         $methods_are_installed++;
     }
@@ -79,6 +80,10 @@ sub CLONE {
     undef $drh;
 }
 
+sub trace_sqlite3_log {
+    shift if $_[0] && $_[0] eq 'DBD::SQLite';
+    driver('DBD::SQLite')->sqlite_trace_sqlite3_log(@_);
+}
 
 package # hide from PAUSE
     DBD::SQLite::dr;
