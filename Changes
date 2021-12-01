@@ -1,6 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
 1.71_01 to be released
+    - Upgraded SQLite to 3.37.0
+    - Add a feature to unregister a created function
     - Fix accented characters in POD (GH#90, HaraldJoerg++)
 
 1.70 2021-08-01
