@@ -493,6 +493,30 @@ _const_database_connection_configuration_options_3031000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3036000
+
+IV
+_const_delete_a_session_object_3036000()
+    ALIAS:
+        SQLITE_SESSION_OBJCONFIG_SIZE = SQLITE_SESSION_OBJCONFIG_SIZE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_delete_a_session_object_3036000_zero()
+    ALIAS:
+        SQLITE_SESSION_OBJCONFIG_SIZE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV
@@ -1189,6 +1213,30 @@ _const_extended_result_codes_3034000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3037000
+
+IV
+_const_extended_result_codes_3037000()
+    ALIAS:
+        SQLITE_CONSTRAINT_DATATYPE = SQLITE_CONSTRAINT_DATATYPE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_extended_result_codes_3037000_zero()
+    ALIAS:
+        SQLITE_CONSTRAINT_DATATYPE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 IV
 _const_flags_for_file_open_operations()
     ALIAS:
@@ -1347,6 +1395,30 @@ _const_flags_for_file_open_operations_3033000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3037000
+
+IV
+_const_flags_for_file_open_operations_3037000()
+    ALIAS:
+        SQLITE_OPEN_EXRESCODE = SQLITE_OPEN_EXRESCODE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_flags_for_file_open_operations_3037000_zero()
+    ALIAS:
+        SQLITE_OPEN_EXRESCODE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 #if SQLITE_VERSION_NUMBER >= 3008003
 
 IV
@@ -1428,6 +1500,7 @@ _const_fundamental_datatypes()
         SQLITE_FLOAT = SQLITE_FLOAT
         SQLITE_BLOB = SQLITE_BLOB
         SQLITE_NULL = SQLITE_NULL
+        SQLITE_TEXT = SQLITE_TEXT
     CODE:
         RETVAL = ix;
     OUTPUT:
@@ -1818,6 +1891,30 @@ IV
 _const__flags_for_file_open_operations_3033000_zero()
     ALIAS:
         OPEN_SUPER_JOURNAL = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3037000
+
+IV
+_const__flags_for_file_open_operations_3037000()
+    ALIAS:
+        OPEN_EXRESCODE = SQLITE_OPEN_EXRESCODE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const__flags_for_file_open_operations_3037000_zero()
+    ALIAS:
+        OPEN_EXRESCODE = 1
     CODE:
         RETVAL = 0;
     OUTPUT:

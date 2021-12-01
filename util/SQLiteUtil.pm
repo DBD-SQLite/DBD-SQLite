@@ -184,6 +184,9 @@ my %since = (
   TXN_READ => '3034000',
   TXN_WRITE => '3034000',
   IOERR_CORRUPTFS => '3034000',
+  SESSION_OBJCONFIG_SIZE => '3036000',
+  CONSTRAINT_DATATYPE => '3037000',
+  OPEN_EXRESCODE => '3037000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
@@ -199,6 +202,7 @@ my %since = (
   prepared_statement_scan_status_opcodes => '3008008',
   sql_trace_event_codes => '3014000',
   allowed_return_values_from_sqlite3_txn_state => '3034000',
+  delete_a_session_object => '3036000',
 );
 
 my %until = (
@@ -282,7 +286,7 @@ sub extract_constants {
       }
       next;
     }
-    if ($tag && /^#define SQLITE_(\S+)\s+(\d+|\(SQLITE)/) {
+    if ($tag && /^#\s*define SQLITE_(\S+)\s+(\d+|\(SQLITE)/) {
       my ($name, $value) = ($1, $2);
       if ($name eq 'VERSION_NUMBER' and $value =~ /^\d+$/) {
           $known_versions{$value} = 1;

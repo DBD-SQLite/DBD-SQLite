@@ -92,6 +92,11 @@ our @EXPORT_OK = (
       SQLITE_DBCONFIG_WRITABLE_SCHEMA
     /,
 
+    # delete_a_session_object
+    qw/
+      SQLITE_SESSION_OBJCONFIG_SIZE
+    /,
+
     # extended_result_codes
     qw/
       SQLITE_ABORT_ROLLBACK
@@ -107,6 +112,7 @@ our @EXPORT_OK = (
       SQLITE_CANTOPEN_SYMLINK
       SQLITE_CONSTRAINT_CHECK
       SQLITE_CONSTRAINT_COMMITHOOK
+      SQLITE_CONSTRAINT_DATATYPE
       SQLITE_CONSTRAINT_FOREIGNKEY
       SQLITE_CONSTRAINT_FUNCTION
       SQLITE_CONSTRAINT_NOTNULL
@@ -172,6 +178,7 @@ our @EXPORT_OK = (
     # flags_for_file_open_operations
     qw/
       SQLITE_OPEN_CREATE
+      SQLITE_OPEN_EXRESCODE
       SQLITE_OPEN_FULLMUTEX
       SQLITE_OPEN_MEMORY
       SQLITE_OPEN_NOFOLLOW
@@ -198,6 +205,7 @@ our @EXPORT_OK = (
       SQLITE_FLOAT
       SQLITE_INTEGER
       SQLITE_NULL
+      SQLITE_TEXT
     /,
 
     # result_codes
@@ -277,6 +285,7 @@ our %EXPORT_TAGS = (
       SQLITE_CONSTRAINT
       SQLITE_CONSTRAINT_CHECK
       SQLITE_CONSTRAINT_COMMITHOOK
+      SQLITE_CONSTRAINT_DATATYPE
       SQLITE_CONSTRAINT_FOREIGNKEY
       SQLITE_CONSTRAINT_FUNCTION
       SQLITE_CONSTRAINT_NOTNULL
@@ -416,6 +425,7 @@ our %EXPORT_TAGS = (
       SQLITE_OK
       SQLITE_OK_SYMLINK
       SQLITE_OPEN_CREATE
+      SQLITE_OPEN_EXRESCODE
       SQLITE_OPEN_FULLMUTEX
       SQLITE_OPEN_MEMORY
       SQLITE_OPEN_NOFOLLOW
@@ -444,7 +454,9 @@ our %EXPORT_TAGS = (
       SQLITE_SAVEPOINT
       SQLITE_SCHEMA
       SQLITE_SELECT
+      SQLITE_SESSION_OBJCONFIG_SIZE
       SQLITE_SUBTYPE
+      SQLITE_TEXT
       SQLITE_TOOBIG
       SQLITE_TRANSACTION
       SQLITE_TXN_NONE
@@ -538,6 +550,10 @@ our %EXPORT_TAGS = (
       DBD_SQLITE_STRING_MODE_UNICODE_STRICT
     /],
 
+    delete_a_session_object => [qw/
+      SQLITE_SESSION_OBJCONFIG_SIZE
+    /],
+
     extended_result_codes => [qw/
       SQLITE_ABORT_ROLLBACK
       SQLITE_AUTH_USER
@@ -552,6 +568,7 @@ our %EXPORT_TAGS = (
       SQLITE_CANTOPEN_SYMLINK
       SQLITE_CONSTRAINT_CHECK
       SQLITE_CONSTRAINT_COMMITHOOK
+      SQLITE_CONSTRAINT_DATATYPE
       SQLITE_CONSTRAINT_FOREIGNKEY
       SQLITE_CONSTRAINT_FUNCTION
       SQLITE_CONSTRAINT_NOTNULL
@@ -616,6 +633,7 @@ our %EXPORT_TAGS = (
 
     flags_for_file_open_operations => [qw/
       SQLITE_OPEN_CREATE
+      SQLITE_OPEN_EXRESCODE
       SQLITE_OPEN_FULLMUTEX
       SQLITE_OPEN_MEMORY
       SQLITE_OPEN_NOFOLLOW
@@ -640,6 +658,7 @@ our %EXPORT_TAGS = (
       SQLITE_FLOAT
       SQLITE_INTEGER
       SQLITE_NULL
+      SQLITE_TEXT
     /],
 
     result_codes => [qw/
@@ -712,7 +731,7 @@ DBD::SQLite::Constants - common SQLite constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<delete_a_session_object>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -882,6 +901,14 @@ This module does not export anything by default.
 
 =back
 
+=head2 delete_a_session_object
+
+=over 4
+
+=item SQLITE_SESSION_OBJCONFIG_SIZE
+
+=back
+
 =head2 extended_result_codes
 
 =over 4
@@ -1032,6 +1059,8 @@ This module does not export anything by default.
 
 =item SQLITE_IOERR_CORRUPTFS
 
+=item SQLITE_CONSTRAINT_DATATYPE
+
 =back
 
 =head2 file_open (flags_for_file_open_operations)
@@ -1060,6 +1089,8 @@ This module does not export anything by default.
 
 =item SQLITE_OPEN_SUPER_JOURNAL
 
+=item SQLITE_OPEN_EXRESCODE
+
 =back
 
 =head2 function_flags
@@ -1087,6 +1118,8 @@ This module does not export anything by default.
 =item SQLITE_BLOB
 
 =item SQLITE_NULL
+
+=item SQLITE_TEXT
 
 =back
 
