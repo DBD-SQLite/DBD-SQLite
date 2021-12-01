@@ -202,7 +202,6 @@ my %since = (
   prepared_statement_scan_status_opcodes => '3008008',
   sql_trace_event_codes => '3014000',
   allowed_return_values_from_sqlite3_txn_state => '3034000',
-  delete_a_session_object => '3036000',
 );
 
 my %until = (
@@ -218,6 +217,7 @@ my %ignore = map {$_ => 1} qw/
   OPEN_MAIN_JOURNAL OPEN_TEMP_JOURNAL
   OPEN_SUBJOURNAL OPEN_MASTER_JOURNAL OPEN_WAL
   OK_LOAD_PERMANENTLY PREPARE_PERSISTENT
+  SESSION_OBJCONFIG_SIZE
 /;
 
 my $ignore_tag_re = join '|', (
@@ -231,6 +231,8 @@ my $ignore_tag_re = join '|', (
   'checkpoint_mode_values', # for sqlite3_wal_checkpoint_v2
   'virtual_table_configuration_options', # for sqlite3_vtab_config
   'prepare_flags', # for sqlite3_prepare_v3
+
+  'delete_a_session_object',
 
   # status flags (status methods are read-only at the moment)
   'status_parameters',

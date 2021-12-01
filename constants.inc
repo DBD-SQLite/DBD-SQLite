@@ -493,30 +493,6 @@ _const_database_connection_configuration_options_3031000_zero()
 
 #endif
 
-#if SQLITE_VERSION_NUMBER >= 3036000
-
-IV
-_const_delete_a_session_object_3036000()
-    ALIAS:
-        SQLITE_SESSION_OBJCONFIG_SIZE = SQLITE_SESSION_OBJCONFIG_SIZE
-    CODE:
-        RETVAL = ix;
-    OUTPUT:
-        RETVAL
-
-#else
-
-IV
-_const_delete_a_session_object_3036000_zero()
-    ALIAS:
-        SQLITE_SESSION_OBJCONFIG_SIZE = 1
-    CODE:
-        RETVAL = 0;
-    OUTPUT:
-        RETVAL
-
-#endif
-
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV

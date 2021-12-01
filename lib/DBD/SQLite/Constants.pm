@@ -92,11 +92,6 @@ our @EXPORT_OK = (
       SQLITE_DBCONFIG_WRITABLE_SCHEMA
     /,
 
-    # delete_a_session_object
-    qw/
-      SQLITE_SESSION_OBJCONFIG_SIZE
-    /,
-
     # extended_result_codes
     qw/
       SQLITE_ABORT_ROLLBACK
@@ -454,7 +449,6 @@ our %EXPORT_TAGS = (
       SQLITE_SAVEPOINT
       SQLITE_SCHEMA
       SQLITE_SELECT
-      SQLITE_SESSION_OBJCONFIG_SIZE
       SQLITE_SUBTYPE
       SQLITE_TEXT
       SQLITE_TOOBIG
@@ -548,10 +542,6 @@ our %EXPORT_TAGS = (
       DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK
       DBD_SQLITE_STRING_MODE_UNICODE_NAIVE
       DBD_SQLITE_STRING_MODE_UNICODE_STRICT
-    /],
-
-    delete_a_session_object => [qw/
-      SQLITE_SESSION_OBJCONFIG_SIZE
     /],
 
     extended_result_codes => [qw/
@@ -731,7 +721,7 @@ DBD::SQLite::Constants - common SQLite constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<delete_a_session_object>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -898,14 +888,6 @@ This module does not export anything by default.
 =item DBD_SQLITE_STRING_MODE_UNICODE_FALLBACK
 
 =item DBD_SQLITE_STRING_MODE_UNICODE_STRICT
-
-=back
-
-=head2 delete_a_session_object
-
-=over 4
-
-=item SQLITE_SESSION_OBJCONFIG_SIZE
 
 =back
 
