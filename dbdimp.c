@@ -1859,14 +1859,16 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func, i
     }
 
     /* Copy the function reference */
-    func_sv = newSVsv(func);
-    av_push( imp_dbh->functions, func_sv );
+    if (SvOK(func)) {
+        func_sv = newSVsv(func);
+        av_push( imp_dbh->functions, func_sv );
+    }
 
     croak_if_db_is_null();
 
     /* warn("create_function %s with %d args\n", name, argc); */
     rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8|flags,
-                                  func_sv,
+                                  SvOK(func) ? func_sv : NULL,
                                   _FUNC_DISPATCHER[imp_dbh->string_mode],
                                   NULL, NULL );
     if ( rc != SQLITE_OK ) {

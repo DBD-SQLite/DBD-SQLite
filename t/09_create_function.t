@@ -150,6 +150,10 @@ foreach my $call_func (@CALL_FUNCS) { for my $flags (@function_flags) {
 	$result = $dbh->selectrow_arrayref( "SELECT typeof(md5_blob('my_blob'))" );
 	is_deeply( $result, [ 'blob' ], "SELECT typeof(md5_blob('my_blob'))" );
 
+	ok($dbh->$call_func( "md5_blob", 1, undef, defined $flags ? $flags : (), "create_function" ));
+	$result = $dbh->selectrow_arrayref( "SELECT md5_blob('my_blob')" );
+	is_deeply( $result, undef, "SELECT md5_blob('my_blob')" );
+
 	$dbh->disconnect;
 }}
 
