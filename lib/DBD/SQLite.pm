@@ -2297,12 +2297,16 @@ Calling this method with a true value enables loading (external)
 SQLite3 extensions. After the call, you can load extensions like this:
 
   $dbh->sqlite_enable_load_extension(1);
-  $sth = $dbh->prepare("select load_extension('libsqlitefunctions.so')")
+  $sth = $dbh->prepare("select load_extension('libmemvfs.so')")
   or die "Cannot prepare: " . $dbh->errstr();
 
 =head2 $dbh->sqlite_load_extension( $file, $proc )
 
-Loading an extension by a select statement (with the "load_extension" SQLite3 function like above) has some limitations. If you need to, say, create other functions from an extension, use this method. $file (a path to the extension) is mandatory, and $proc (an entry point name) is optional. You need to call C<sqlite_enable_load_extension> before calling C<sqlite_load_extension>.
+Loading an extension by a select statement (with the "load_extension" SQLite3 function like above) has some limitations. If the extension you want to use creates other functions that are not native to SQLite, use this method instead. $file (a path to the extension) is mandatory, and $proc (an entry point name) is optional. You need to call C<sqlite_enable_load_extension> before calling C<sqlite_load_extension>:
+
+  $dbh->sqlite_enable_load_extension(1);
+  $dbh->sqlite_load_extension('libsqlitefunctions.so')
+  or die "Cannot load extension: " . $dbh->errstr();
 
 If the extension uses SQLite mutex functions like C<sqlite3_mutex_enter>, then
 the extension should be compiled with the same C<SQLITE_THREADSAFE> compile-time
