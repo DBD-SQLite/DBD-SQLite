@@ -1,6 +1,7 @@
 Changes for Perl extension DBD-SQLite
 
-1.71_02 to be released
+1.71_02 2022-01-07
+    - Upgraded SQLite to 3.37.2
     - Improve sqlite_load_extension doc (GH#94, Derek Lamb++)
 
 1.71_01 2021-12-02
