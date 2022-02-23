@@ -391,6 +391,24 @@ txn_state(SV* dbh, SV *schema = &PL_sv_undef)
     OUTPUT:
         RETVAL
 
+static int
+error_offset(dbh)
+    SV *dbh
+    ALIAS:
+        DBD::SQLite::db::sqlite_error_offset = 1
+    CODE:
+    {
+#if SQLITE_VERSION_NUMBER >= 3038000
+        D_imp_dbh(dbh);
+        RETVAL = sqlite3_error_offset(imp_dbh->db);
+#else
+        RETVAL = -1;
+#endif
+    }
+    OUTPUT:
+        RETVAL
+
+
 MODULE = DBD::SQLite          PACKAGE = DBD::SQLite::st
 
 PROTOTYPES: DISABLE

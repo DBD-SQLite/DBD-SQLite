@@ -25,4 +25,12 @@ ok($@, 'Statement 2 generated an error');
 is( $DBI::err, 19, '$DBI::err ok' );
 like( $DBI::errstr, qr/column a is not unique|UNIQUE constraint failed/, '$DBI::errstr ok' );
 
+if ($DBD::SQLite::sqlite_version_number && $DBD::SQLite::sqlite_version_number >= 3038000) {
+    my $sql = 'insert testerror values (1, 5)';
+    eval { $dbh->do($sql) };
+    my $offset = $dbh->sqlite_error_offset;
+    ok $offset != -1, "error offset: $offset";
+    note substr($sql, 0, $offset) . '<*error*>' . substr($sql, $offset);
+}
+
 done_testing;

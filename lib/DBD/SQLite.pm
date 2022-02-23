@@ -62,6 +62,7 @@ sub driver {
         DBD::SQLite::db->install_method('sqlite_db_config');
         DBD::SQLite::db->install_method('sqlite_get_autocommit');
         DBD::SQLite::db->install_method('sqlite_txn_state');
+        DBD::SQLite::db->install_method('sqlite_error_offset');
 
         $methods_are_installed++;
     }
@@ -2430,6 +2431,12 @@ Return values (SQLITE_TXN_NONE, SQLITE_TXN_READ, SQLITE_TXN_WRITE)
 can be imported from DBD::SQLite::Constants. You may pass an optional
 schema name (usually "main"). If SQLite does not support this function,
 or if you pass a wrong schema name, -1 is returned.
+
+=head2 $dbh->sqlite_error_offset()
+
+Returns the byte offset of the start of a problematic input SQL token
+or -1 if the most recent error does not reference a specific token in
+the input SQL (or DBD::SQLite is built with an older version of SQLite).
 
 =head1 DRIVER FUNCTIONS
 
