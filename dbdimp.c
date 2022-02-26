@@ -1928,7 +1928,7 @@ sqlite_db_load_extension(pTHX_ SV *dbh, const char *file, const char *proc)
 
 #endif
 
-SV* _lc(SV* sv) {
+SV* _lc(pTHX_ SV* sv) {
     int i, l;
     char* pv;
     if (SvPOK(sv)) {
@@ -1979,7 +1979,7 @@ sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *co
 #endif
 
     if (rc == SQLITE_OK) {
-        hv_stores(metadata, "data_type", datatype ? _lc(newSVpv(datatype, 0)) : newSV(0));
+        hv_stores(metadata, "data_type", datatype ? _lc(aTHX_ newSVpv(datatype, 0)) : newSV(0));
         hv_stores(metadata, "collation_name", collseq ? newSVpv(collseq, 0) : newSV(0));
         hv_stores(metadata, "not_null", newSViv(notnull));
         hv_stores(metadata, "primary", newSViv(primary));
