@@ -1868,8 +1868,8 @@ sqlite_db_create_function(pTHX_ SV *dbh, const char *name, int argc, SV *func, i
 
     /* warn("create_function %s with %d args\n", name, argc); */
     rc = sqlite3_create_function( imp_dbh->db, name, argc, SQLITE_UTF8|flags,
-                                  SvOK(func) ? func_sv : &PL_sv_undef,
-                                  _FUNC_DISPATCHER[imp_dbh->string_mode],
+                                  SvOK(func) ? func_sv : NULL,
+                                  SvOK(func) ? _FUNC_DISPATCHER[imp_dbh->string_mode] : NULL,
                                   NULL, NULL );
     if ( rc != SQLITE_OK ) {
         sqlite_error(dbh, rc, form("sqlite_create_function failed with error %s", sqlite3_errmsg(imp_dbh->db)));
