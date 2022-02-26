@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.71_04 2022-02-26
+    - Fix test failure on perl built with -DDEBUGGING (andk++)
+
 1.71_03 2022-02-23
     - Upgraded SQLite to 3.38.0
     - Expose sqlite_error_offset introduced in 3.38.0
