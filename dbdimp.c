@@ -1928,6 +1928,21 @@ sqlite_db_load_extension(pTHX_ SV *dbh, const char *file, const char *proc)
 
 #endif
 
+SV* _lc(pTHX_ SV* sv) {
+    int i, l;
+    char* pv;
+    if (SvPOK(sv)) {
+        pv = SvPV_nolen(sv);
+        l = strlen(pv);
+        for(i = 0; i < l; i++) {
+            if (pv[i] >= 'A' && pv[i] <= 'Z') {
+                pv[i] = pv[i] - 'A' + 'a';
+            }
+        }
+    }
+    return sv;
+}
+
 HV*
 sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *columnname)
 {
@@ -1964,7 +1979,7 @@ sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV *co
 #endif
 
     if (rc == SQLITE_OK) {
-        hv_stores(metadata, "data_type", datatype ? newSVpv(datatype, 0) : newSV(0));
+        hv_stores(metadata, "data_type", datatype ? _lc(aTHX_ newSVpv(datatype, 0)) : newSV(0));
         hv_stores(metadata, "collation_name", collseq ? newSVpv(collseq, 0) : newSV(0));
         hv_stores(metadata, "not_null", newSViv(notnull));
         hv_stores(metadata, "primary", newSViv(primary));
