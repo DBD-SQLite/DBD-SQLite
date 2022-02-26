@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.71_05 2022-02-26
+    - Fix another test failure on perl built with -DDEBUGGING
+    - Lowercase datatype in table column metadata for backcompat
+
 1.71_04 2022-02-26
     - Fix test failure on perl built with -DDEBUGGING (andk++)
 
