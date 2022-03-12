@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.71_06 2022-03-12
+    - Set UTF8CACHE to avoid slowdown with -DDEBUGGING (andk, Leont, FGasper)
+
 1.71_05 2022-02-26
     - Fix another test failure on perl built with -DDEBUGGING
     - Lowercase datatype in table column metadata for backcompat
