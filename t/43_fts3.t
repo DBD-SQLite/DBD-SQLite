@@ -8,6 +8,9 @@ use if -d ".git", "Test::FailWarnings";
 use DBD::SQLite;
 use DBD::SQLite::Constants ':dbd_sqlite_string_mode';
 
+# Avoid slowdown with -DDEBUGGING:
+${^UTF8CACHE} = 1;
+
 my @texts = ("il était une bergère",
              "qui gardait ses moutons",
              "elle fit un fromage",
