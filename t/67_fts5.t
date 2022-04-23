@@ -48,6 +48,8 @@ BEGIN {
 	}
 }
 
+use DBD::SQLite::Constants ':fts5_tokenizer';
+
 use locale;
 
 sub locale_tokenizer { # see also: Search::Tokenizer
@@ -59,13 +61,12 @@ sub locale_tokenizer { # see also: Search::Tokenizer
     while( $string =~ /$regex/g) {
       my ($start, $end) = ($-[0], $+[0]);
       my $term = substr($string, $start, my $len = $end-$start);
-      my $flags = 0; # SQLITE_FTS5_TOKEN;
+      my $flags = 0;
+      #my $flags = FTS5_TOKEN_COLOCATED;
       DBD::SQLite::db::fts5_xToken($ctx,$flags,$term,$start,$end);
     };
   };
 }
-
-use DBD::SQLite;
 
 for my $use_unicode (0, 1) {
 
