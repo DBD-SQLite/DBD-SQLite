@@ -143,6 +143,11 @@ my %since = (
   STMTSTATUS_RUN => '3020000',
   STMTSTATUS_MEMUSED => '3020000',
   DBCONFIG_ENABLE_QPSG => '3020000',
+  SQLITE_FTS5_TOKEN => '3020000',
+  FTS5_TOKENIZE_QUERY => '3020000',
+  FTS5_TOKENIZE_PREFIX => '3020000',
+  FTS5_TOKENIZE_DOCUMENT => '3020000',
+  FTS5_TOKENIZE_AUX => '3020000',
   IOERR_BEGIN_ATOMIC => '3021000',
   IOERR_COMMIT_ATOMIC => '3021000',
   IOERR_ROLLBACK_ATOMIC => '3021000',
@@ -307,6 +312,17 @@ sub extract_constants {
   }
   unshift @{$constants{_authorizer_return_codes}}, 'OK';
 
+  # Fudge in the FTS5 constants, as these don't follow the common pattern
+  $constants{fts5_tokenizer} ||= [];
+  push @{$constants{fts5_tokenizer}},
+      'FTS5_TOKENIZE_QUERY',
+      'FTS5_TOKENIZE_PREFIX',
+      'FTS5_TOKENIZE_DOCUMENT',
+      'FTS5_TOKENIZE_AUX',
+      'FTS5_TOKEN_COLOCATED'
+      ;
+
+
   %constants;
 }
 
@@ -329,7 +345,7 @@ sub srcdir {
 sub download_url {
   my $version = shift;
   my $year = $version->year;
-  join '', 
+  join '',
     "http://www.sqlite.org/",
     ($version->year ? $version->year."/" : ""),
     "sqlite-".($version->archive_type)."-$version".$version->extension;

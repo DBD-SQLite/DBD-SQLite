@@ -187,6 +187,15 @@ our @EXPORT_OK = (
       SQLITE_OPEN_URI
     /,
 
+    # fts5_tokenizer
+    qw/
+      FTS5_TOKENIZE_AUX
+      FTS5_TOKENIZE_DOCUMENT
+      FTS5_TOKENIZE_PREFIX
+      FTS5_TOKENIZE_QUERY
+      FTS5_TOKEN_COLOCATED
+    /,
+
     # function_flags
     qw/
       SQLITE_DETERMINISTIC
@@ -351,6 +360,11 @@ our %EXPORT_TAGS = (
       SQLITE_ERROR_SNAPSHOT
       SQLITE_FLOAT
       SQLITE_FORMAT
+      FTS5_TOKENIZE_AUX
+      FTS5_TOKENIZE_DOCUMENT
+      FTS5_TOKENIZE_PREFIX
+      FTS5_TOKENIZE_QUERY
+      FTS5_TOKEN_COLOCATED
       SQLITE_FULL
       SQLITE_FUNCTION
       SQLITE_IGNORE
@@ -639,6 +653,14 @@ our %EXPORT_TAGS = (
       SQLITE_OPEN_URI
     /],
 
+    fts5_tokenizer => [qw/
+      FTS5_TOKENIZE_AUX
+      FTS5_TOKENIZE_DOCUMENT
+      FTS5_TOKENIZE_PREFIX
+      FTS5_TOKENIZE_QUERY
+      FTS5_TOKEN_COLOCATED
+    /],
+
     function_flags => [qw/
       SQLITE_DETERMINISTIC
       SQLITE_DIRECTONLY
@@ -724,7 +746,7 @@ DBD::SQLite::Constants - common SQLite constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<fts5_tokenizer>, C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -1060,6 +1082,8 @@ This module does not export anything by default.
 
 =item SQLITE_OPEN_CREATE
 
+=item SQLITE_OPEN_SUPER_JOURNAL
+
 =item SQLITE_OPEN_NOMUTEX
 
 =item SQLITE_OPEN_FULLMUTEX
@@ -1077,6 +1101,22 @@ This module does not export anything by default.
 =item SQLITE_OPEN_SUPER_JOURNAL
 
 =item SQLITE_OPEN_EXRESCODE
+
+=back
+
+=head2 fts5_tokenizer
+
+=over 4
+
+=item SQLITE_FTS5_TOKENIZE_QUERY
+
+=item SQLITE_FTS5_TOKENIZE_PREFIX
+
+=item SQLITE_FTS5_TOKENIZE_DOCUMENT
+
+=item SQLITE_FTS5_TOKENIZE_AUX
+
+=item SQLITE_FTS5_TOKEN_COLOCATED
 
 =back
 
