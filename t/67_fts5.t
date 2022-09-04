@@ -6,22 +6,25 @@ use SQLiteTest;
 use Test::More;
 #use if -d ".git", "Test::FailWarnings";
 use DBD::SQLite;
+use utf8; # our source code is UTF-8 encoded
 
-my @texts = ("il était une bergère",
+my @texts = ("il Ã©tait une bergÃ¨re",
              "qui gardait ses moutons",
              "elle fit un fromage",
-             "du lait de ses moutons");
+             "du lait de ses moutons",
+	     "anrechenbare quellensteuer hier");
 
 my @tests = (
 #  query                  => expected results
-  ["bergère"              => 0       ],
+  ["bergÃ¨re"              => 0       ],
   ["berg*"                => 0       ],
   ["foobar"                          ],
   ["moutons"              => 1, 3    ],
   ['"qui gardait"'        => 1       ],
   ["moutons NOT lait"     => 1       ],
-  ["il était"             => 0       ],
+  ["il Ã©tait"             => 0       ],
   ["(il OR elle) AND un*" => 0, 2    ],
+  ["anrechenbare"         => 4       ],
 );
 
 BEGIN {
