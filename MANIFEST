@@ -3,7 +3,8 @@ Changes
 constants.inc
 dbdimp.c
 dbdimp.h
-dbdimp_tokenizer.inc
+dbdimp_fts3_tokenizer.inc
+dbdimp_fts5_tokenizer.inc
 dbdimp_virtual_table.inc
 fts3_tokenizer.h
 inc/Test/FailWarnings.pm

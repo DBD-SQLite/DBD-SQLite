@@ -402,10 +402,10 @@ WriteMakefile(
 	),
 	OBJECT           => ( $sqlite_local
 		? '$(O_FILES)'
-		: 'SQLite.o dbdimp.o'
+		: 'SQLite.o dbdimp_fts3.o dbdimp_fts5.o'
 	),
 	depend           => {
-        	'dbdimp.o' => 'dbdimp_tokenizer.inc dbdimp_virtual_table.inc',
+        	'dbdimp.o' => 'dbdimp_fts3_tokenizer.inc dbdimp_fts5_tokenizer.inc dbdimp_virtual_table.inc',
 	},
 	clean            => {
 		FILES => 'SQLite.xsi config.h tv.log *.old',
