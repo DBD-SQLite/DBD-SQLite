@@ -7,6 +7,7 @@ dbdimp_fts3_tokenizer.inc
 dbdimp_fts5_tokenizer.inc
 dbdimp_virtual_table.inc
 fts3_tokenizer.h
+fts5.h
 inc/Test/FailWarnings.pm
 lib/DBD/SQLite.pm
 lib/DBD/SQLite/Constants.pm
