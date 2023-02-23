@@ -233,6 +233,7 @@ my $ignore_tag_re = join '|', (
   'prepare_flags', # for sqlite3_prepare_v3
 
   'delete_a_session_object',
+  'prepared_statement_scan_status',
 
   # status flags (status methods are read-only at the moment)
   'status_parameters',
