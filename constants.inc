@@ -493,6 +493,32 @@ _const_database_connection_configuration_options_3031000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3042000
+
+IV
+_const_database_connection_configuration_options_3042000()
+    ALIAS:
+        SQLITE_DBCONFIG_STMT_SCANSTATUS = SQLITE_DBCONFIG_STMT_SCANSTATUS
+        SQLITE_DBCONFIG_REVERSE_SCANORDER = SQLITE_DBCONFIG_REVERSE_SCANORDER
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_database_connection_configuration_options_3042000_zero()
+    ALIAS:
+        SQLITE_DBCONFIG_STMT_SCANSTATUS = 1
+        SQLITE_DBCONFIG_REVERSE_SCANORDER = 2
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 #if SQLITE_VERSION_NUMBER >= 3006002
 
 IV
@@ -536,7 +562,6 @@ _const_extended_result_codes_3006005()
         SQLITE_IOERR_NOMEM = SQLITE_IOERR_NOMEM
         SQLITE_IOERR_ACCESS = SQLITE_IOERR_ACCESS
         SQLITE_IOERR_CHECKRESERVEDLOCK = SQLITE_IOERR_CHECKRESERVEDLOCK
-        SQLITE_NOTICE_RBU = SQLITE_NOTICE_RBU
     CODE:
         RETVAL = ix;
     OUTPUT:
@@ -561,7 +586,6 @@ _const_extended_result_codes_3006005_zero()
         SQLITE_IOERR_NOMEM = 12
         SQLITE_IOERR_ACCESS = 13
         SQLITE_IOERR_CHECKRESERVEDLOCK = 14
-        SQLITE_NOTICE_RBU = 15
     CODE:
         RETVAL = 0;
     OUTPUT:
@@ -1208,6 +1232,30 @@ IV
 _const_extended_result_codes_3037000_zero()
     ALIAS:
         SQLITE_CONSTRAINT_DATATYPE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3041000
+
+IV
+_const_extended_result_codes_3041000()
+    ALIAS:
+        SQLITE_NOTICE_RBU = SQLITE_NOTICE_RBU
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_extended_result_codes_3041000_zero()
+    ALIAS:
+        SQLITE_NOTICE_RBU = 1
     CODE:
         RETVAL = 0;
     OUTPUT:
