@@ -192,6 +192,9 @@ my %since = (
   SESSION_OBJCONFIG_SIZE => '3036000',
   CONSTRAINT_DATATYPE => '3037000',
   OPEN_EXRESCODE => '3037000',
+  NOTICE_RBU => '3041000',
+  DBCONFIG_STMT_SCANSTATUS => '3042000',
+  DBCONFIG_REVERSE_SCANORDER => '3042000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
@@ -265,6 +268,7 @@ my $ignore_tag_re = join '|', (
   'text_encodings',
   'virtual_table_constraint_operator_codes',
   'virtual_table_indexing_information',
+  'options_for_sqlite3session_object_config',
 );
 
 my %compat = map {$_ => 1} qw/
