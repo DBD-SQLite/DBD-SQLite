@@ -1,5 +1,8 @@
 Changes for Perl extension DBD-SQLite
 
+1.74 2023-09-20
+    - Switched to a production version
+
 1.73_01 2023-07-09
     - Upgraded SQLite to 3.42.0
     - Add missing possible table_type values to POD (GH#105, dboehmer++)

@@ -5,7 +5,7 @@ use strict;
 use DBI   1.57 ();
 use XSLoader ();
 
-our $VERSION = '1.73_01';
+our $VERSION = '1.74';
 
 # sqlite_version cache (set in the XS bootstrap)
 our ($sqlite_version, $sqlite_version_number);
