@@ -314,6 +314,31 @@ register_fts3_perl_tokenizer(dbh)
     OUTPUT:
         RETVAL
 
+static int
+register_fts5_perl_tokenizer(dbh)
+    SV *dbh
+    ALIAS:
+        DBD::SQLite::db::sqlite_register_fts5_perl_tokenizer = 1
+    CODE:
+        RETVAL = sqlite_db_register_fts5_perl_tokenizer(aTHX_ dbh);
+    OUTPUT:
+        RETVAL
+
+static int
+fts5_xToken(pCtx,tflags,svToken,iStart,iEnd)
+    SV     *pCtx
+    int    tflags
+    SV     *svToken
+    STRLEN iStart
+    STRLEN iEnd
+    ALIAS:
+        DBD::SQLite::db::fts5_xToken = 1
+    CODE:
+        dTHX;
+        RETVAL = perl_fts5_xToken(aTHX_ pCtx,tflags,svToken,iStart,iEnd);
+    OUTPUT:
+        RETVAL
+
 HV*
 db_status(dbh, reset = 0)
     SV* dbh
