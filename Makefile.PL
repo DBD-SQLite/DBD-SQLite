@@ -288,6 +288,10 @@ if ($^O =~ /bsd/i && $^O !~ /(?:open|net)bsd/) {
 	push @CC_DEFINE, '-D_XOPEN_SOURCE';
 }
 
+if (!$Config{usedl}) {
+    push @CC_DEFINE, '-DSQLITE_OMIT_LOAD_EXTENSION';
+}
+
 my (@CCFLAGS, @LDFLAGS, @LDDLFLAGS);
 
 if ($ENV{TEST_DBD_SQLITE_WITH_ASAN}) {
