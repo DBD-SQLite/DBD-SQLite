@@ -1263,6 +1263,30 @@ _const_extended_result_codes_3041000_zero()
 
 #endif
 
+#if SQLITE_VERSION_NUMBER >= 3043000
+
+IV
+_const_extended_result_codes_3043000()
+    ALIAS:
+        SQLITE_IOERR_IN_PAGE = SQLITE_IOERR_IN_PAGE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_extended_result_codes_3043000_zero()
+    ALIAS:
+        SQLITE_IOERR_IN_PAGE = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
 IV
 _const_flags_for_file_open_operations()
     ALIAS:
@@ -1512,6 +1536,30 @@ IV
 _const_function_flags_3031000_zero()
     ALIAS:
         SQLITE_INNOCUOUS = 1
+    CODE:
+        RETVAL = 0;
+    OUTPUT:
+        RETVAL
+
+#endif
+
+#if SQLITE_VERSION_NUMBER >= 3044001
+
+IV
+_const_function_flags_3044001()
+    ALIAS:
+        SQLITE_RESULT_SUBTYPE = SQLITE_RESULT_SUBTYPE
+    CODE:
+        RETVAL = ix;
+    OUTPUT:
+        RETVAL
+
+#else
+
+IV
+_const_function_flags_3044001_zero()
+    ALIAS:
+        SQLITE_RESULT_SUBTYPE = 1
     CODE:
         RETVAL = 0;
     OUTPUT:

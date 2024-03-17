@@ -190,6 +190,8 @@ my %since = (
   NOTICE_RBU => '3041000',
   DBCONFIG_STMT_SCANSTATUS => '3042000',
   DBCONFIG_REVERSE_SCANORDER => '3042000',
+  IOERR_IN_PAGE => '3043000',
+  RESULT_SUBTYPE => '3044001',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
