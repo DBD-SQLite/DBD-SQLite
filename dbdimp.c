@@ -407,10 +407,16 @@ sqlite_is_number(pTHX_ const char *v, int sql_type)
     if (sql_type != SQLITE_INTEGER) {
 #ifdef USE_QUADMATH
         sprintf(format, (has_plus ? "+%%.%dQf" : "%%.%dQf"), precision);
+#  if defined(WIN32)
+        /* On Windows quadmath, we need to use strtoflt128(), not atov() */
+        if (strEQ(form(format, strtoflt128(v, NULL)), v)) return 2;
+#  else
+        if (strEQ(form(format, atof(v)), v)) return 2;
+#  endif
 #else
         sprintf(format, (has_plus ? "+%%.%df"  : "%%.%df" ), precision);
-#endif
         if (strEQ(form(format, atof(v)), v)) return 2;
+#endif
     }
     return 0;
 }
