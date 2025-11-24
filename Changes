@@ -1,5 +1,9 @@
 Changes for Perl extension DBD-SQLite
 
+1.77_01 2025-11-24
+    - Upgraded SQLite to 3.51.0
+    - Make ->column_info() also return generated columns (GH#119, Corion++)
+
 1.76 2024-10-19
     - Switched to a production version
 
