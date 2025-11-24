@@ -192,6 +192,23 @@ my %since = (
   DBCONFIG_REVERSE_SCANORDER => '3042000',
   IOERR_IN_PAGE => '3043000',
   RESULT_SUBTYPE => '3044001',
+  SELFORDER1 => '3047000',
+  DBCONFIG_ENABLE_ATTACH_CREATE => '3049000',
+  DBCONFIG_ENABLE_ATTACH_WRITE => '3049000',
+  DBCONFIG_ENABLE_COMMENTS => '3049000',
+  SETLK_BLOCK_ON_CONNECT => '3050000',
+  CARRAY_BLOB => '3051000',
+  CARRAY_DOUBLE => '3051000',
+  CARRAY_INT32 => '3051000',
+  CARRAY_INT64 => '3051000',
+  CARRAY_TEXT => '3051000',
+  THREADSAFE => '3051000',
+  WASI => '3051000',
+  ERROR_RESERVESIZE => '3051000',
+  ERROR_KEY => '3051000',
+  ERROR_UNABLE => '3051000',
+  IOERR_BADKEY => '3051000',
+  IOERR_CODEC => '3051000',
 
   status_parameters_for_prepared_statements => '3006004',
   extended_result_codes => '3006005',
@@ -207,6 +224,8 @@ my %since = (
   prepared_statement_scan_status_opcodes => '3008008',
   sql_trace_event_codes => '3014000',
   allowed_return_values_from_sqlite3_txn_state => '3034000',
+  flags_for_sqlite3_setlk_timeout => '3050000',
+  datatypes_for_the_carray_table_valued_function => '3051000',
 );
 
 my %until = (
