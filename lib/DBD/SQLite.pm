@@ -433,7 +433,7 @@ sub primary_key_info {
             next if defined $table && $table ne '%' && $table ne $tbname;
 
             my $quoted_tbname = $dbh->quote_identifier($tbname);
-            my $t_sth = $dbh->prepare("PRAGMA $quoted_dbname.table_info($quoted_tbname)") or return;
+            my $t_sth = $dbh->prepare("PRAGMA $quoted_dbname.table_xinfo($quoted_tbname)") or return;
             $t_sth->execute or return;
             my @pk;
             while(my $col = $t_sth->fetchrow_hashref) {
@@ -611,7 +611,7 @@ sub foreign_key_info {
                     my $quoted_tb = $dbh->quote_identifier($row->{table});
                     for my $db (@$databases) {
                         my $quoted_db = $dbh->quote_identifier($db->{name});
-                        my $t_sth = $dbh->prepare("PRAGMA $quoted_db.table_info($quoted_tb)") or return;
+                        my $t_sth = $dbh->prepare("PRAGMA $quoted_db.table_xinfo($quoted_tb)") or return;
                         $t_sth->execute or return;
                         my $cols = {};
                         while(my $r = $t_sth->fetchrow_hashref) {
@@ -932,7 +932,7 @@ END_SQL
     # Taken from Fey::Loader::SQLite
     my @cols;
     while ( my ($schema, $table) = $sth_tables->fetchrow_array ) {
-        my $sth_columns = $dbh->prepare(qq{PRAGMA "$schema".table_info("$table")}) or return;
+        my $sth_columns = $dbh->prepare(qq{PRAGMA "$schema".table_xinfo("$table")}) or return;
         $sth_columns->execute or return;
 
         for ( my $position = 1; my $col_info = $sth_columns->fetchrow_hashref; $position++ ) {

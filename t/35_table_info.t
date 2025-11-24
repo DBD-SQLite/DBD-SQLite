@@ -121,6 +121,18 @@ my $table4_info = [undef, 'db3', 'one', 'TABLE', undef, 'CREATE TABLE one (
     name CHAR (64) NOT NULL
 )'];
 
+# Create a table with generated columns
+ok( $dbh->do(<<'END_SQL'), 'CREATE TABLE generated_columns' );
+CREATE TABLE generated_columns (
+    id INTEGER PRIMARY KEY NOT NULL,
+    nextid GENERATED ALWAYS AS (id+1)
+)
+END_SQL
+my $table_generated_info = [undef, 'main', 'generated_columns', 'TABLE', undef, 'CREATE TABLE generated_columns (
+    id INTEGER PRIMARY KEY NOT NULL,
+    nextid GENERATED ALWAYS AS (id+1)
+)'];
+
 # Get table_info for both tables named "one"
 $info = $dbh->table_info(undef, undef, 'one')->fetchall_arrayref;
 is_deeply $info, [$table4_info, $table1_info], 'Correct table_info for both tables named "one"';
@@ -131,7 +143,7 @@ is_deeply $info, \@systable_info, 'Correct table_info for the system tables';
 
 # Get table_info for all tables
 $info = $dbh->table_info()->fetchall_arrayref;
-is_deeply $info, [$table2_info, @systable_info, $table4_info, $table3_info, $table1_info],
+is_deeply $info, [$table2_info, @systable_info, $table4_info, $table3_info, $table_generated_info, $table1_info ],
     'Correct table_info for all tables';
 
 #use Data::Dumper;
