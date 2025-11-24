@@ -74,6 +74,9 @@ our @EXPORT_OK = (
       SQLITE_DBCONFIG_DEFENSIVE
       SQLITE_DBCONFIG_DQS_DDL
       SQLITE_DBCONFIG_DQS_DML
+      SQLITE_DBCONFIG_ENABLE_ATTACH_CREATE
+      SQLITE_DBCONFIG_ENABLE_ATTACH_WRITE
+      SQLITE_DBCONFIG_ENABLE_COMMENTS
       SQLITE_DBCONFIG_ENABLE_FKEY
       SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
       SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
@@ -92,6 +95,17 @@ our @EXPORT_OK = (
       SQLITE_DBCONFIG_TRIGGER_EQP
       SQLITE_DBCONFIG_TRUSTED_SCHEMA
       SQLITE_DBCONFIG_WRITABLE_SCHEMA
+    /,
+
+    # datatypes_for_the_carray_table_valued_function
+    qw/
+      SQLITE_CARRAY_BLOB
+      SQLITE_CARRAY_DOUBLE
+      SQLITE_CARRAY_INT32
+      SQLITE_CARRAY_INT64
+      SQLITE_CARRAY_TEXT
+      SQLITE_THREADSAFE
+      SQLITE_WASI
     /,
 
     # extended_result_codes
@@ -122,15 +136,20 @@ our @EXPORT_OK = (
       SQLITE_CORRUPT_INDEX
       SQLITE_CORRUPT_SEQUENCE
       SQLITE_CORRUPT_VTAB
+      SQLITE_ERROR_KEY
       SQLITE_ERROR_MISSING_COLLSEQ
+      SQLITE_ERROR_RESERVESIZE
       SQLITE_ERROR_RETRY
       SQLITE_ERROR_SNAPSHOT
+      SQLITE_ERROR_UNABLE
       SQLITE_IOERR_ACCESS
       SQLITE_IOERR_AUTH
+      SQLITE_IOERR_BADKEY
       SQLITE_IOERR_BEGIN_ATOMIC
       SQLITE_IOERR_BLOCKED
       SQLITE_IOERR_CHECKRESERVEDLOCK
       SQLITE_IOERR_CLOSE
+      SQLITE_IOERR_CODEC
       SQLITE_IOERR_COMMIT_ATOMIC
       SQLITE_IOERR_CONVPATH
       SQLITE_IOERR_CORRUPTFS
@@ -190,12 +209,18 @@ our @EXPORT_OK = (
       SQLITE_OPEN_URI
     /,
 
+    # flags_for_sqlite3_setlk_timeout
+    qw/
+      SQLITE_SETLK_BLOCK_ON_CONNECT
+    /,
+
     # function_flags
     qw/
       SQLITE_DETERMINISTIC
       SQLITE_DIRECTONLY
       SQLITE_INNOCUOUS
       SQLITE_RESULT_SUBTYPE
+      SQLITE_SELFORDER1
       SQLITE_SUBTYPE
     /,
 
@@ -282,6 +307,11 @@ our %EXPORT_TAGS = (
       SQLITE_CANTOPEN_ISDIR
       SQLITE_CANTOPEN_NOTEMPDIR
       SQLITE_CANTOPEN_SYMLINK
+      SQLITE_CARRAY_BLOB
+      SQLITE_CARRAY_DOUBLE
+      SQLITE_CARRAY_INT32
+      SQLITE_CARRAY_INT64
+      SQLITE_CARRAY_TEXT
       SQLITE_CONSTRAINT
       SQLITE_CONSTRAINT_CHECK
       SQLITE_CONSTRAINT_COMMITHOOK
@@ -312,6 +342,9 @@ our %EXPORT_TAGS = (
       SQLITE_DBCONFIG_DEFENSIVE
       SQLITE_DBCONFIG_DQS_DDL
       SQLITE_DBCONFIG_DQS_DML
+      SQLITE_DBCONFIG_ENABLE_ATTACH_CREATE
+      SQLITE_DBCONFIG_ENABLE_ATTACH_WRITE
+      SQLITE_DBCONFIG_ENABLE_COMMENTS
       SQLITE_DBCONFIG_ENABLE_FKEY
       SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
       SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
@@ -352,9 +385,12 @@ our %EXPORT_TAGS = (
       SQLITE_DROP_VTABLE
       SQLITE_EMPTY
       SQLITE_ERROR
+      SQLITE_ERROR_KEY
       SQLITE_ERROR_MISSING_COLLSEQ
+      SQLITE_ERROR_RESERVESIZE
       SQLITE_ERROR_RETRY
       SQLITE_ERROR_SNAPSHOT
+      SQLITE_ERROR_UNABLE
       SQLITE_FLOAT
       SQLITE_FORMAT
       SQLITE_FULL
@@ -368,10 +404,12 @@ our %EXPORT_TAGS = (
       SQLITE_IOERR
       SQLITE_IOERR_ACCESS
       SQLITE_IOERR_AUTH
+      SQLITE_IOERR_BADKEY
       SQLITE_IOERR_BEGIN_ATOMIC
       SQLITE_IOERR_BLOCKED
       SQLITE_IOERR_CHECKRESERVEDLOCK
       SQLITE_IOERR_CLOSE
+      SQLITE_IOERR_CODEC
       SQLITE_IOERR_COMMIT_ATOMIC
       SQLITE_IOERR_CONVPATH
       SQLITE_IOERR_CORRUPTFS
@@ -459,8 +497,11 @@ our %EXPORT_TAGS = (
       SQLITE_SAVEPOINT
       SQLITE_SCHEMA
       SQLITE_SELECT
+      SQLITE_SELFORDER1
+      SQLITE_SETLK_BLOCK_ON_CONNECT
       SQLITE_SUBTYPE
       SQLITE_TEXT
+      SQLITE_THREADSAFE
       SQLITE_TOOBIG
       SQLITE_TRANSACTION
       SQLITE_TXN_NONE
@@ -470,6 +511,7 @@ our %EXPORT_TAGS = (
       SQLITE_VERSION_NUMBER
       SQLITE_WARNING
       SQLITE_WARNING_AUTOINDEX
+      SQLITE_WASI
     /],
 
     allowed_return_values_from_sqlite3_txn_state => [qw/
@@ -528,6 +570,9 @@ our %EXPORT_TAGS = (
       SQLITE_DBCONFIG_DEFENSIVE
       SQLITE_DBCONFIG_DQS_DDL
       SQLITE_DBCONFIG_DQS_DML
+      SQLITE_DBCONFIG_ENABLE_ATTACH_CREATE
+      SQLITE_DBCONFIG_ENABLE_ATTACH_WRITE
+      SQLITE_DBCONFIG_ENABLE_COMMENTS
       SQLITE_DBCONFIG_ENABLE_FKEY
       SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER
       SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION
@@ -546,6 +591,16 @@ our %EXPORT_TAGS = (
       SQLITE_DBCONFIG_TRIGGER_EQP
       SQLITE_DBCONFIG_TRUSTED_SCHEMA
       SQLITE_DBCONFIG_WRITABLE_SCHEMA
+    /],
+
+    datatypes_for_the_carray_table_valued_function => [qw/
+      SQLITE_CARRAY_BLOB
+      SQLITE_CARRAY_DOUBLE
+      SQLITE_CARRAY_INT32
+      SQLITE_CARRAY_INT64
+      SQLITE_CARRAY_TEXT
+      SQLITE_THREADSAFE
+      SQLITE_WASI
     /],
 
     dbd_sqlite_string_mode => [qw/
@@ -583,15 +638,20 @@ our %EXPORT_TAGS = (
       SQLITE_CORRUPT_INDEX
       SQLITE_CORRUPT_SEQUENCE
       SQLITE_CORRUPT_VTAB
+      SQLITE_ERROR_KEY
       SQLITE_ERROR_MISSING_COLLSEQ
+      SQLITE_ERROR_RESERVESIZE
       SQLITE_ERROR_RETRY
       SQLITE_ERROR_SNAPSHOT
+      SQLITE_ERROR_UNABLE
       SQLITE_IOERR_ACCESS
       SQLITE_IOERR_AUTH
+      SQLITE_IOERR_BADKEY
       SQLITE_IOERR_BEGIN_ATOMIC
       SQLITE_IOERR_BLOCKED
       SQLITE_IOERR_CHECKRESERVEDLOCK
       SQLITE_IOERR_CLOSE
+      SQLITE_IOERR_CODEC
       SQLITE_IOERR_COMMIT_ATOMIC
       SQLITE_IOERR_CONVPATH
       SQLITE_IOERR_CORRUPTFS
@@ -650,11 +710,16 @@ our %EXPORT_TAGS = (
       SQLITE_OPEN_URI
     /],
 
+    flags_for_sqlite3_setlk_timeout => [qw/
+      SQLITE_SETLK_BLOCK_ON_CONNECT
+    /],
+
     function_flags => [qw/
       SQLITE_DETERMINISTIC
       SQLITE_DIRECTONLY
       SQLITE_INNOCUOUS
       SQLITE_RESULT_SUBTYPE
+      SQLITE_SELFORDER1
       SQLITE_SUBTYPE
     /],
 
@@ -736,7 +801,7 @@ DBD::SQLite::Constants - common SQLite constants
 
 =head1 DESCRIPTION
 
-You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<dbd_sqlite_string_mode>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
+You can import necessary SQLite constants from this module. Available tags are C<all>, C<allowed_return_values_from_sqlite3_txn_state>, C<authorizer_action_codes>, C<authorizer_return_codes>, C<version> (C<compile_time_library_version_numbers>), C<database_connection_configuration_options>, C<datatypes_for_the_carray_table_valued_function>, C<dbd_sqlite_string_mode>, C<extended_result_codes>, C<file_open> (C<flags_for_file_open_operations>), C<flags_for_sqlite3_setlk_timeout>, C<function_flags>, C<datatypes> (C<fundamental_datatypes>), C<result_codes>, C<run_time_limit_categories>. See L<http://sqlite.org/c3ref/constlist.html> for the complete list of constants.
 
 This module does not export anything by default.
 
@@ -852,6 +917,12 @@ This module does not export anything by default.
 
 =item SQLITE_DBCONFIG_LOOKASIDE
 
+=item SQLITE_DBCONFIG_ENABLE_ATTACH_CREATE
+
+=item SQLITE_DBCONFIG_ENABLE_ATTACH_WRITE
+
+=item SQLITE_DBCONFIG_ENABLE_COMMENTS
+
 =item SQLITE_DBCONFIG_ENABLE_FKEY
 
 =item SQLITE_DBCONFIG_ENABLE_TRIGGER
@@ -894,6 +965,26 @@ This module does not export anything by default.
 
 =back
 
+=head2 datatypes_for_the_carray_table_valued_function
+
+=over 4
+
+=item SQLITE_CARRAY_INT32
+
+=item SQLITE_CARRAY_INT64
+
+=item SQLITE_CARRAY_DOUBLE
+
+=item SQLITE_CARRAY_TEXT
+
+=item SQLITE_CARRAY_BLOB
+
+=item SQLITE_WASI
+
+=item SQLITE_THREADSAFE
+
+=back
+
 =head2 dbd_sqlite_string_mode
 
 =over 4
@@ -915,6 +1006,12 @@ This module does not export anything by default.
 =over 4
 
 =item SQLITE_IOERR_LOCK
+
+=item SQLITE_ERROR_RESERVESIZE
+
+=item SQLITE_ERROR_KEY
+
+=item SQLITE_ERROR_UNABLE
 
 =item SQLITE_IOERR_READ
 
@@ -943,6 +1040,10 @@ This module does not export anything by default.
 =item SQLITE_IOERR_ACCESS
 
 =item SQLITE_IOERR_CHECKRESERVEDLOCK
+
+=item SQLITE_IOERR_BADKEY
+
+=item SQLITE_IOERR_CODEC
 
 =item SQLITE_IOERR_CLOSE
 
@@ -1098,11 +1199,21 @@ This module does not export anything by default.
 
 =back
 
+=head2 flags_for_sqlite3_setlk_timeout
+
+=over 4
+
+=item SQLITE_SETLK_BLOCK_ON_CONNECT
+
+=back
+
 =head2 function_flags
 
 =over 4
 
 =item SQLITE_DETERMINISTIC
+
+=item SQLITE_SELFORDER1
 
 =item SQLITE_DIRECTONLY
 
