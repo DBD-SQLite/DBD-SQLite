@@ -255,6 +255,7 @@ my $ignore_tag_re = join '|', (
   'checkpoint_mode_values', # for sqlite3_wal_checkpoint_v2
   'virtual_table_configuration_options', # for sqlite3_vtab_config
   'prepare_flags', # for sqlite3_prepare_v3
+  'datatypes_for_the_carray_table_valued_function', # for Carray extension which is disabled by default
 
   'delete_a_session_object',
   'prepared_statement_scan_status',
