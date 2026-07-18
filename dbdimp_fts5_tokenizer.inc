@@ -73,6 +73,7 @@ static int perl_fts5_tokenizer_Tokenize(
       void *pCtx,
       int flags,            /* Mask of FTS5_TOKENIZE_* flags */
       const char *pText, int nText,
+      const char *pLocale, int nLocale,
       int (*xToken)(
         void *pCtx,         /* Copy of 2nd argument to xTokenize() */
         int tflags,         /* Mask of FTS5_TOKEN_* flags */
@@ -200,7 +201,8 @@ int perl_fts5_xToken(pTHX_
 /*
 ** The set of routines that implement the perl FTS5 tokenizer
 */
-fts5_tokenizer perl_fts5_tokenizer_Module = {
+fts5_tokenizer_v2 perl_fts5_tokenizer_Module = {
+    2, /* iVersion */
     perl_fts5_tokenizer_Create,
     perl_fts5_tokenizer_Delete,
     perl_fts5_tokenizer_Tokenize
@@ -245,9 +247,9 @@ int sqlite_db_register_fts5_perl_tokenizer(pTHX_ SV *dbh)
 
     int rc;
     fts5_api *pFts5Api = sqlite_fetch_fts5_api(aTHX_ dbh);
-    fts5_tokenizer *p = &perl_fts5_tokenizer_Module;
+    fts5_tokenizer_v2 *p = &perl_fts5_tokenizer_Module;
 
-    rc = pFts5Api->xCreateTokenizer(pFts5Api, "perl", 0, p, 0);
+    rc = pFts5Api->xCreateTokenizer_v2(pFts5Api, "perl", 0, p, 0);
 
     return rc;
 }
