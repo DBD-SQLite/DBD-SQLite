@@ -1776,6 +1776,7 @@ sqlite_db_func_dispatcher(dbd_sqlite_string_mode_t string_mode, sqlite3_context 
 
     func      = sqlite3_user_data(context);
 
+    PUSHSTACK;
     ENTER;
     SAVETMPS;
 
@@ -1806,9 +1807,9 @@ sqlite_db_func_dispatcher(dbd_sqlite_string_mode_t string_mode, sqlite3_context 
         sqlite_set_result(aTHX_ context, POPs, 0 );
     }
 
-    PUTBACK;
     FREETMPS;
     LEAVE;
+    POPSTACK;
 }
 
 static void
@@ -2199,6 +2200,7 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
     int cmp = 0;                        \
     int n_retval, i;                    \
                                         \
+    PUSHSTACK;                          \
     ENTER;                              \
     SAVETMPS;                           \
     PUSHMARK(SP);                       \
@@ -2213,9 +2215,9 @@ sqlite_db_create_aggregate(pTHX_ SV *dbh, const char *name, int argc, SV *aggr_p
     for(i = 0; i < n_retval; i++) {     \
         cmp = POPi;                     \
     }                                   \
-    PUTBACK;                            \
     FREETMPS;                           \
     LEAVE;                              \
+    POPSTACK;                           \
                                         \
     return cmp;                         \
 } STMT_END
@@ -2325,6 +2327,7 @@ sqlite_db_collation_needed_dispatcher(
 
     D_imp_dbh(dbh);
 
+    PUSHSTACK;
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
@@ -2333,11 +2336,10 @@ sqlite_db_collation_needed_dispatcher(
     PUTBACK;
 
     call_sv( imp_dbh->collation_needed_callback, G_VOID );
-    SPAGAIN;
 
-    PUTBACK;
     FREETMPS;
     LEAVE;
+    POPSTACK;
 }
 
 void
@@ -2369,6 +2371,7 @@ sqlite_db_generic_callback_dispatcher( void *callback )
     int n_retval, i;
     int retval = 0;
 
+    PUSHSTACK;
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
@@ -2380,9 +2383,9 @@ sqlite_db_generic_callback_dispatcher( void *callback )
     for(i = 0; i < n_retval; i++) {
         retval = POPi;
     }
-    PUTBACK;
     FREETMPS;
     LEAVE;
+    POPSTACK;
 
     return retval;
 }
@@ -2490,6 +2493,7 @@ sqlite_db_update_dispatcher( void *callback, int op,
     dTHX;
     dSP;
 
+    PUSHSTACK;
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
@@ -2501,11 +2505,10 @@ sqlite_db_update_dispatcher( void *callback, int op,
     PUTBACK;
 
     call_sv( callback, G_VOID );
-    SPAGAIN;
 
-    PUTBACK;
     FREETMPS;
     LEAVE;
+    POPSTACK;
 }
 
 SV*
@@ -2555,6 +2558,7 @@ sqlite_db_authorizer_dispatcher (
     int retval = 0;
     int n_retval, i;
 
+    PUSHSTACK;
     ENTER;
     SAVETMPS;
     PUSHMARK(SP);
@@ -2577,9 +2581,9 @@ sqlite_db_authorizer_dispatcher (
         retval = POPi;
     }
 
-    PUTBACK;
     FREETMPS;
     LEAVE;
+    POPSTACK;
 
     return retval;
 }
