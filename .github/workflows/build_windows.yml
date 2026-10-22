@@ -21,7 +21,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install dependencies with develop
-        run: curl -sL https://git.io/cpm | perl - install -g --with-recommends --with-test --with-configure --with-develop --show-build-log-on-failure
+        run: curl -sL https://cpanmin.us | perl - --installdeps .
       - name: Run Makefile.PL
         run: perl Makefile.PL
       - name: Run tests
