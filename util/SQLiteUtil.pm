@@ -498,6 +498,7 @@ sub year {
   my $self = shift;
   return "snapshot" if $self->is_snapshot;
   my $version = $self->as_num;
+  return 2026 if $version >= 3510200;
   return 2025 if $version >= 3480000;
   return 2024 if $version >= 3450000;
   return 2023 if $version >= 3410000;
