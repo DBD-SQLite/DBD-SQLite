@@ -2990,7 +2990,8 @@ sqlite_db_txn_state(pTHX_ SV *dbh, SV *schema)
 #endif
 }
 
-#include "dbdimp_tokenizer.inc"
+#include "dbdimp_fts3_tokenizer.inc"
+#include "dbdimp_fts5_tokenizer.inc"
 #include "dbdimp_virtual_table.inc"
 
 /* end */

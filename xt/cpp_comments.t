@@ -24,8 +24,8 @@ foreach my $file (@c_files) {
         $line++;
         if (/^(.*)\/\//) {
             my $m = $1;
-            if ($m !~ /\*/ && $m !~ /(?:file|http|ftp):$/ && $m !~ m!"/*?$!) { # skip the // in c++ comment in parse.c
-                fail("C++ comment in $file line $line: $m");
+            if ($m !~ /\*/ && $m !~ /(?:file|http|ftp):\/?$/ && $m !~ m!"/*?$!) { # skip the // in c++ comment in parse.c
+                fail("C++ comment in $file line $line: '$m'");
                 next FILE;
             }
         }

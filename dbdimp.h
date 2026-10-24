@@ -182,6 +182,8 @@ HV* sqlite_db_table_column_metadata(pTHX_ SV *dbh, SV *dbname, SV *tablename, SV
 HV* _sqlite_db_status(pTHX_ SV *dbh, int reset);
 SV* sqlite_db_filename(pTHX_ SV *dbh);
 int sqlite_db_register_fts3_perl_tokenizer(pTHX_ SV *dbh);
+int sqlite_db_register_fts5_perl_tokenizer(pTHX_ SV *dbh);
+int perl_fts5_xToken(pTHX_        SV* pCtx,        int tflags,           SV* svToken,          int iStart,           int iEnd      );
 HV* _sqlite_status(int reset);
 HV* _sqlite_st_status(pTHX_ SV *sth, int reset);
 int sqlite_db_create_module(pTHX_ SV *dbh, const char *name, const char *perl_class);
