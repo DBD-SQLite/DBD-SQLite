@@ -295,9 +295,16 @@ if (!$Config{usedl}) {
 my (@CCFLAGS, @LDFLAGS, @LDDLFLAGS);
 
 if ($ENV{TEST_DBD_SQLITE_WITH_ASAN}) {
-    push @CCFLAGS, '-fsanitize=address -static-libasan -fuse-ld=gold -fno-omit-frame-pointer -g -O2';
-    push @LDFLAGS, '-fsanitize=address -static-libasan -fuse-ld=gold -fno-omit-frame-pointer -g -O2';
-    push @LDDLFLAGS, '-fsanitize=address -static-libasan -fuse-ld=gold -fno-omit-frame-pointer -g -O2';
+    my $asan = '-fsanitize=address -static-libasan -fno-omit-frame-pointer -g -O2';
+    for my $path (File::Spec->path) {
+        if (MM->maybe_command("$path/ld.gold")) {
+            $asan .= ' -fuse-ld=gold';
+            last;
+        }
+    }
+    push @CCFLAGS, $asan;
+    push @LDFLAGS, $asan;
+    push @LDDLFLAGS, $asan;
 }
 
 # RT #70135: See if ld supports Bsymbolic; 
