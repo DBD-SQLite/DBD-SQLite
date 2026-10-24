@@ -13,7 +13,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v7
 #      - name: Set up Perl
 #        run: |
 #          choco install strawberryperl
@@ -21,7 +21,7 @@ jobs:
       - name: perl -V
         run: perl -V
       - name: Install dependencies with develop
-        run: curl -sL https://cpanmin.us | perl - --installdeps .
+        run: cpanm --installdeps .
       - name: Run Makefile.PL
         run: perl Makefile.PL
       - name: Run tests

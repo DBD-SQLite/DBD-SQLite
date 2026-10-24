@@ -26,9 +26,12 @@ jobs:
       image: perl:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: perl -V
         run: perl -V
+      - name: Install dependencies for old perls
+        if: ${{ matrix.perl-version == '5.8-buster' || matrix.perl-version == '5.10-buster' }}
+        run: curl -sL https://cpanmin.us | perl - Test::More@0.96 DBI@1.651
       - name: Install dependencies
         run: curl -sL https://cpanmin.us | perl - --installdeps .
       - name: Run tests
