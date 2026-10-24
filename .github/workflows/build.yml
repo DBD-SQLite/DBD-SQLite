@@ -20,7 +20,8 @@ jobs:
           - '5.18-buster'
           - '5.20-buster'
           - '5.26'
-          - 'latest'
+          - 'stable'
+          - 'stable-threaded'
 
     container:
       image: perl:${{ matrix.perl-version }}
