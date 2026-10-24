@@ -37,3 +37,6 @@ jobs:
         run: curl -sL https://cpanmin.us | perl - --installdeps .
       - name: Run tests
         run: perl Makefile.PL && make && make test
+      - name: Run tests (asan)
+        if: ${{ matrix.perl-version == 'stable' || matrix.perl-version == 'stable-threaded' }}
+        run: TEST_DBD_SQLITE_WITH_ASAN=1 make clean && perl Makefile.PL && make && make test
