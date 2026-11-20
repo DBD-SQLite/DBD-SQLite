@@ -129,7 +129,7 @@ SCOPE: {
 # a system sqlite is also sophisticated enough to have a patching system
 # that can change the if ( 0 ) to if ( 1 )
 my ($sqlite_local, $sqlite_base, $sqlite_lib, $sqlite_inc);
-if ( 0 ) {
+if ( $ENV{USE_SYSTEM_SQLITE} ) {
 	require File::Spec;
 	if ( $sqlite_base = (grep(/SQLITE_LOCATION=.*/, @ARGV))[0] ) {
 		$sqlite_base =~ /=(.*)/;
