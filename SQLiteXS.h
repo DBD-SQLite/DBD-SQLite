@@ -20,5 +20,6 @@
 
 #include "sqlite3.h"
 #include "fts3_tokenizer.h"
+#include "fts5.h"
 
 #endif
