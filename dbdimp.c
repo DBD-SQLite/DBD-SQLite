@@ -175,6 +175,20 @@ _sqlite_exec(pTHX_ SV *h, sqlite3 *db, const char *sql)
     return rc;
 }
 
+static void
+_sqlite_log_callback(void *unused, int error_code, const char *message)
+{
+    dTHX;
+
+    SV* drh = get_sv("DBD::SQLite::drh", 0);
+
+    if (drh && SvOK(drh)) {
+        D_imp_drh(drh);
+
+        sqlite_trace(NULL, imp_drh, 3, form("sqlite3_log %d, %s", error_code, message));
+    }
+}
+
 int
 _sqlite_open(pTHX_ SV *dbh, const char *dbname, sqlite3 **db, int flags, int extended)
 {
@@ -430,6 +444,27 @@ sqlite_init(dbistate_t *dbistate)
 {
     dTHX;
     DBISTATE_INIT; /* Initialize the DBI macros  */
+
+#if SQLITE_VERSION_NUMBER >= 3006023
+    /*
+     * "The sqlite3_config() interface may only be
+     * invoked prior to library initialization using
+     * sqlite3_initialize() or after shutdown by
+     * sqlite3_shutdown()."
+     * -- https://sqlite.org/c3ref/config.html
+     */
+    sqlite3_config(SQLITE_CONFIG_LOG, _sqlite_log_callback, NULL);
+#endif
+
+    /*
+     * "For maximum portability, it is recommended that
+     * applications always invoke sqlite3_initialize()
+     * directly prior to using any other SQLite interface.
+     * Future releases of SQLite may require this."
+     * -- https://sqlite.org/c3ref/initialize.html
+     */
+    sqlite3_initialize();
+
 }
 
 int
